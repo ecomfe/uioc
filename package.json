@@ -1,0 +1,15 @@
+{
+  "name": "ioc",
+  "version": "0.0.0",
+  "description": "an implementation use javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "ioc",
+    "di"
+  ],
+  "author": "Exodia",
+  "license": "MIT"
+}
