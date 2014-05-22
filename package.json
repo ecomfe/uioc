@@ -1,15 +1,27 @@
 {
-  "name": "ioc",
-  "version": "0.0.0",
-  "description": "an implementation use javascript",
-  "main": "index.js",
-  "scripts": {
-    "test": "test"
-  },
-  "keywords": [
-    "ioc",
-    "di"
-  ],
-  "author": "Exodia",
-  "license": "MIT"
+    "name": "uioc",
+    "version": "0.0.1",
+    "description": "an implementation use javascript",
+    "main": "IocContext.js",
+    "maintainers": {
+        "name": "Exodia",
+        "email": "d_xinxin@163.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ecomfe/uioc.git"
+    },
+    "keywords": [
+        "ioc",
+        "di"
+    ],
+    "author": {
+        "name": "Exodia",
+        "email": "d_xinxin@163.com"
+    },
+    "license": "GPL",
+    "bugs": {
+        "url": "https://github.com/ecomfe/oo/issues"
+    },
+    "homepage": "https://github.com/ecomfe/oo"
 }

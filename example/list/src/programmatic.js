@@ -2,7 +2,7 @@
  * Created by exodia on 14-4-18.
  */
 define(function () {
-    var IocContainer = require('../../../ioc');
+    var IocContainer = require('../../../context');
     var ioc = new IocContainer();
     // 构建注册
     ioc.addComponent('List', {
