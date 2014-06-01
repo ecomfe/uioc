@@ -59,10 +59,6 @@ void function (define) {
             }, 0)
         }
 
-        function bind(fn, scope) {
-
-        }
-
         function isObject(obj) {
             return Object.prototype.toString.call(obj) === '[object Object]';
         }
@@ -71,7 +67,7 @@ void function (define) {
             hasOwnProperty: hasOwnProperty,
             contains: contains,
             addToSet: addToSet,
-            bind: bind,
+//            bind: bind,
             isObject: isObject,
             setImmediate: immediate,
             log: log,

@@ -3,7 +3,7 @@
  */
 
 void function (define, undefined) {
-    define(function () {
+    define(function (require) {
         var Container = require('./Container');
         var util = require('./util');
         var DependencyTree = require('./DependencyTree');
@@ -12,14 +12,14 @@ void function (define, undefined) {
             return creator.apply(this, args);
         };
 
-        function Context(config) {
+        function Context(config, loader) {
             if (!(this instanceof Context)) {
                 return new Context(config);
             }
 
-            this.loader = globalLoader;
+            this.loader = loader || globalLoader;
             this.components = {};
-            this.container = new Container();
+            this.container = new Container(this);
             for (var id in config) {
                 this.addComponent(id, config[id]);
             }
@@ -92,7 +92,7 @@ void function (define, undefined) {
                     util.warn('`%s` has not been added to the Ioc', type);
                 }
                 else {
-                    getComponentDeps(component, needLoadedModules);
+                    getComponentDeps(this, component, needLoadedModules);
                 }
             }
 
@@ -100,10 +100,18 @@ void function (define, undefined) {
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     instances[i] = me.container.createInstance(me.components[ids[i]]);
                 }
-                cb(instances);
+                cb.apply(null, instances);
             });
 
             return this;
+        };
+
+        Context.prototype.getComponentConfig = function (id) {
+            return this.components[id];
+        };
+
+        Context.prototype.loader = function (loader) {
+            this.loader = loader;
         };
 
         /**
@@ -208,9 +216,14 @@ void function (define, undefined) {
 
             context.loader(modules, function () {
                 for (var i = arguments.length - 1; i > -1; --i) {
+                    var creator = arguments[i];
                     var components = moduleMaps[modules[i]];
                     for (var j = components.length - 1; j > -1; --j) {
-                        createCreator(components[i]);
+                        var component = components[j];
+                        if (!component.creator) {
+                            component.creator = creator;
+                            createCreator(component);
+                        }
                     }
                 }
                 cb();

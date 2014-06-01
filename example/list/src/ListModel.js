@@ -1,4 +1,7 @@
 define(function () {
+    var permission = null;
+    var permissionConfig = null;
+
     function ListModel() {
         this.dataPool = {};
     }
@@ -27,6 +30,19 @@ define(function () {
     ListModel.prototype.getAllItems = function () {
         console.log('[ListModel getAllItems]');
         return this.results;
+    };
+
+    ListModel.prototype.datasource = {
+        canModify: permission(permissionConfig.canModify),
+        canView: permission(permissionConfig.canView)
+    }
+
+    ListModel.prototype.setPermission = function (v) {
+        permission = v;
+    };
+
+    ListModel.prototype.setPermissionConfig = function (v) {
+        permissionConfig = v;
     };
 
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="esl.js"></script>
+    <script>
+        require.config({
+            baseUrl: './',
+            packages: [
+                {
+                    name: 'ioc',
+                    location: '../src'
+                }
+            ]
+        });
+        require(['main'], function (Main) {
+            Main.init();
+        });
+    </script>
+</head>
+<body>
+
+</body>
+</html>
