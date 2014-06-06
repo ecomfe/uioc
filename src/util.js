@@ -63,12 +63,17 @@ void function (define) {
             return Object.prototype.toString.call(obj) === '[object Object]';
         }
 
+        function hasReference(obj) {
+            return isObject(obj) && typeof obj.$ref === 'string';
+        }
+
         return {
             hasOwnProperty: hasOwnProperty,
             contains: contains,
             addToSet: addToSet,
 //            bind: bind,
             isObject: isObject,
+            hasReference: hasReference,
             setImmediate: immediate,
             log: log,
             warn: warn

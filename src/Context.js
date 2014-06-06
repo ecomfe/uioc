@@ -46,8 +46,9 @@ void function (define, undefined) {
          * @param {Object} config
          * @param {Function | String} config.creator 创建构件的函数或模块名称
          * @param {Boolean=false} config.isFactory 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用
-         * @param {'transient' | 'singleton'} [config.scope = 'transient']
+         * @param {'transient' | 'singleton' | 'static'} [config.scope = 'transient']
          * 构件作用域，默认为 transient，每次获取构件，都会新建一个实例返回，若为 singleton，则会返回同一个实例
+         * 若为 static，则直接返回creator
          *
          * @param {Array} config.args 传递给创建构件函数的参数
          * @param {Object} config.properties 附加给实例的属性
@@ -148,10 +149,7 @@ void function (define, undefined) {
             var deps = [];
             var args = component.args;
             for (var i = args.length - 1; i > -1; --i) {
-                typeof args[i] === 'object'
-                && util.hasOwnProperty(args[i], '$ref')
-                && typeof args[i].$ref === 'string'
-                && util.addToSet(deps, args[i].$ref);
+                util.hasReference(args[i]) && util.addToSet(deps, args[i].$ref);
             }
             return deps;
         }
@@ -162,7 +160,7 @@ void function (define, undefined) {
             for (var k in properties) {
                 if (util.hasOwnProperty(properties, k)) {
                     var prop = properties[k];
-                    typeof prop.$ref === 'string' && util.addToSet(deps, prop.$ref);
+                    util.hasReference(prop) && util.addToSet(deps, prop.$ref);
                 }
             }
             return deps;
@@ -170,7 +168,7 @@ void function (define, undefined) {
 
         function createCreator(component) {
             // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator
-            if (!component.isFactory) {
+            if (!component.isFactory && component.scope !== 'static') {
                 var constructor = component.creator;
                 component.creator = function () {
                     creatorWrapper.prototype = constructor.prototype;

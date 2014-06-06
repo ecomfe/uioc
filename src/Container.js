@@ -1,11 +1,9 @@
 void function (define) {
-    define(function () {
+    define(function (require) {
+
+        var util = require('./util');
 
         function Container(context) {
-            if (!(this instanceof Container)) {
-                return new Container(context);
-            }
-
             this.context = context;
         }
 
@@ -13,9 +11,12 @@ void function (define) {
             if (!component) {
                 return null;
             }
-
             if (component.scope === 'singleton' && component.instance) {
                 return component.instance;
+            }
+
+            if (component.scope === 'static') {
+                return component.creator;
             }
 
             var args = createArgs(this, component);
@@ -37,7 +38,7 @@ void function (define) {
             var args = Array(argConfigs.length);
             for (var i = argConfigs.length - 1; i > -1; --i) {
                 var arg = argConfigs[i];
-                args[i] = typeof arg.$ref == 'string' ?
+                args[i] = util.hasReference(arg) ?
                     container.createInstance(container.context.getComponentConfig(arg.$ref))
                     : arg;
             }
@@ -51,26 +52,11 @@ void function (define) {
                 var property = properties[k];
                 var value = property;
 
-                if (typeof property === 'object' && typeof property.$ref === 'string') {
+                if (util.hasReference(property)) {
                     value = container.createInstance(container.context.getComponentConfig(property.$ref));
                 }
 
-
-                var setter = getSetter(instance, k, property);
-                setter.call(instance, value);
-            }
-        }
-
-        function getSetter(instance, k, v) {
-            var name = typeof v === 'object' && typeof v.$setter === 'string' ? v.$setter
-                : 'set' + k.charAt(0).toUpperCase() + k.substr(1);
-
-            return typeof instance[name] === 'function' ? instance[name] : getCommonSetter(k);
-        }
-
-        function getCommonSetter(k) {
-            return function (v) {
-                this[k] = v;
+                typeof instance[k] === 'function' ? instance[k](value) : (instance[k] = value);
             }
         }
 
