@@ -164,16 +164,13 @@ describe('Ioc Integration Test', function () {
         });
     });
 
-    /* describe('circularNotAllowed', 1, function (done) {
-     iocInstance.allowCircular = false;
-     throws(function (done) {
-     iocInstance.getComponent('circular1', function (circular1) {
+    it('circularError', function () {
+        expect(function () {
+            iocInstance.getComponent('circular1', function (circular1) {})
+        }).toThrow();
+    });
 
-     });
-     });
-     });
-
-     it('circularAllowed', 1, function (done) {
+    /* it('circularAllowed', 1, function (done) {
 
      iocInstance.allowCircular = true;
      iocInstance.getComponent('circular1', function (circular1) {

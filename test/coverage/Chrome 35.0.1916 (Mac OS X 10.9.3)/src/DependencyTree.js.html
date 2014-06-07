@@ -195,20 +195,20 @@
     </style>
 </head>
 <body>
-<div class="header medium">
+<div class="header high">
     <h1>Code coverage report for <span class="entity">src/DependencyTree.js</span></h1>
     <h2>
         
-        Statements: <span class="metric">62.96% <small>(17 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">35.71% <small>(5 / 14)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">78.57% <small>(11 / 14)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Functions: <span class="metric">71.43% <small>(5 / 7)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">85.71% <small>(6 / 7)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">62.96% <small>(17 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
@@ -262,49 +262,47 @@
 44
 45
 46
-47
-48</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+47</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">48</span>
-<span class="cline-any cline-yes">48</span>
-<span class="cline-any cline-yes">48</span>
+<span class="cline-any cline-yes">52</span>
+<span class="cline-any cline-yes">52</span>
+<span class="cline-any cline-yes">52</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">33</span>
-<span class="cline-any cline-yes">33</span>
-<span class="cline-any cline-yes">33</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">36</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">67</span>
+<span class="cline-any cline-yes">67</span>
+<span class="cline-any cline-yes">31</span>
+<span class="cline-any cline-yes">31</span>
+<span class="cline-any cline-yes">31</span>
+<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">33</span>
-<span class="cline-any cline-yes">33</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">36</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">33</span>
-<span class="cline-any cline-yes">33</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">36</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
@@ -328,20 +326,19 @@ void function (define) {
             return node;
         };
 &nbsp;
-        DependencyNode.prototype.checkForCircular = <span class="fstat-no" title="function not covered" >function (id) {</span>
-<span class="cstat-no" title="statement not covered" >            var node = this.parent;</span>
-<span class="cstat-no" title="statement not covered" >            if (node !== null) {</span>
-<span class="cstat-no" title="statement not covered" >                var data = node.data;</span>
-<span class="cstat-no" title="statement not covered" >                for (var i = data.length - 1; i &gt; -1; --i) {</span>
-<span class="cstat-no" title="statement not covered" >                    if (node.data[i].id &amp;&amp; node.data[i].id === id) {</span>
-<span class="cstat-no" title="statement not covered" >                        return node.data[i];</span>
+        DependencyNode.prototype.checkForCircular = function (id) {
+            var node = this.parent;
+            if (node !== null) {
+                var data = node.data;
+                for (var i = data.length - 1; i &gt; -1; --i) {
+                    if (node.data[i].id &amp;&amp; node.data[i].id === id) {
+                        return node.data[i];
                     }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >                    return node.checkForCircular(id);</span>
+                    return node.checkForCircular(id);
                 }
             }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >            return null;</span>
+            return null;
         };
 &nbsp;
         DependencyNode.prototype.addData = function (data, checkForCircular) {
@@ -362,7 +359,7 @@ void function (define) {
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Jun 07 2014 01:07:47 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Jun 07 2014 23:21:36 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>

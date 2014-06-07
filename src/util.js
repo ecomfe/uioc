@@ -29,34 +29,10 @@ void function (define) {
             !contains(arr, el) && arr.push(el);
         }
 
-        function constant(value) {
-            return function () {
-                return value
-            }
-        }
-
-        function log() {
-            if (typeof console !== 'undefined') {
-                console.log.apply(console, arguments)
-            }
-        }
-
         function warn() {
             if (typeof console !== 'undefined') {
                 console.warn.apply(console, arguments)
             }
-        }
-
-        function immediate(fn) {
-            if (typeof setImmediate === 'function') {
-                setImmediate.apply(null, arguments);
-                return;
-            }
-
-            var args = [].slice.call(arguments, 1);
-            setTimeout(function () {
-                fn(args);
-            }, 0)
         }
 
         function isObject(obj) {
@@ -67,15 +43,26 @@ void function (define) {
             return isObject(obj) && typeof obj.$ref === 'string';
         }
 
+        // 循环依赖错误
+        function CircularError(message, component) {
+            this.message = message;
+            this.component = component;
+        }
+
+        CircularError.prototype = Error.prototype;
+
+        CircularError.prototype.print = function () {
+            warn(this.message);
+        };
+
+
         return {
+            CircularError: CircularError,
             hasOwnProperty: hasOwnProperty,
             contains: contains,
             addToSet: addToSet,
-//            bind: bind,
             isObject: isObject,
             hasReference: hasReference,
-            setImmediate: immediate,
-            log: log,
             warn: warn
         };
     });
