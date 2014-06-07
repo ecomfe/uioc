@@ -6,8 +6,6 @@ define(
         // 构件名
         List: {
             // 构件的模块路径
-            // 如果模块返回值为非函数，则认为是一个字面量，忽略除 properties之外的所有属性，并认为 scope 为’singleton’
-
             module: 'List',
             // 默认为 transient，每次获取构件，都将调用一次 creator
             scope: 'transient',

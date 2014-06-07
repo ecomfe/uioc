@@ -28,7 +28,6 @@ void function (define) {
                     return node.checkForCircular(id);
                 }
             }
-
             return null;
         };
 

@@ -121,7 +121,6 @@ void function (define, undefined) {
         Context.prototype.dispose = function () {
             this.container.dispose();
             this.components = {};
-            this.isLoading = false;
         };
 
         function createComponent(id, config) {
@@ -188,11 +187,14 @@ void function (define, undefined) {
                 result[module].push(component);
             }
             depTree = depTree || new DependencyTree();
-            if (!depTree.addData(component)) {
-                util.warn('`%s` has circular dependencies!', component.id);
-                return;
+
+            var circular = depTree.checkForCircular(component.id);
+            if (circular) {
+                var msg = component.id + ' has circular dependencies ';
+                throw new util.CircularError(msg, component);
             }
 
+            depTree.addData(component);
             var child = depTree.appendChild(new DependencyTree());
 
             var argDeps = component.argDeps;
