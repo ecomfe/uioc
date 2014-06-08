@@ -287,6 +287,7 @@
 69
 70</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
@@ -342,7 +343,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -355,80 +355,80 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">void function (define) {
-    define(function () {
-        var nativeIndexOf = Array.prototype.indexOf;
+    define(
+        function () {
+            var nativeIndexOf = Array.prototype.indexOf;
 &nbsp;
-        function hasOwnProperty(object, key) {
-            return Object.prototype.hasOwnProperty.call(object, key)
-        }
-&nbsp;
-        function indexOf(arr, el) {
-            <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof nativeIndexOf === 'function' &amp;&amp; arr.indexOf === nativeIndexOf) {
-                return arr.indexOf(el);
+            function hasOwnProperty(object, key) {
+                return Object.prototype.hasOwnProperty.call(object, key)
             }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >            for (var i = 0, len = arr.length; i &lt; len; ++i) {</span>
-<span class="cstat-no" title="statement not covered" >                if (arr[i] === el) {</span>
-<span class="cstat-no" title="statement not covered" >                    return i;</span>
+            function indexOf(arr, el) {
+                <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof nativeIndexOf === 'function' &amp;&amp; arr.indexOf === nativeIndexOf) {
+                    return arr.indexOf(el);
+                }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                for (var i = 0, len = arr.length; i &lt; len; ++i) {</span>
+<span class="cstat-no" title="statement not covered" >                    if (arr[i] === el) {</span>
+<span class="cstat-no" title="statement not covered" >                        return i;</span>
+                    }
+                }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                return -1;</span>
+            }
+&nbsp;
+            function contains(arr, el) {
+                return indexOf(arr, el) &gt; -1;
+            }
+&nbsp;
+&nbsp;
+            function addToSet(arr, el) {
+                !contains(arr, el) &amp;&amp; arr.push(el);
+            }
+&nbsp;
+            function warn() {
+                <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof console !== 'undefined') {
+                    console.warn.apply(console, arguments)
                 }
             }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >            return -1;</span>
-        }
-&nbsp;
-        function contains(arr, el) {
-            return indexOf(arr, el) &gt; -1;
-        }
-&nbsp;
-&nbsp;
-        function addToSet(arr, el) {
-            !contains(arr, el) &amp;&amp; arr.push(el);
-        }
-&nbsp;
-        function warn() {
-            <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof console !== 'undefined') {
-                console.warn.apply(console, arguments)
+            function isObject(obj) {
+                return Object.prototype.toString.call(obj) === '[object Object]';
             }
-        }
 &nbsp;
-        function isObject(obj) {
-            return Object.prototype.toString.call(obj) === '[object Object]';
-        }
+            function hasReference(obj) {
+                return isObject(obj) &amp;&amp; typeof obj.$ref === 'string';
+            }
 &nbsp;
-        function hasReference(obj) {
-            return isObject(obj) &amp;&amp; typeof obj.$ref === 'string';
-        }
+            // 循环依赖错误
+            function CircularError(message, component) {
+                this.message = message;
+                this.component = component;
+            }
 &nbsp;
-        // 循环依赖错误
-        function CircularError(message, component) {
-            this.message = message;
-            this.component = component;
-        }
+            CircularError.prototype = Error.prototype;
 &nbsp;
-        CircularError.prototype = Error.prototype;
+            CircularError.prototype.print = <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >                warn(this.message);</span>
+            };
 &nbsp;
-        CircularError.prototype.print = <span class="fstat-no" title="function not covered" >function () {</span>
-<span class="cstat-no" title="statement not covered" >            warn(this.message);</span>
-        };
-&nbsp;
-&nbsp;
-        return {
-            CircularError: CircularError,
-            hasOwnProperty: hasOwnProperty,
-            contains: contains,
-            addToSet: addToSet,
-            isObject: isObject,
-            hasReference: hasReference,
-            warn: warn
-        };
-    });
+            return {
+                CircularError: CircularError,
+                hasOwnProperty: hasOwnProperty,
+                contains: contains,
+                addToSet: addToSet,
+                isObject: isObject,
+                hasReference: hasReference,
+                warn: warn
+            };
+        });
 &nbsp;
 }(typeof define === 'function' &amp;&amp; define.amd ? define : <span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >function (factory) {</span> <span class="cstat-no" title="statement not covered" >module.exports = factory; </span>})</span>;</pre></td></tr>
 </table></pre>
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Jun 07 2014 23:21:36 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 08 2014 20:34:59 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>

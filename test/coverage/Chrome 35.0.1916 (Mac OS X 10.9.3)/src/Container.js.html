@@ -282,8 +282,10 @@
 64
 65
 66
-67</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+67
+68</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -349,77 +351,78 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">void function (define) {
-    define(function (require) {
+    define(
+        function (require) {
 &nbsp;
-        var util = require('./util');
+            var util = require('./util');
 &nbsp;
-        function Container(context) {
-            this.context = context;
-        }
-&nbsp;
-        Container.prototype.createInstance = function (component) {
-            if (!component) {
-                return null;
-            }
-            if (component.scope === 'singleton' &amp;&amp; component.instance) {
-                return component.instance;
+            function Container(context) {
+                this.context = context;
             }
 &nbsp;
-            if (component.scope === 'static') {
-                return component.creator;
-            }
-&nbsp;
-            var args = createArgs(this, component);
-            var instance = component.creator.apply(null, args);
-            injectProperties(this, component, instance);
-            if (component.scope === 'singleton') {
-                component.instance = instance;
-            }
-            return instance;
-        };
-&nbsp;
-        Container.prototype.dispose = <span class="fstat-no" title="function not covered" >function () {</span>
-&nbsp;
-        };
-&nbsp;
-&nbsp;
-        function createArgs(container, component) {
-            var argConfigs = component.args;
-            var args = Array(argConfigs.length);
-            for (var i = argConfigs.length - 1; i &gt; -1; --i) {
-                var arg = argConfigs[i];
-                args[i] = util.hasReference(arg) ?
-                    container.createInstance(container.context.getComponentConfig(arg.$ref))
-                    : arg;
-            }
-&nbsp;
-            return args;
-        }
-&nbsp;
-        function injectProperties(container, component, instance) {
-            var properties = component.properties;
-            for (var k in properties) {
-                var property = properties[k];
-                var value = property;
-&nbsp;
-                if (util.hasReference(property)) {
-                    value = container.createInstance(container.context.getComponentConfig(property.$ref));
+            Container.prototype.createInstance = function (component) {
+                if (!component) {
+                    return null;
+                }
+                if (component.scope === 'singleton' &amp;&amp; component.instance) {
+                    return component.instance;
                 }
 &nbsp;
-                typeof instance[k] === 'function' ? instance[k](value) : (instance[k] = value);
+                if (component.scope === 'static') {
+                    return component.creator;
+                }
+&nbsp;
+                var args = createArgs(this, component);
+                var instance = component.creator.apply(null, args);
+                injectProperties(this, component, instance);
+                if (component.scope === 'singleton') {
+                    component.instance = instance;
+                }
+                return instance;
+            };
+&nbsp;
+            Container.prototype.dispose = <span class="fstat-no" title="function not covered" >function () {</span>
+&nbsp;
+            };
+&nbsp;
+&nbsp;
+            function createArgs(container, component) {
+                var argConfigs = component.args;
+                var args = Array(argConfigs.length);
+                for (var i = argConfigs.length - 1; i &gt; -1; --i) {
+                    var arg = argConfigs[i];
+                    args[i] = util.hasReference(arg) ?
+                        container.createInstance(container.context.getComponentConfig(arg.$ref))
+                        : arg;
+                }
+&nbsp;
+                return args;
             }
-        }
 &nbsp;
-        return Container;
+            function injectProperties(container, component, instance) {
+                var properties = component.properties;
+                for (var k in properties) {
+                    var property = properties[k];
+                    var value = property;
 &nbsp;
-    });
+                    if (util.hasReference(property)) {
+                        value = container.createInstance(container.context.getComponentConfig(property.$ref));
+                    }
+&nbsp;
+                    typeof instance[k] === 'function' ? instance[k](value) : (instance[k] = value);
+                }
+            }
+&nbsp;
+            return Container;
+&nbsp;
+        });
 &nbsp;
 }(typeof define === 'function' &amp;&amp; define.amd ? define : <span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >function (factory) {</span> <span class="cstat-no" title="statement not covered" >module.exports = factory; </span>})</span>;</pre></td></tr>
 </table></pre>
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Jun 07 2014 23:21:36 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 08 2014 20:34:59 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>
