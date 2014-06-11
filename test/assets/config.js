@@ -77,6 +77,16 @@ define(function () {
                 }
             ]
         },
+        creatorFn: {
+            creator: function (a) {
+                this.a = a;
+            },
+            scope: 'singleton',
+            args: [ { $ref: 'a' } ],
+            properties: {
+                b: { $ref: 'b' }
+            }
+        },
         myFactory: {
             module: "MyFactory",
             scope: "singleton"

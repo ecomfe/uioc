@@ -19,7 +19,8 @@ describe('Ioc Integration Test', function () {
 
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IOC, config) {
-            iocInstance = IOC(config);
+            iocInstance = IOC();
+            iocInstance.addComponent(config);
             done();
         });
     });
@@ -140,6 +141,20 @@ describe('Ioc Integration Test', function () {
                 assertSame(d.b.c.bool, true);
                 assertNull(d.b.c.nully);
 
+                done();
+            });
+        });
+    });
+
+    it('Simple Creator Function', function (done) {
+        iocInstance.getComponent('creatorFn', function (creatorFn) {
+            require(['A', 'B'], function (A, B) {
+                assertInstanceOf(A, creatorFn.a);
+                assertInstanceOf(B, creatorFn.b);
+                creatorFn.dispose = function () {};
+                spyOn(creatorFn, 'dispose');
+                iocInstance.dispose();
+                expect(creatorFn.dispose).toHaveBeenCalled();
                 done();
             });
         });

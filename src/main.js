@@ -13,38 +13,36 @@ void function (define, global, undefined) {
                 return creator.apply(this, args);
             };
 
-            function Context(config, loader) {
+            function Context(configs, loader) {
                 if (!(this instanceof Context)) {
-                    return new Context(config);
+                    return new Context(configs, loader);
                 }
 
                 this.loader = loader || globalLoader;
                 this.components = {};
                 this.container = new Container(this);
-                for (var id in config) {
-                    this.addComponent(id, config[id]);
-                }
+                this.addComponent(configs || {});
             }
 
             /**
              * 向容器中注册构件，配置中，args 和 properties 中的每个元素，可以使用 $ref 操作符：
              *      {
-         *        args: [ { $ref: 'otherComponent' } ]
-         *     }
+             *        args: [ { $ref: 'otherComponent' } ]
+             *     }
              *
              * 容器会解析第一层的$ref，从值中获取对应的实例，若实例未注册，返回 null
              *
              *
              * 在 properties 中，可以使用 $setter 操作符：
              *      {
-         *          properties: { prop1: { $setter: 'setProp1'， value: 'prop1' } }
-         *      }
+             *          properties: { prop1: { $setter: 'setProp1'， value: 'prop1' } }
+             *      }
              * 容器会解析第一层的$setter，从值中调用实例的方法，传入属性名和属性值，
              * 若未设置 setter，则使用instance.prop1 = value方式注入值
              *
              *
              * @param {String} id
-             * @param {Object} config
+             * @param {Object} [config]
              * @param {Function | String} config.creator 创建构件的函数或模块名称
              * @param {Boolean=false} config.isFactory 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用
              * @param {'transient' | 'singleton' | 'static'} [config.scope = 'transient']
@@ -54,32 +52,37 @@ void function (define, global, undefined) {
              * @param {Array} config.args 传递给创建构件函数的参数
              * @param {Object} config.properties 附加给实例的属性
              *      ioc.addComponent('List', {
-         *          // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
-         *          creator: require('./List'),
-         *          scope: 'transient',
-         *          args: [
-         *              {
-         *                   $ref: 'entityName'
-         *              }
-         *          ],
-         *
-         *          // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
-         *          properties: {
-         *              model: { $ref: 'ListModel' },
-         *              view: { $ref: 'ListView' },
-         *              name: 'xxxx'
-         *          }
-         *      });
+             *          // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
+             *          creator: require('./List'),
+             *          scope: 'transient',
+             *          args: [
+             *              {
+             *                   $ref: 'entityName'
+             *              }
+             *          ],
+             *
+             *          // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
+             *          properties: {
+             *              model: { $ref: 'ListModel' },
+             *              view: { $ref: 'ListView' },
+             *              name: 'xxxx'
+             *          }
+             *      });
              */
             Context.prototype.addComponent = function (id, config) {
-                var component = this.components[id];
-                if (component) {
-                    util.warn(id + 'has been add! This will be no effect');
-                    return;
-                }
+                if (typeof id === 'object') {
+                    for (var k in id) {
+                        this.addComponent(k, id[k]);
+                    }
+                } else {
+                    var component = this.components[id];
+                    if (component) {
+                        util.warn(id + 'has been add! This will be no effect');
+                        return;
+                    }
 
-                this.components[id] = createComponent(id, config);
-                return this.components[id];
+                    this.components[id] = createComponent(id, config);
+                }
             };
 
             Context.prototype.getComponent = function (ids, cb) {

@@ -6,14 +6,17 @@ void function (define) {
 
             function Container(context) {
                 this.context = context;
+                this.singletons = {};
             }
 
             Container.prototype.createInstance = function (component) {
                 if (!component) {
                     return null;
                 }
-                if (component.scope === 'singleton' && component.instance) {
-                    return component.instance;
+
+                var id = component.id;
+                if (component.scope === 'singleton' && this.singletons.hasOwnProperty(id)) {
+                    return this.singletons[id];
                 }
 
                 if (component.scope === 'static') {
@@ -24,13 +27,19 @@ void function (define) {
                 var instance = component.creator.apply(null, args);
                 injectProperties(this, component, instance);
                 if (component.scope === 'singleton') {
-                    component.instance = instance;
+                    this.singletons[id] = instance;
                 }
                 return instance;
             };
 
             Container.prototype.dispose = function () {
+                var singletons = this.singletons;
+                for (var k in singletons) {
+                    var instance = singletons[k];
+                    instance && typeof instance.dispose === 'function' && instance.dispose();
+                }
 
+                this.singletons = null;
             };
 
 

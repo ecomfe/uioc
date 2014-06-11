@@ -285,6 +285,12 @@ var config = {
 };
 ```
 
+### IOC.prototype.addComponent(configs)
+给容器批量添加构件配置
+
+#### {Object} configs
+键为构件id，值为构件配置
+
 ### IOC.prototype.getComponent(ids, cb)
 获取构件实例
 
