@@ -1,34 +1,35 @@
 {
-    "name": "uioc",
-    "version": "0.0.1-alpha.3",
-    "description": "an ioc framework",
-    "main": "main.js",
-    "maintainers": {
-        "name": "Exodia",
-        "email": "d_xinxin@163.com"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/ecomfe/uioc.git"
-    },
-    "keywords": [
-        "ioc",
-        "di"
-    ],
-    "author": {
-        "name": "Exodia",
-        "email": "d_xinxin@163.com"
-    },
-    "license": "GPL",
-    "bugs": {
-        "url": "https://github.com/ecomfe/uioc/issues"
-    },
-    "homepage": "https://github.com/ecomfe/uioc",
-    "devDependencies": {
-        "karma": "^0.12.16",
-        "karma-chrome-launcher": "^0.1.4",
-        "karma-coverage": "^0.2.4",
-        "karma-jasmine": "^0.2.2",
-        "karma-phantomjs-launcher": "^0.1.4"
-    }
+  "name": "uioc",
+  "version": "0.0.1-alpha.4",
+  "description": "an ioc framework",
+  "main": "main.js",
+  "maintainers": {
+    "name": "Exodia",
+    "email": "d_xinxin@163.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ecomfe/uioc.git"
+  },
+  "keywords": [
+    "ioc",
+    "di"
+  ],
+  "author": {
+    "name": "Exodia",
+    "email": "d_xinxin@163.com"
+  },
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/ecomfe/uioc/issues"
+  },
+  "homepage": "https://github.com/ecomfe/uioc",
+  "devDependencies": {
+    "karma": "^0.12.16",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-coverage": "^0.2.4",
+    "karma-ievms": "0.0.4",
+    "karma-jasmine": "^0.2.2",
+    "karma-phantomjs-launcher": "^0.1.4"
+  }
 }

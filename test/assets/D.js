@@ -13,11 +13,11 @@ define(function () {
         return "Bye!";
     };
 
-    D.prototype.setter = function (value) {
+    D.prototype.setFromMethod = function (value) {
         this.fromMethod = value;
     };
 
-    D.prototype.setArray = function (arr) {
+    D.prototype.setFromMethodArray = function (arr) {
         this.fromMethodArray = arr;
     };
 

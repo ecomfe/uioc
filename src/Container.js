@@ -66,8 +66,13 @@ void function (define) {
                         value = container.createInstance(container.context.getComponentConfig(property.$ref));
                     }
 
-                    typeof instance[k] === 'function' ? instance[k](value) : (instance[k] = value);
+                    var setter = getSetterName(k);
+                    typeof instance[setter] === 'function' ? instance[setter](value) : (instance[k] = value);
                 }
+            }
+
+            function getSetterName(prop) {
+                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
             }
 
             return Container;

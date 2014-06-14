@@ -48,8 +48,8 @@ define(function () {
                 bool: false,
                 nully: null,
                 b: { $ref: 'b2' },
-                setter: 'set',
-                setArray: [ "one", "two"]
+                fromMethod: 'set',
+                fromMethodArray: [ "one", "two"]
             }
         },
         d2: {
