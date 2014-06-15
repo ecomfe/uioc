@@ -24,5 +24,17 @@ define(function () {
 
     };
 
+    MyUtil.factoryCreator = function (a, b) {
+        return {
+            a: a,
+            b: b
+        }
+    };
+
+    MyUtil.creator = function (a, b) {
+        this.a = a;
+        this.b = b;
+    };
+
     return MyUtil;
 });

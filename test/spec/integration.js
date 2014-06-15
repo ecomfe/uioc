@@ -19,9 +19,28 @@ describe('Ioc Integration Test', function () {
 
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IOC, config) {
-            iocInstance = IOC();
+            iocInstance = IOC(null, require);
             iocInstance.addComponent(config);
             done();
+        });
+    });
+
+    it('customLoader', function (done) {
+        require(['ioc', 'config', 'MyFactory'], function (IOC, config, MyFactory) {
+            var calledWidthArgs = {};
+            iocInstance = IOC();
+            iocInstance.addComponent(config);
+            iocInstance.loader(function () {
+                for (var i = arguments.length - 2; i > -1; --i) {
+                    calledWidthArgs[arguments[i]] = 1;
+                }
+                return require.apply(null, arguments);
+            });
+            iocInstance.getComponent('myFactory', function (myFactory) {
+                assertInstanceOf(MyFactory, myFactory);
+                expect(calledWidthArgs).toEqual({ MyFactory: 1 });
+                done();
+            });
         });
     });
 
@@ -161,11 +180,34 @@ describe('Ioc Integration Test', function () {
     });
 
     it('utilsInject', function (done) {
-
         iocInstance.getComponent('b3', function (b3) {
             assertSame(b3.useUtil(), true);
 
             done();
+        })
+    });
+
+    it('utilCreator', function (done) {
+        iocInstance.getComponent('utilCreator', function (utilCreator) {
+            require(['MyUtil', 'A', 'B', 'C'], function (MyUtil, A, B, C) {
+                assertInstanceOf(MyUtil.creator, utilCreator);
+                assertInstanceOf(A, utilCreator.a);
+                assertInstanceOf(B, utilCreator.b);
+                assertInstanceOf(C, utilCreator.c);
+                done();
+            });
+        })
+    });
+
+    it('utilFactoryCreator', function (done) {
+        iocInstance.getComponent('utilFactoryCreator', function (utilFactoryCreator) {
+            require(['MyUtil', 'A', 'B', 'C'], function (MyUtil, A, B, C) {
+                expect(utilFactoryCreator.constructor).toBe(Object);
+                assertInstanceOf(A, utilFactoryCreator.a);
+                assertInstanceOf(B, utilFactoryCreator.b);
+                assertInstanceOf(C, utilFactoryCreator.c);
+                done();
+            })
         })
     });
 

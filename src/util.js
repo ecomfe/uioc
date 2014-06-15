@@ -25,7 +25,6 @@ void function (define) {
                 return indexOf(arr, el) > -1;
             }
 
-
             function addToSet(arr, el) {
                 !contains(arr, el) && arr.push(el);
             }

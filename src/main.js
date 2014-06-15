@@ -18,7 +18,7 @@ void function (define, global, undefined) {
                     return new Context(configs, loader);
                 }
 
-                this.loader = loader || globalLoader;
+                this.moduleLoader = loader || globalLoader;
                 this.components = {};
                 this.container = new Container(this);
                 this.addComponent(configs || {});
@@ -116,7 +116,7 @@ void function (define, global, undefined) {
             };
 
             Context.prototype.loader = function (loader) {
-                this.loader = loader;
+                this.moduleLoader = loader;
             };
 
             /**
@@ -124,7 +124,7 @@ void function (define, global, undefined) {
              */
             Context.prototype.dispose = function () {
                 this.container.dispose();
-                this.components = {};
+                this.components = null;
             };
 
             function createComponent(id, config) {
@@ -135,14 +135,14 @@ void function (define, global, undefined) {
                     argDeps: null,
                     propDeps: null,
                     scope: config.scope || 'transient',
-                    creator: typeof config.creator === 'function' ? config.creator : null,
+                    creator: config.creator || null,
                     module: config.module || undefined,
                     isFactory: !!config.isFactory,
                     instance: null
                 };
 
-                // 有设置 creator，那么先包装下
-                component.creator && createCreator(component);
+                // creator为函数，那么先包装下
+                typeof component.creator === 'function' && createCreator(component);
                 component.argDeps = parseArgDeps(component);
                 component.propDeps = parsePropDeps(component);
                 return component;
@@ -169,13 +169,24 @@ void function (define, global, undefined) {
                 return deps;
             }
 
-            function createCreator(component) {
+            function createCreator(component, module) {
+                var creator = component.creator = component.creator || module;
+
+                if (typeof creator === 'string') {
+                    var method = module[creator];
+                    var moduleFactory = function () {
+                        return method.apply(module, arguments);
+                    };
+
+                    creator = (!component.isFactory || component.scope === 'static') ? method : moduleFactory;
+                    component.creator = creator;
+                }
+
                 // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator
                 if (!component.isFactory && component.scope !== 'static') {
-                    var constructor = component.creator;
                     component.creator = function () {
-                        creatorWrapper.prototype = constructor.prototype;
-                        return new creatorWrapper(constructor, arguments);
+                        creatorWrapper.prototype = creator.prototype;
+                        return new creatorWrapper(creator, arguments);
                     }
                 }
             }
@@ -186,7 +197,7 @@ void function (define, global, undefined) {
                 }
 
                 var module = component.module;
-                if (!component.creator && component.module) {
+                if (typeof component.creator !== 'function' && component.module) {
                     result[module] = result[module] || [];
                     result[module].push(component);
                 }
@@ -218,16 +229,13 @@ void function (define, global, undefined) {
                     modules.push(k);
                 }
 
-                context.loader(modules, function () {
+                context.moduleLoader(modules, function () {
                     for (var i = arguments.length - 1; i > -1; --i) {
-                        var creator = arguments[i];
+                        var module = arguments[i];
                         var components = moduleMaps[modules[i]];
                         for (var j = components.length - 1; j > -1; --j) {
                             var component = components[j];
-                            if (!component.creator) {
-                                component.creator = creator;
-                                createCreator(component);
-                            }
+                            typeof component.creator !== 'function' && createCreator(component, module);
                         }
                     }
                     cb();
@@ -235,6 +243,8 @@ void function (define, global, undefined) {
             }
 
             return Context;
-        });
+        }
+    )
+    ;
 
 }(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; }, this);

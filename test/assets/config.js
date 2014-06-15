@@ -82,7 +82,9 @@ define(function () {
                 this.a = a;
             },
             scope: 'singleton',
-            args: [ { $ref: 'a' } ],
+            args: [
+                { $ref: 'a' }
+            ],
             properties: {
                 b: { $ref: 'b' }
             }
@@ -97,6 +99,29 @@ define(function () {
         },
         anotherUtil: {
             module: "MyUtil"
+        },
+        utilCreator: {
+            module: 'MyUtil',
+            creator: 'creator',
+            args: [
+                { $ref: 'a' },
+                { $ref: 'b' }
+            ],
+            properties: {
+                c: { $ref: 'c' }
+            }
+        },
+        utilFactoryCreator: {
+            module: 'MyUtil',
+            creator: 'factoryCreator',
+            isFactory: true,
+            args: [
+                { $ref: 'a' },
+                { $ref: 'b' }
+            ],
+            properties: {
+                c: { $ref: 'c' }
+            }
         },
         jquery: {
             module: "jquery",

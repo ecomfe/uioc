@@ -225,8 +225,19 @@ require(
 
 *** 若配置了config.creator 函数,此配置无效。 ***
 
-##### {Function} config.creator
-构件的构造函数或工厂函数，若未设置，则使用config.module配置的返回值作为creator
+##### {Function | String} config.creator
+构件的构造函数或工厂函数，若未设置为函数，则使用config.module配置的返回值作为creator；
+若 creator 为字符串，则使用 config.module 配置的模块返回值的creator属性值作为 creator；
+
+```javascript
+var config = {
+// 最终为 new A.method();
+    A: {
+        module: 'A',
+        creator: 'method'
+    }
+};
+```
 
 #####  {'transient' | 'singleton' | 'static'} config.scope
 构件实例的管理方式，默认为 transient：
