@@ -4,10 +4,22 @@ void function (define) {
         function (require) {
             var u = require('./util');
             var DependencyTree = require('./DependencyTree');
+            var SETTER_REGEX = /^set([A-Z].*)$/;
 
             function DependencyParser(context) {
                 this.context = context;
             }
+
+            DependencyParser.prototype.setterMatcher = function (name) {
+                var methodName = null;
+                var matches = name.match(SETTER_REGEX);
+                if (matches) {
+                    methodName = matches[1];
+                    methodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
+                }
+
+                return methodName;
+            };
 
             DependencyParser.prototype.getDepsFromArgs = function (args) {
                 var deps = [];

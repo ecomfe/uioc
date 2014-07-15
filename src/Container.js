@@ -24,14 +24,14 @@ void function (define) {
 
                 var args = createArgs(this, component);
                 var instance = component.creator.apply(null, args);
-                this.injectDependencies(instance, component.properties);
+                this.injectPropDependencies(instance, component.properties);
                 if (component.scope === 'singleton') {
                     this.singletons[id] = instance;
                 }
                 return instance;
             };
 
-            Container.prototype.injectDependencies = function (instance, deps) {
+            Container.prototype.injectPropDependencies = function (instance, deps) {
                 for (var k in deps) {
                     var dep = deps[k];
                     var value = dep;
@@ -40,9 +40,22 @@ void function (define) {
                         value = this.createInstance(this.context.getComponentConfig(dep.$ref));
                     }
 
-                    var setter = getSetterName(k);
+                    var setter = this.getSetterName(k);
                     typeof instance[setter] === 'function' ? instance[setter](value) : (instance[k] = value);
                 }
+            };
+
+            Container.prototype.injectSetterDependencies = function (instance, deps) {
+                for (var i = deps.length - 1; i > -1; --i) {
+                    var dep = deps[i];
+                    var value = this.createInstance(this.context.getComponentConfig(dep));
+                    instance[this.getSetterName(dep)](value);
+                }
+            };
+
+            Container.prototype.getSetterName = function (prop) {
+                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
+
             };
 
             Container.prototype.dispose = function () {
@@ -67,10 +80,6 @@ void function (define) {
                 }
 
                 return args;
-            }
-
-            function getSetterName(prop) {
-                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
             }
 
             return Container;

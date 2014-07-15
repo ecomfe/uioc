@@ -225,7 +225,7 @@ void function (define, global, undefined) {
             function injectSetterDeps(context, componentIds, instances) {
                 for (var i = instances.length - 1; i > -1; --i) {
                     var component = context.getComponentConfig(componentIds[i]);
-                    context.container.injectDependencies(instances[i], component.setterDeps);
+                    context.container.injectSetterDependencies(instances[i], component.setterDeps);
                 }
             }
 
