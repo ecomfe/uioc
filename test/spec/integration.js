@@ -227,6 +227,19 @@ describe('Ioc Integration Test', function () {
         }).toThrow();
     });
 
+    it('autoInject', function () {
+        expect(function () {
+            iocInstance.getComponent('autoInject', function (autoInject) {
+                require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
+                    assertInstanceOf(A, autoInject.a);
+                    assertInstanceOf(B, autoInject.b);
+                    assertInstanceOf(C, autoInject.c);
+                    assertInstanceOf(D, autoInject.d);
+                });
+            });
+        })
+    });
+
     /* it('circularAllowed', 1, function (done) {
 
      iocInstance.allowCircular = true;

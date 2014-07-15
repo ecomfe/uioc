@@ -77,6 +77,14 @@ define(function () {
                 }
             ]
         },
+        autoInject: {
+            module: 'AutoInject',
+            args: [
+                { $ref: 'a' },
+                { $ref: 'b' }
+            ],
+            auto: true
+        },
         creatorFn: {
             creator: function (a) {
                 this.a = a;
