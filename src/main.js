@@ -116,6 +116,10 @@ void function (define, global, undefined) {
                 this.moduleLoader = loader;
             };
 
+            Context.prototype.auto = function (isAuto) {
+                this.auto = isAuto;
+            };
+
             /**
              * 销毁容器，会遍历容器中的单例，如果有设置dispose，调用他们的 dispose 方法
              */
@@ -192,6 +196,7 @@ void function (define, global, undefined) {
                 var instances = Array(ids.length);
                 var container = this.container;
                 var needSetterModules = null;
+                var context = this;
 
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var component = this.components[ids[i]];
@@ -208,7 +213,7 @@ void function (define, global, undefined) {
 
                 if (needSetterModules) {
                     loadComponentModules(this, needSetterModules, function () {
-                        injectSetterDeps(instances, ids);
+                        injectSetterDeps(context, instances, ids);
                         cb.apply(null, instances);
                     });
                 }
@@ -217,8 +222,11 @@ void function (define, global, undefined) {
                 }
             }
 
-            function injectSetterDeps(componentIds, instances) {
-
+            function injectSetterDeps(context, componentIds, instances) {
+                for (var i = instances.length - 1; i > -1; --i) {
+                    var component = context.getComponentConfig(componentIds[i]);
+                    context.container.injectDependencies(instances[i], component.setterDeps);
+                }
             }
 
             return Context;
