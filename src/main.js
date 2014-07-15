@@ -6,7 +6,7 @@ void function (define, global, undefined) {
     define(
         function (require) {
             var Container = require('./Container');
-            var util = require('./util');
+            var u = require('./util');
             var Parser = require('./DependencyParser');
             var globalLoader = global.require;
             var creatorWrapper = function (creator, args) {
@@ -14,12 +14,12 @@ void function (define, global, undefined) {
             };
 
             function Context(config) {
+                config = config || {};
                 if (!(this instanceof Context)) {
                     return new Context(config);
                 }
 
                 this.moduleLoader = config.loader || globalLoader;
-                this.auto = !!config.auto;
                 this.parser = new (config.parser || Parser)(this);
                 this.components = {};
                 this.container = new Container(this);
@@ -79,11 +79,11 @@ void function (define, global, undefined) {
                 } else {
                     var component = this.components[id];
                     if (component) {
-                        util.warn(id + 'has been add! This will be no effect');
+                        u.warn(id + ' has been add! This will be no effect');
                         return;
                     }
 
-                    this.components[id] = createComponent(id, config);
+                    this.components[id] = createComponent.call(this, id, config);
                 }
             };
 
@@ -96,7 +96,7 @@ void function (define, global, undefined) {
                     var type = ids[i];
                     var component = this.components[type];
                     if (!component) {
-                        util.warn('`%s` has not been added to the Ioc', type);
+                        u.warn('`%s` has not been added to the Ioc', type);
                     }
                     else {
                         needModules = parser.getModulesFromComponent(component, needModules);
@@ -114,10 +114,6 @@ void function (define, global, undefined) {
 
             Context.prototype.loader = function (loader) {
                 this.moduleLoader = loader;
-            };
-
-            Context.prototype.auto = function (isAuto) {
-                this.auto = isAuto;
             };
 
             /**
@@ -141,6 +137,7 @@ void function (define, global, undefined) {
                     creator: config.creator || null,
                     module: config.module || undefined,
                     isFactory: !!config.isFactory,
+                    auto: !!config.auto,
                     instance: null
                 };
 
@@ -195,6 +192,7 @@ void function (define, global, undefined) {
             function createInstances(ids, cb) {
                 var instances = Array(ids.length);
                 var container = this.container;
+                var parser = this.parser;
                 var needSetterModules = null;
                 var context = this;
 
@@ -204,7 +202,7 @@ void function (define, global, undefined) {
                     instances[i] = instance;
 
                     // 自动获取 setter 依赖
-                    if (!component.setterDeps && this.auto) {
+                    if (component && !component.setterDeps && component.auto) {
                         needSetterModules = needSetterModules || {};
                         component.setterDeps = parser.getDepsFromSetters(instance);
                         needSetterModules = parser.getModulesFromDeps(component, component.setterDeps, needSetterModules);
@@ -212,6 +210,7 @@ void function (define, global, undefined) {
                 }
 
                 if (needSetterModules) {
+                    // TODO: 仅传入需要注入的实例，而不是全传
                     loadComponentModules(this, needSetterModules, function () {
                         injectSetterDeps(context, instances, ids);
                         cb.apply(null, instances);
@@ -222,10 +221,12 @@ void function (define, global, undefined) {
                 }
             }
 
-            function injectSetterDeps(context, componentIds, instances) {
+            function injectSetterDeps(context, instances, componentIds) {
                 for (var i = instances.length - 1; i > -1; --i) {
                     var component = context.getComponentConfig(componentIds[i]);
-                    context.container.injectSetterDependencies(instances[i], component.setterDeps);
+                    if (component && component.setterDeps) {
+                        context.container.injectSetterDependencies(instances[i], component.setterDeps);
+                    }
                 }
             }
 

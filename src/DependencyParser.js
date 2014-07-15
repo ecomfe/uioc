@@ -10,7 +10,7 @@ void function (define) {
                 this.context = context;
             }
 
-            DependencyParser.prototype.setterMatcher = function (name) {
+            DependencyParser.prototype.getPropertyFromSetter = function (name) {
                 var methodName = null;
                 var matches = name.match(SETTER_REGEX);
                 if (matches) {
@@ -24,7 +24,7 @@ void function (define) {
             DependencyParser.prototype.getDepsFromArgs = function (args) {
                 var deps = [];
                 for (var i = args.length - 1; i > -1; --i) {
-                    u.hasReference(args[i]) && util.addToSet(deps, args[i].$ref);
+                    u.hasReference(args[i]) && u.addToSet(deps, args[i].$ref);
                 }
                 return deps;
             };
@@ -32,9 +32,9 @@ void function (define) {
             DependencyParser.prototype.getDepsFromProperties = function (properties) {
                 var deps = [];
                 for (var k in properties) {
-                    if (util.hasOwnProperty(properties, k)) {
+                    if (u.hasOwnProperty(properties, k)) {
                         var prop = properties[k];
-                        u.hasReference(prop) && util.addToSet(deps, prop.$ref);
+                        u.hasReference(prop) && u.addToSet(deps, prop.$ref);
                     }
                 }
                 return deps;
@@ -42,7 +42,11 @@ void function (define) {
 
             DependencyParser.prototype.getDepsFromSetters = function (instance) {
                 var deps = [];
-
+                for (var k in instance) {
+                    if (typeof instance[k] === 'function') {
+                        deps.push(this.getPropertyFromSetter(k));
+                    }
+                }
                 return deps;
             };
 
@@ -84,7 +88,7 @@ void function (define) {
                 var circular = depTree.checkForCircular(component.id);
                 if (circular) {
                     var msg = component.id + ' has circular dependencies ';
-                    throw new util.CircularError(msg, component);
+                    throw new u.CircularError(msg, component);
                 }
 
                 depTree.addData(component);

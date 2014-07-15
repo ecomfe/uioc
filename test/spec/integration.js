@@ -19,8 +19,7 @@ describe('Ioc Integration Test', function () {
 
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IOC, config) {
-            iocInstance = IOC(null, require);
-            iocInstance.addComponent(config);
+            iocInstance = IOC(config);
             done();
         });
     });
@@ -29,7 +28,7 @@ describe('Ioc Integration Test', function () {
         require(['ioc', 'config', 'MyFactory'], function (IOC, config, MyFactory) {
             var calledWidthArgs = {};
             iocInstance = IOC();
-            iocInstance.addComponent(config);
+            iocInstance.addComponent(config.components);
             iocInstance.loader(function () {
                 for (var i = arguments.length - 2; i > -1; --i) {
                     calledWidthArgs[arguments[i]] = 1;
@@ -227,17 +226,16 @@ describe('Ioc Integration Test', function () {
         }).toThrow();
     });
 
-    it('autoInject', function () {
-        expect(function () {
-            iocInstance.getComponent('autoInject', function (autoInject) {
-                require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
-                    assertInstanceOf(A, autoInject.a);
-                    assertInstanceOf(B, autoInject.b);
-                    assertInstanceOf(C, autoInject.c);
-                    assertInstanceOf(D, autoInject.d);
-                });
+    it('autoInject', function (done) {
+        iocInstance.getComponent('autoInject', function (autoInject) {
+            require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
+                assertInstanceOf(A, autoInject.a);
+                assertInstanceOf(B, autoInject.b);
+                assertInstanceOf(C, autoInject.c);
+                assertInstanceOf(D, autoInject.d);
+                done();
             });
-        })
+        });
     });
 
     /* it('circularAllowed', 1, function (done) {
