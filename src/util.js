@@ -1,4 +1,4 @@
-void function (define) {
+void function (define, undefined) {
     define(
         function () {
             var nativeIndexOf = Array.prototype.indexOf;
@@ -38,7 +38,7 @@ void function (define) {
             }
 
             function isObject(obj) {
-                return Object.prototype.toString.call(obj) === '[object Object]';
+                return obj !== null && obj !== undefined && Object.prototype.toString.call(obj) === '[object Object]';
             }
 
             function hasReference(obj) {
@@ -47,7 +47,7 @@ void function (define) {
 
             function bind(fn) {
                 var args = slice.call(arguments, 1);
-                if (fn.bind === nativeBind) {
+                if (typeof fn.bind === 'function' && fn.bind === nativeBind) {
                     return fn.bind.apply(fn, args);
                 }
 
