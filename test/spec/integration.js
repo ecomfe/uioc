@@ -229,14 +229,20 @@ describe('Ioc Integration Test', function () {
     it('autoInject', function (done) {
         iocInstance.getComponent('autoInject', function (autoInject) {
             require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
+                spyOn(autoInject, 'setd');
+                spyOn(autoInject, 'settest');
                 assertInstanceOf(A, autoInject.a);
                 assertInstanceOf(B, autoInject.b);
                 assertInstanceOf(C, autoInject.c);
                 assertInstanceOf(D, autoInject.d);
+                assertNull(autoInject.e);
+                expect(autoInject.setd).not.toHaveBeenCalled();
+                expect(autoInject.settest).not.toHaveBeenCalled();
                 done();
             });
         });
     });
+
 
     /* it('circularAllowed', 1, function (done) {
 

@@ -99,7 +99,7 @@ void function (define, global, undefined) {
                         u.warn('`%s` has not been added to the Ioc', type);
                     }
                     else {
-                        needModules = parser.getModulesFromComponent(component, needModules);
+                        needModules = parser.getDependentModules(component, needModules);
                     }
                 }
 
@@ -205,7 +205,7 @@ void function (define, global, undefined) {
                     if (component && !component.setterDeps && component.auto) {
                         needSetterModules = needSetterModules || {};
                         component.setterDeps = parser.getDepsFromSetters(instance);
-                        needSetterModules = parser.getModulesFromDeps(component, component.setterDeps, needSetterModules);
+                        needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
                     }
                 }
 

@@ -195,20 +195,20 @@
     </style>
 </head>
 <body>
-<div class="header high">
+<div class="header medium">
     <h1>Code coverage report for <span class="entity">src/util.js</span></h1>
     <h2>
         
-        Statements: <span class="metric">80.65% <small>(25 / 31)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">75.61% <small>(31 / 41)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">68.75% <small>(11 / 16)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">66.67% <small>(12 / 18)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Functions: <span class="metric">83.33% <small>(10 / 12)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">78.57% <small>(11 / 14)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">80.65% <small>(25 / 31)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">75.61% <small>(31 / 41)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
@@ -284,18 +284,36 @@
 66
 67
 68
-69</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">288</span>
+<span class="cline-any cline-yes">306</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">320</span>
-<span class="cline-any cline-yes">320</span>
+<span class="cline-any cline-yes">374</span>
+<span class="cline-any cline-yes">374</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -308,11 +326,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">320</span>
+<span class="cline-any cline-yes">374</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">320</span>
+<span class="cline-any cline-yes">374</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
@@ -322,11 +340,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">762</span>
+<span class="cline-any cline-yes">867</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">762</span>
+<span class="cline-any cline-yes">867</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">16</span>
+<span class="cline-any cline-yes">16</span>
+<span class="cline-any cline-yes">16</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -342,6 +373,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -356,6 +388,8 @@
     define(
         function () {
             var nativeIndexOf = Array.prototype.indexOf;
+            var slice = Array.prototype.slice;
+            var nativeBind = Function.prototype.bind;
 &nbsp;
             function hasOwnProperty(object, key) {
                 return Object.prototype.hasOwnProperty.call(object, key)
@@ -397,6 +431,19 @@
                 return isObject(obj) &amp;&amp; typeof obj.$ref === 'string';
             }
 &nbsp;
+            function bind(fn) {
+                var args = slice.call(arguments, 1);
+                <span class="missing-if-branch" title="else path not taken" >E</span>if (fn.bind === nativeBind) {
+                    return fn.bind.apply(fn, args);
+                }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                return <span class="fstat-no" title="function not covered" >function () {</span></span>
+<span class="cstat-no" title="statement not covered" >                    var scope = args.shift();</span>
+<span class="cstat-no" title="statement not covered" >                    args.push.apply(args, arguments);</span>
+<span class="cstat-no" title="statement not covered" >                    fn.apply(scope, args);</span>
+                };
+            }
+&nbsp;
             // 循环依赖错误
             function CircularError(message, component) {
                 this.message = message;
@@ -415,6 +462,7 @@
                 contains: contains,
                 addToSet: addToSet,
                 isObject: isObject,
+                bind: bind,
                 hasReference: hasReference,
                 warn: warn
             };
@@ -425,7 +473,7 @@
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 15 2014 12:19:05 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 16 2014 11:50:17 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>

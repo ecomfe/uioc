@@ -11,14 +11,14 @@ void function (define) {
             }
 
             DependencyParser.prototype.getPropertyFromSetter = function (name) {
-                var methodName = null;
+                var prop = null;
                 var matches = name.match(SETTER_REGEX);
                 if (matches) {
-                    methodName = matches[1];
-                    methodName = methodName.charAt(0).toLowerCase() + methodName.slice(1);
+                    prop = matches[1];
+                    prop = prop.charAt(0).toLowerCase() + prop.slice(1);
                 }
 
-                return methodName;
+                return prop;
             };
 
             DependencyParser.prototype.getDepsFromArgs = function (args) {
@@ -42,9 +42,11 @@ void function (define) {
 
             DependencyParser.prototype.getDepsFromSetters = function (instance) {
                 var deps = [];
+                var prop = null;
                 for (var k in instance) {
                     if (typeof instance[k] === 'function') {
-                        deps.push(this.getPropertyFromSetter(k));
+                        prop = this.getPropertyFromSetter(k);
+                        prop && deps.push(prop);
                     }
                 }
                 return deps;
@@ -54,31 +56,14 @@ void function (define) {
 
             };
 
-            /*DependencyParser.prototype.getArgModules = function (component, context) {
-             var result = {};
-             if (component) {
-             getDependentModules(component, context, result, new DependencyTree());
-             }
-             return result;
-             };*/
-
-            DependencyParser.prototype.getModulesFromComponent = function (component, result) {
-                result = result || {};
-                if (component) {
-                    getDependentModules(component, this.context, result, new DependencyTree());
-                }
-                return result;
-            };
-
-            DependencyParser.prototype.getModulesFromDeps = function (component, deps, result) {
-                result = result || {};
-                if (component) {
-                    getDependentModules(component, this.context, result, new DependencyTree(), deps);
-                }
-                return result;
+            DependencyParser.prototype.getDependentModules = function (component, result, deps) {
+                return getDependentModules(component, this.context, result || {}, new DependencyTree(), deps);
             };
 
             function getDependentModules(component, context, result, depTree, deps) {
+                if (!component) {
+                    return;
+                }
                 var module = component.module;
                 if (typeof component.creator !== 'function' && component.module) {
                     result[module] = result[module] || [];
@@ -98,6 +83,8 @@ void function (define) {
                 for (var i = deps.length - 1; i > -1; --i) {
                     getDependentModules(context.getComponentConfig(deps[i]), context, result, child);
                 }
+
+                return result;
             }
 
             return DependencyParser;

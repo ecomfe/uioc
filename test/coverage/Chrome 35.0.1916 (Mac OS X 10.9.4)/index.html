@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for src/Container.js</title>
+    <title>Code coverage report for All files</title>
     <meta charset="utf-8">
 
-    <link rel="stylesheet" href="../prettify.css">
+    <link rel="stylesheet" href="prettify.css">
 
     <style>
         body, html {
@@ -196,278 +196,63 @@
 </head>
 <body>
 <div class="header high">
-    <h1>Code coverage report for <span class="entity">src/Container.js</span></h1>
+    <h1>Code coverage report for <span class="entity">All files</span></h1>
     <h2>
         
-        Statements: <span class="metric">97.83% <small>(45 / 46)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">93.5% <small>(259 / 277)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">95.65% <small>(22 / 23)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">88.51% <small>(131 / 148)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Functions: <span class="metric">88.89% <small>(8 / 9)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">86.89% <small>(53 / 61)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">97.83% <small>(45 / 46)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">93.5% <small>(259 / 277)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
-    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; Container.js</div>
+    <div class="path"></div>
 </div>
 <div class="body">
-<pre><table class="coverage">
-<tr><td class="line-count">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">16</span>
-<span class="cline-any cline-yes">16</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">55</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">54</span>
-<span class="cline-any cline-yes">54</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">53</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">4</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">119</span>
-<span class="cline-any cline-yes">119</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">52</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-yes">7</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">19</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">void function (define) {
-    define(
-        function (require) {
-&nbsp;
-            var util = require('./util');
-&nbsp;
-            function Container(context) {
-                this.context = context;
-                this.singletons = {};
-            }
-&nbsp;
-            Container.prototype.createInstance = function (component) {
-                if (!component) {
-                    return null;
-                }
-&nbsp;
-                var id = component.id;
-                if (component.scope === 'singleton' &amp;&amp; this.singletons.hasOwnProperty(id)) {
-                    return this.singletons[id];
-                }
-&nbsp;
-                if (component.scope === 'static') {
-                    return component.creator;
-                }
-&nbsp;
-                var args = createArgs(this, component);
-                var instance = component.creator.apply(null, args);
-                injectProperties(this, component, instance);
-                if (component.scope === 'singleton') {
-                    this.singletons[id] = instance;
-                }
-                return instance;
-            };
-&nbsp;
-            Container.prototype.dispose = function () {
-                var singletons = this.singletons;
-                for (var k in singletons) {
-                    var instance = singletons[k];
-                    instance &amp;&amp; typeof instance.dispose === 'function' &amp;&amp; instance.dispose();
-                }
-&nbsp;
-                this.singletons = null;
-            };
-&nbsp;
-&nbsp;
-            function createArgs(container, component) {
-                var argConfigs = component.args;
-                var args = Array(argConfigs.length);
-                for (var i = argConfigs.length - 1; i &gt; -1; --i) {
-                    var arg = argConfigs[i];
-                    args[i] = util.hasReference(arg) ?
-                        container.createInstance(container.context.getComponentConfig(arg.$ref))
-                        : arg;
-                }
-&nbsp;
-                return args;
-            }
-&nbsp;
-            function injectProperties(container, component, instance) {
-                var properties = component.properties;
-                for (var k in properties) {
-                    var property = properties[k];
-                    var value = property;
-&nbsp;
-                    if (util.hasReference(property)) {
-                        value = container.createInstance(container.context.getComponentConfig(property.$ref));
-                    }
-&nbsp;
-                    var setter = getSetterName(k);
-                    typeof instance[setter] === 'function' ? instance[setter](value) : (instance[k] = value);
-                }
-            }
-&nbsp;
-            function getSetterName(prop) {
-                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
-            }
-&nbsp;
-            return Container;
-&nbsp;
-        });
-&nbsp;
-}(typeof define === 'function' &amp;&amp; define.amd ? define : <span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >function (factory) {</span> <span class="cstat-no" title="statement not covered" >module.exports = factory; </span>})</span>;</pre></td></tr>
-</table></pre>
+<div class="coverage-summary">
+<table>
+<thead>
+<tr>
+   <th data-col="file" data-fmt="html" data-html="true" class="file">File</th>
+   <th data-col="pic" data-type="number" data-fmt="html" data-html="true" class="pic"></th>
+   <th data-col="statements" data-type="number" data-fmt="pct" class="pct">Statements</th>
+   <th data-col="statements_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="branches" data-type="number" data-fmt="pct" class="pct">Branches</th>
+   <th data-col="branches_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="functions" data-type="number" data-fmt="pct" class="pct">Functions</th>
+   <th data-col="functions_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="lines" data-type="number" data-fmt="pct" class="pct">Lines</th>
+   <th data-col="lines_raw" data-type="number" data-fmt="html" class="abs"></th>
+</tr>
+</thead>
+<tbody><tr>
+	<td class="file high" data-value="src/"><a href="src/index.html">src/</a></td>
+	<td data-value="93.5" class="pic high"><span class="cover-fill" style="width: 93px;"></span><span class="cover-empty" style="width:7px;"></span></td>
+	<td data-value="93.5" class="pct high">93.5%</td>
+	<td data-value="277" class="abs high">(259&nbsp;/&nbsp;277)</td>
+	<td data-value="88.51" class="pct high">88.51%</td>
+	<td data-value="148" class="abs high">(131&nbsp;/&nbsp;148)</td>
+	<td data-value="86.89" class="pct high">86.89%</td>
+	<td data-value="61" class="abs high">(53&nbsp;/&nbsp;61)</td>
+	<td data-value="93.5" class="pct high">93.5%</td>
+	<td data-value="277" class="abs high">(259&nbsp;/&nbsp;277)</td>
+	</tr>
 
+</tbody>
+</table>
+</div>
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 15 2014 12:19:05 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 16 2014 11:50:17 GMT+0800 (CST)</div>
 </div>
 
-<script src="../prettify.js"></script>
+<script src="prettify.js"></script>
 
 <script src="http://yui.yahooapis.com/3.6.0/build/yui/yui-min.js"></script>
 <script>
