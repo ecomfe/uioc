@@ -24,7 +24,6 @@ void function (define) {
 
                 var args = createArgs(this, component);
                 var instance = component.creator.apply(null, args);
-                this.injectPropDependencies(instance, component.properties);
                 if (component.scope === 'singleton') {
                     this.singletons[id] = instance;
                 }

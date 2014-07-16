@@ -7,10 +7,12 @@ define(
             this.a = a;
             this.b = b;
             this.e = null;
+            this.setCCalledCount = 0;
         }
 
         AutoInject.prototype.setC = function (c) {
             this.c = c;
+            ++this.setCCalledCount;
         };
 
         AutoInject.prototype.setD = function (d) {
@@ -19,6 +21,10 @@ define(
 
         AutoInject.prototype.sete = function (e) {
             this.e = e;
+        };
+
+        AutoInject.prototype.setMyFactory = function (obj) {
+            this.myFactory = obj;
         };
 
         AutoInject.prototype.settest = function () {

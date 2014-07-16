@@ -40,13 +40,14 @@ void function (define) {
                 return deps;
             };
 
-            DependencyParser.prototype.getDepsFromSetters = function (instance) {
+            DependencyParser.prototype.getDepsFromSetters = function (instance, exclude) {
+                exclude = exclude || {};
                 var deps = [];
                 var prop = null;
                 for (var k in instance) {
                     if (typeof instance[k] === 'function') {
                         prop = this.getPropertyFromSetter(k);
-                        prop && deps.push(prop);
+                        prop && !exclude.hasOwnProperty(prop) && deps.push(prop);
                     }
                 }
                 return deps;
@@ -61,27 +62,26 @@ void function (define) {
             };
 
             function getDependentModules(component, context, result, depTree, deps) {
-                if (!component) {
-                    return;
-                }
-                var module = component.module;
-                if (typeof component.creator !== 'function' && component.module) {
-                    result[module] = result[module] || [];
-                    result[module].push(component);
-                }
+                if (component) {
+                    var module = component.module;
+                    if (typeof component.creator !== 'function' && module) {
+                        result[module] = result[module] || [];
+                        result[module].push(component);
+                    }
 
-                var circular = depTree.checkForCircular(component.id);
-                if (circular) {
-                    var msg = component.id + ' has circular dependencies ';
-                    throw new u.CircularError(msg, component);
-                }
+                    var circular = depTree.checkForCircular(component.id);
+                    if (circular) {
+                        var msg = component.id + ' has circular dependencies ';
+                        throw new u.CircularError(msg, component);
+                    }
 
-                depTree.addData(component);
-                var child = depTree.appendChild(new DependencyTree());
+                    depTree.addData(component);
+                    var child = depTree.appendChild(new DependencyTree());
 
-                deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);
-                for (var i = deps.length - 1; i > -1; --i) {
-                    getDependentModules(context.getComponentConfig(deps[i]), context, result, child);
+                    deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);
+                    for (var i = deps.length - 1; i > -1; --i) {
+                        getDependentModules(context.getComponentConfig(deps[i]), context, result, child);
+                    }
                 }
 
                 return result;

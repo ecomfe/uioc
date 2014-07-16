@@ -84,6 +84,9 @@ define(function () {
                     { $ref: 'a' },
                     { $ref: 'b' }
                 ],
+                properties: {
+                    myFactory: 'myFactory'
+                },
                 auto: true
             },
             creatorFn: {

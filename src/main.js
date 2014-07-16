@@ -99,7 +99,7 @@ void function (define, global, undefined) {
                         u.warn('`%s` has not been added to the Ioc', type);
                     }
                     else {
-                        needModules = parser.getDependentModules(component, needModules);
+                        needModules = parser.getDependentModules(component, needModules, component.argDeps);
                     }
                 }
 
@@ -193,39 +193,38 @@ void function (define, global, undefined) {
                 var instances = Array(ids.length);
                 var container = this.container;
                 var parser = this.parser;
-                var needSetterModules = null;
                 var context = this;
+                var needSetterModules = {};
 
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var component = this.components[ids[i]];
                     var instance = container.createInstance(component);
                     instances[i] = instance;
 
-                    // 自动获取 setter 依赖
-                    if (component && !component.setterDeps && component.auto) {
-                        needSetterModules = needSetterModules || {};
-                        component.setterDeps = parser.getDepsFromSetters(instance);
-                        needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
+                    if (component) {
+                        needSetterModules = parser.getDependentModules(component, {}, component.propDeps);
+
+                        // 获取 setter 依赖
+                        if (!component.setterDeps && component.auto) {
+                            component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
+                            needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
+                        }
                     }
                 }
 
-                if (needSetterModules) {
-                    // TODO: 仅传入需要注入的实例，而不是全传
-                    loadComponentModules(this, needSetterModules, function () {
-                        injectSetterDeps(context, instances, ids);
-                        cb.apply(null, instances);
-                    });
-                }
-                else {
+                loadComponentModules(this, needSetterModules, function () {
+                    injectDeps(context, instances, ids);
                     cb.apply(null, instances);
-                }
+                });
             }
 
-            function injectSetterDeps(context, instances, componentIds) {
+            function injectDeps(context, instances, componentIds) {
+                var container = context.container;
                 for (var i = instances.length - 1; i > -1; --i) {
                     var component = context.getComponentConfig(componentIds[i]);
-                    if (component && component.setterDeps) {
-                        context.container.injectSetterDependencies(instances[i], component.setterDeps);
+                    if (component) {
+                        container.injectPropDependencies(instances[i], component.properties);
+                        component.setterDeps && container.injectSetterDependencies(instances[i], component.setterDeps);
                     }
                 }
             }

@@ -30,14 +30,12 @@ describe('Ioc Integration Test', function () {
             iocInstance = IOC();
             iocInstance.addComponent(config.components);
             iocInstance.loader(function () {
-                for (var i = arguments.length - 2; i > -1; --i) {
-                    calledWidthArgs[arguments[i]] = 1;
-                }
+                calledWidthArgs[arguments[0][0]] = 1;
                 return require.apply(null, arguments);
             });
             iocInstance.getComponent('myFactory', function (myFactory) {
                 assertInstanceOf(MyFactory, myFactory);
-                expect(calledWidthArgs).toEqual({ MyFactory: 1 });
+                expect(calledWidthArgs.MyFactory).toBe(1);
                 done();
             });
         });
@@ -240,6 +238,14 @@ describe('Ioc Integration Test', function () {
                 expect(autoInject.settest).not.toHaveBeenCalled();
                 done();
             });
+        });
+    });
+
+    it('autoInject setter priority', function (done) {
+        iocInstance.getComponent('autoInject', function (autoInject) {
+            expect(autoInject.myFactory).toBe('myFactory');
+            expect(autoInject.setCCalledCount).toBe(1);
+            done();
         });
     });
 
