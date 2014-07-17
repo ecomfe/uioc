@@ -135,15 +135,17 @@ require(
 ```javascript
 // config.js
 define({
-    Action: {
-        module: 'Action',
-        args: [
-            { $ref: 'View' },
-            { $ref: 'Model' },
-        ]
-    },
-    View: { module: 'View' },
-    Model: { module: 'Model' }
+    components: {
+        action: {
+            module: 'Action',
+            args: [
+                { $ref: 'view' },
+                { $ref: 'model' },
+            ]
+        },
+        view: { module: 'view' },
+        model: { module: 'model' }    
+    }
 });
 
 
@@ -191,10 +193,10 @@ define(function () {
 // main.js
 require(
     ['ioc', 'config'],
-    function(IOC, config){
-        var ioc = new IOC(config);
-        ioc.getComponent('Action', function(Action){
-            Action.enter();
+    function(IoC, config){
+        var ioc = new IoC(config);
+        ioc.getComponent('action', function(action){
+            action.enter();
         });
     }
 );
@@ -203,15 +205,18 @@ require(
 
 ## API
 
-### new IOC(configs [, loader])
+### new IoC(iocConfig)
 
-#### {Object} configs
-构件批量配置对象, 其中每个key 为构件id，值为构建配置，配置选项见IOC.prototype.addComponent
+#### {Object} iocConfig
+ioc 配置
 
-#### {Function} loader
-可选，模块加载器函数，默认为全局的 require
+##### {Object} config.components
+构件批量配置对象, 其中每个key 为构件id，值为构建配置，配置选项见IoC.prototype.addComponent
 
-### IOC.prototype.addComponent(id, config)
+##### {Function} config.loader
+ioc 的模块加载器，默认使用全局的 require，需要符合 AMD 接口规范
+
+### IoC.prototype.addComponent(id, config)
 给容器添加一个构件配置
 
 #### {String} id
@@ -231,8 +236,8 @@ require(
 
 ```javascript
 var config = {
-// 最终为 new A.method();
-    A: {
+// 最终为 new a.method();
+    a: {
         module: 'A',
         creator: 'method'
     }
@@ -254,7 +259,7 @@ var config = {
 
 ```javascript
 var config = {
-    A: {
+    a: {
         creator: function (name, b){
             this.name = name;
             this.b = b;
@@ -262,7 +267,7 @@ var config = {
         // new creator('string', new B())
         args: [ 'string', { $ref: 'B' } ]
     },
-    B: {
+    b: {
         module: 'B'
     }
 };
@@ -270,12 +275,13 @@ var config = {
 
 ##### {Object} properties
 完成构件实例创建后，需要注入的属性，key 为属性名，值为要注入的属性值，若值为对象且有$ref，则该属性值会被替换为$ref对应的构件实例。
-若实例对应的 `set${Key}` 属性为函数，则会调用实例的函数，将值传入
+
+$ref依赖创建后，若构件实例有set${Key}方法，则会直接调用该方法，并将依赖作为参数传入，否则直接执行 instance.${key} = {$refInstance}
 
 ```javascript
 
 var config = {
-    A: {
+    a: {
         creator: function (){
             this.setB = function(b) {
                 this.b = b;
@@ -283,26 +289,58 @@ var config = {
         },
         properties: {
 
-            // 实例化 A 后，执行 aInstance.name = 'string';
+            // 实例化 a 后，执行 aInstance.name = 'string';
             name: 'string',
 
-            // 实例化 A 后，执行 aInstance.setB(b)
-            setB: { $ref: 'B' }
+            // 实例化 a 后，执行 aInstance.setB(b)
+            B: { $ref: 'B' }
         }
     },
-    B: {
+    b: {
         module: 'B'
     }
 };
 ```
 
-### IOC.prototype.addComponent(configs)
+##### {Boolean=false} auto
+设置是否自动注入，若为 true，则 ioc 容器会在创建构件实例后，寻找实例的 setter(set${Name})，
+之后会调用该 setter，将对应的 ${name}依赖作为参数传入 setter。
+***注意：properties中的配置优先级高于自动注入***
+
+```javascript
+var config = {
+    a: {
+        creator: function (){
+            this.setB = function(b) {
+                this.b = b;
+            }
+            this.setC = function(c) {
+                this.c = c;
+            }
+        },
+        // 会自动查找 setter的依赖，这里会查询到 setB 和 setC对应的依赖为'b','c'，
+        // 由于 c 在 propeties 中已经配置，优先级 properties 更高，因此这里不会去实例化构件 c，仅会实例化构件 b，并调用setB(b);
+        auto: true, 
+        properties: {
+            c: 'c' // 优先级高于自动注入，因此最终aInstance.c为'c'
+        }
+    },
+    b: {
+        module: 'B'
+    },
+    c: {
+        module: 'C'
+    }
+};
+```
+
+### IoC.prototype.addComponent(configs)
 给容器批量添加构件配置
 
 #### {Object} configs
 键为构件id，值为构件配置
 
-### IOC.prototype.getComponent(ids, cb)
+### IoC.prototype.getComponent(ids, cb)
 获取构件实例
 
 #### {String | Array} ids
@@ -313,15 +351,15 @@ var config = {
 构件获取完毕后的回调函数，会将实例按照 id 的传入顺序作为参数依次传递给 cb：
 
 ```javascript
-ioc.getComponent(['A', 'B'], function(A, B){
+ioc.getComponent(['a', 'b'], function(a, b){
 
 });
 ```
 
-### IOC.prototype.loader(loader)
+### IoC.prototype.loader(loader)
 设置 ioc 实例的模块加载器
 
-### IOC.prototype.dispose
+### IoC.prototype.dispose
 销毁容器，若 scope 为 singleton 的构件有 dispose 方法，ioc会自动调用。
 
 

@@ -7,6 +7,8 @@ require.config({
         }
     ],
     paths: {
-        jquery: '//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min'
+        jquery: '//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery'
     }
 });
+
+define.amd.jQuery = true;

@@ -6,22 +6,24 @@ void function (define, global, undefined) {
     define(
         function (require) {
             var Container = require('./Container');
-            var util = require('./util');
-            var DependencyTree = require('./DependencyTree');
+            var u = require('./util');
+            var Parser = require('./DependencyParser');
             var globalLoader = global.require;
             var creatorWrapper = function (creator, args) {
                 return creator.apply(this, args);
             };
 
-            function Context(configs, loader) {
+            function Context(config) {
+                config = config || {};
                 if (!(this instanceof Context)) {
-                    return new Context(configs, loader);
+                    return new Context(config);
                 }
 
-                this.moduleLoader = loader || globalLoader;
+                this.moduleLoader = config.loader || globalLoader;
+                this.parser = new (config.parser || Parser)(this);
                 this.components = {};
                 this.container = new Container(this);
-                this.addComponent(configs || {});
+                this.addComponent(config.components || {});
             }
 
             /**
@@ -77,36 +79,31 @@ void function (define, global, undefined) {
                 } else {
                     var component = this.components[id];
                     if (component) {
-                        util.warn(id + 'has been add! This will be no effect');
+                        u.warn(id + ' has been add! This will be no effect');
                         return;
                     }
 
-                    this.components[id] = createComponent(id, config);
+                    this.components[id] = createComponent.call(this, id, config);
                 }
             };
 
             Context.prototype.getComponent = function (ids, cb) {
                 ids = ids instanceof Array ? ids : [ids];
-                var instances = Array(ids.length);
-                var needLoadedModules = {};
+                var needModules = {};
                 var me = this;
+                var parser = me.parser;
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var type = ids[i];
                     var component = this.components[type];
                     if (!component) {
-                        util.warn('`%s` has not been added to the Ioc', type);
+                        u.warn('`%s` has not been added to the Ioc', type);
                     }
                     else {
-                        getComponentDeps(this, component, needLoadedModules);
+                        needModules = parser.getDependentModules(component, needModules, component.argDeps);
                     }
                 }
 
-                loadComponentModules(this, needLoadedModules, function () {
-                    for (var i = 0, len = ids.length; i < len; ++i) {
-                        instances[i] = me.container.createInstance(me.components[ids[i]]);
-                    }
-                    cb.apply(null, instances);
-                });
+                loadComponentModules(this, needModules, u.bind(createInstances, this, ids, cb));
 
                 return this;
             };
@@ -125,6 +122,7 @@ void function (define, global, undefined) {
             Context.prototype.dispose = function () {
                 this.container.dispose();
                 this.components = null;
+                this.parser = null;
             };
 
             function createComponent(id, config) {
@@ -134,39 +132,20 @@ void function (define, global, undefined) {
                     properties: config.properties || {},
                     argDeps: null,
                     propDeps: null,
+                    setterDeps: null,
                     scope: config.scope || 'transient',
                     creator: config.creator || null,
                     module: config.module || undefined,
                     isFactory: !!config.isFactory,
+                    auto: !!config.auto,
                     instance: null
                 };
 
                 // creator为函数，那么先包装下
                 typeof component.creator === 'function' && createCreator(component);
-                component.argDeps = parseArgDeps(component);
-                component.propDeps = parsePropDeps(component);
+                component.argDeps = this.parser.getDepsFromArgs(component.args);
+                component.propDeps = this.parser.getDepsFromProperties(component.properties);
                 return component;
-            }
-
-            function parseArgDeps(component) {
-                var deps = [];
-                var args = component.args;
-                for (var i = args.length - 1; i > -1; --i) {
-                    util.hasReference(args[i]) && util.addToSet(deps, args[i].$ref);
-                }
-                return deps;
-            }
-
-            function parsePropDeps(component) {
-                var deps = [];
-                var properties = component.properties;
-                for (var k in properties) {
-                    if (util.hasOwnProperty(properties, k)) {
-                        var prop = properties[k];
-                        util.hasReference(prop) && util.addToSet(deps, prop.$ref);
-                    }
-                }
-                return deps;
             }
 
             function createCreator(component, module) {
@@ -191,38 +170,6 @@ void function (define, global, undefined) {
                 }
             }
 
-            function getComponentDeps(context, component, result, depTree) {
-                if (!component) {
-                    return;
-                }
-
-                var module = component.module;
-                if (typeof component.creator !== 'function' && component.module) {
-                    result[module] = result[module] || [];
-                    result[module].push(component);
-                }
-                depTree = depTree || new DependencyTree();
-
-                var circular = depTree.checkForCircular(component.id);
-                if (circular) {
-                    var msg = component.id + ' has circular dependencies ';
-                    throw new util.CircularError(msg, component);
-                }
-
-                depTree.addData(component);
-                var child = depTree.appendChild(new DependencyTree());
-
-                var argDeps = component.argDeps;
-                for (var i = argDeps.length - 1; i > -1; --i) {
-                    getComponentDeps(context, context.components[argDeps[i]], result, child);
-                }
-
-                var propDps = component.propDeps;
-                for (i = propDps.length - 1; i > -1; --i) {
-                    getComponentDeps(context, context.components[propDps[i]], result, child);
-                }
-            }
-
             function loadComponentModules(context, moduleMaps, cb) {
                 var modules = [];
                 for (var k in moduleMaps) {
@@ -242,9 +189,48 @@ void function (define, global, undefined) {
                 });
             }
 
+            function createInstances(ids, cb) {
+                var instances = Array(ids.length);
+                var container = this.container;
+                var parser = this.parser;
+                var context = this;
+                var needSetterModules = {};
+
+                for (var i = 0, len = ids.length; i < len; ++i) {
+                    var component = this.components[ids[i]];
+                    var instance = container.createInstance(component);
+                    instances[i] = instance;
+
+                    if (component) {
+                        needSetterModules = parser.getDependentModules(component, {}, component.propDeps);
+
+                        // 获取 setter 依赖
+                        if (!component.setterDeps && component.auto) {
+                            component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
+                            needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
+                        }
+                    }
+                }
+
+                loadComponentModules(this, needSetterModules, function () {
+                    injectDeps(context, instances, ids);
+                    cb.apply(null, instances);
+                });
+            }
+
+            function injectDeps(context, instances, componentIds) {
+                var container = context.container;
+                for (var i = instances.length - 1; i > -1; --i) {
+                    var component = context.getComponentConfig(componentIds[i]);
+                    if (component) {
+                        container.injectPropDependencies(instances[i], component.properties);
+                        component.setterDeps && container.injectSetterDependencies(instances[i], component.setterDeps);
+                    }
+                }
+            }
+
             return Context;
         }
-    )
-    ;
+    );
 
 }(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; }, this);

@@ -19,8 +19,7 @@ describe('Ioc Integration Test', function () {
 
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IOC, config) {
-            iocInstance = IOC(null, require);
-            iocInstance.addComponent(config);
+            iocInstance = IOC(config);
             done();
         });
     });
@@ -29,16 +28,14 @@ describe('Ioc Integration Test', function () {
         require(['ioc', 'config', 'MyFactory'], function (IOC, config, MyFactory) {
             var calledWidthArgs = {};
             iocInstance = IOC();
-            iocInstance.addComponent(config);
+            iocInstance.addComponent(config.components);
             iocInstance.loader(function () {
-                for (var i = arguments.length - 2; i > -1; --i) {
-                    calledWidthArgs[arguments[i]] = 1;
-                }
+                calledWidthArgs[arguments[0][0]] = 1;
                 return require.apply(null, arguments);
             });
             iocInstance.getComponent('myFactory', function (myFactory) {
                 assertInstanceOf(MyFactory, myFactory);
-                expect(calledWidthArgs).toEqual({ MyFactory: 1 });
+                expect(calledWidthArgs.MyFactory).toBe(1);
                 done();
             });
         });
@@ -226,6 +223,32 @@ describe('Ioc Integration Test', function () {
             iocInstance.getComponent('circular1', function (circular1) {})
         }).toThrow();
     });
+
+    it('autoInject', function (done) {
+        iocInstance.getComponent('autoInject', function (autoInject) {
+            require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
+                spyOn(autoInject, 'setd');
+                spyOn(autoInject, 'settest');
+                assertInstanceOf(A, autoInject.a);
+                assertInstanceOf(B, autoInject.b);
+                assertInstanceOf(C, autoInject.c);
+                assertInstanceOf(D, autoInject.d);
+                assertNull(autoInject.e);
+                expect(autoInject.setd).not.toHaveBeenCalled();
+                expect(autoInject.settest).not.toHaveBeenCalled();
+                done();
+            });
+        });
+    });
+
+    it('autoInject setter priority', function (done) {
+        iocInstance.getComponent('autoInject', function (autoInject) {
+            expect(autoInject.myFactory).toBe('myFactory');
+            expect(autoInject.setCCalledCount).toBe(1);
+            done();
+        });
+    });
+
 
     /* it('circularAllowed', 1, function (done) {
 
