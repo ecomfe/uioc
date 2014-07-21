@@ -224,7 +224,7 @@ void function (define, global, undefined) {
                     var component = context.getComponentConfig(componentIds[i]);
                     if (component) {
                         container.injectPropDependencies(instances[i], component.properties);
-                        component.setterDeps && container.injectSetterDependencies(instances[i], component.setterDeps);
+                        container.injectSetterDependencies(instances[i], component.setterDeps);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for src/DependencyParser.js</title>
+    <title>Code coverage report for src/DependencyTree.js</title>
     <meta charset="utf-8">
 
     <link rel="stylesheet" href="../prettify.css">
@@ -196,23 +196,23 @@
 </head>
 <body>
 <div class="header high">
-    <h1>Code coverage report for <span class="entity">src/DependencyParser.js</span></h1>
+    <h1>Code coverage report for <span class="entity">src/DependencyTree.js</span></h1>
     <h2>
         
-        Statements: <span class="metric">98.21% <small>(55 / 56)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">85.71% <small>(30 / 35)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">78.57% <small>(11 / 14)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Functions: <span class="metric">81.82% <small>(9 / 11)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">85.71% <small>(6 / 7)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">98.21% <small>(55 / 56)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
-    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; DependencyParser.js</div>
+    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; DependencyTree.js</div>
 </div>
 <div class="body">
 <pre><table class="coverage">
@@ -262,245 +262,104 @@
 44
 45
 46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+47</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-yes">152</span>
+<span class="cline-any cline-yes">152</span>
+<span class="cline-any cline-yes">152</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">12</span>
-<span class="cline-any cline-yes">12</span>
-<span class="cline-any cline-yes">12</span>
-<span class="cline-any cline-yes">6</span>
-<span class="cline-any cline-yes">6</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12</span>
+<span class="cline-any cline-yes">106</span>
+<span class="cline-any cline-yes">106</span>
+<span class="cline-any cline-yes">106</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">450</span>
-<span class="cline-any cline-yes">450</span>
-<span class="cline-any cline-yes">414</span>
+<span class="cline-any cline-yes">210</span>
+<span class="cline-any cline-yes">210</span>
+<span class="cline-any cline-yes">104</span>
+<span class="cline-any cline-yes">104</span>
+<span class="cline-any cline-yes">104</span>
+<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">450</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">103</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">106</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">450</span>
-<span class="cline-any cline-yes">450</span>
-<span class="cline-any cline-yes">342</span>
-<span class="cline-any cline-yes">342</span>
-<span class="cline-any cline-yes">342</span>
+<span class="cline-any cline-yes">106</span>
+<span class="cline-any cline-yes">106</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">450</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-yes">20</span>
-<span class="cline-any cline-yes">12</span>
-<span class="cline-any cline-yes">12</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2</span>
+<span class="cline-any cline-yes">106</span>
+<span class="cline-any cline-yes">106</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">46</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">102</span>
-<span class="cline-any cline-yes">102</span>
-<span class="cline-any cline-yes">102</span>
-<span class="cline-any cline-yes">67</span>
-<span class="cline-any cline-yes">67</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">102</span>
-<span class="cline-any cline-yes">102</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">56</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">98</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">void function (define) {
-&nbsp;
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * Created by exodia on 14-5-21.
+ */
+void function (define) {
     define(
-        function (require) {
-            var u = require('./util');
-            var DependencyTree = require('./DependencyTree');
-            var SETTER_REGEX = /^set([A-Z].*)$/;
-&nbsp;
-            function DependencyParser(context) {
-                this.context = context;
-            }
-&nbsp;
-            DependencyParser.prototype.getPropertyFromSetter = function (name) {
-                var prop = null;
-                var matches = name.match(SETTER_REGEX);
-                if (matches) {
-                    prop = matches[1];
-                    prop = prop.charAt(0).toLowerCase() + prop.slice(1);
-                }
-&nbsp;
-                return prop;
+        function () {
+            var DependencyNode = function () {
+                this.data = [];
+                this.children = [];
+                this.parent = null;
             };
 &nbsp;
-            DependencyParser.prototype.getDepsFromArgs = function (args) {
-                var deps = [];
-                for (var i = args.length - 1; i &gt; -1; --i) {
-                    u.hasReference(args[i]) &amp;&amp; u.addToSet(deps, args[i].$ref);
-                }
-                return deps;
+            DependencyNode.prototype.appendChild = function (node) {
+                node.parent = this;
+                this.children.push(node);
+                return node;
             };
 &nbsp;
-            DependencyParser.prototype.getDepsFromProperties = function (properties) {
-                var deps = [];
-                for (var k in properties) {
-                    <span class="missing-if-branch" title="else path not taken" >E</span>if (u.hasOwnProperty(properties, k)) {
-                        var prop = properties[k];
-                        u.hasReference(prop) &amp;&amp; u.addToSet(deps, prop.$ref);
+            DependencyNode.prototype.checkForCircular = function (id) {
+                var node = this.parent;
+                if (node !== null) {
+                    var data = node.data;
+                    for (var i = data.length - 1; i &gt; -1; --i) {
+                        if (node.data[i].id &amp;&amp; node.data[i].id === id) {
+                            return node.data[i];
+                        }
+&nbsp;
+                        return node.checkForCircular(id);
                     }
                 }
-                return deps;
+                return null;
             };
 &nbsp;
-            DependencyParser.prototype.getDepsFromSetters = function (instance, exclude) {
-                exclude = exclude || <span class="branch-1 cbranch-no" title="branch not covered" >{};</span>
-                var deps = [];
-                var prop = null;
-                for (var k in instance) {
-                    if (typeof instance[k] === 'function') {
-                        prop = this.getPropertyFromSetter(k);
-                        prop &amp;&amp; !exclude.hasOwnProperty(prop) &amp;&amp; deps.push(prop);
-                    }
-                }
-                return deps;
-            };
-&nbsp;
-            DependencyParser.prototype.getDepsFromInterfaces = <span class="fstat-no" title="function not covered" >function () {</span>
-&nbsp;
-            };
-&nbsp;
-            DependencyParser.prototype.getDependentModules = function (component, result, deps) {
-                return getDependentModules(component, this.context, result || <span class="branch-1 cbranch-no" title="branch not covered" >{},</span> new DependencyTree(), deps);
-            };
-&nbsp;
-            function getDependentModules(component, context, result, depTree, deps) {
-                <span class="missing-if-branch" title="else path not taken" >E</span>if (component) {
-                    var module = component.module;
-                    if (typeof component.creator !== 'function' &amp;&amp; module) {
-                        result[module] = result[module] || [];
-                        result[module].push(component);
-                    }
-&nbsp;
-                    var circular = depTree.checkForCircular(component.id);
-                    if (circular) {
-                        var msg = component.id + ' has circular dependencies ';
-                        throw new u.CircularError(msg, component);
-                    }
-&nbsp;
-                    depTree.addData(component);
-                    var child = depTree.appendChild(new DependencyTree());
-&nbsp;
-                    deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);
-                    for (var i = deps.length - 1; i &gt; -1; --i) {
-                        getDependentModules(context.getComponentConfig(deps[i]), context, result, child);
-                    }
+            DependencyNode.prototype.addData = function (data, checkForCircular) {
+                checkForCircular = !!checkForCircular;
+                <span class="missing-if-branch" title="if path not taken" >I</span>if (checkForCircular &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >this.checkForCircular(data.id))</span> {
+<span class="cstat-no" title="statement not covered" >                    return false;</span>
                 }
 &nbsp;
-                return result;
-            }
+                this.data.push(data);
+                return true;
+            };
 &nbsp;
-            return DependencyParser;
-        }
-    );
+            return DependencyNode;
+        });
 &nbsp;
 }(typeof define === 'function' &amp;&amp; define.amd ? define : <span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >function (factory) {</span> <span class="cstat-no" title="statement not covered" >module.exports = factory; </span>})</span>;</pre></td></tr>
 </table></pre>
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 16 2014 15:01:09 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jul 21 2014 15:53:52 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>
