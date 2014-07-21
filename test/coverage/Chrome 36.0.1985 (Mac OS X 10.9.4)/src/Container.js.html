@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for src/DependencyTree.js</title>
+    <title>Code coverage report for src/Container.js</title>
     <meta charset="utf-8">
 
     <link rel="stylesheet" href="../prettify.css">
@@ -196,23 +196,23 @@
 </head>
 <body>
 <div class="header high">
-    <h1>Code coverage report for <span class="entity">src/DependencyTree.js</span></h1>
+    <h1>Code coverage report for <span class="entity">src/Container.js</span></h1>
     <h2>
         
-        Statements: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">98.31% <small>(58 / 59)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">78.57% <small>(11 / 14)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">89.66% <small>(26 / 29)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Functions: <span class="metric">85.71% <small>(6 / 7)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">90% <small>(9 / 10)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">92.59% <small>(25 / 27)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">98.31% <small>(58 / 59)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
-    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; DependencyTree.js</div>
+    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; Container.js</div>
 </div>
 <div class="body">
 <pre><table class="coverage">
@@ -262,96 +262,255 @@
 44
 45
 46
-47</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">80</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">79</span>
+<span class="cline-any cline-yes">79</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">78</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">38</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">38</span>
+<span class="cline-any cline-yes">38</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">43</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">147</span>
-<span class="cline-any cline-yes">147</span>
-<span class="cline-any cline-yes">147</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">193</span>
-<span class="cline-any cline-yes">193</span>
-<span class="cline-any cline-yes">92</span>
-<span class="cline-any cline-yes">92</span>
-<span class="cline-any cline-yes">92</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">91</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">101</span>
-<span class="cline-any cline-yes">101</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * Created by exodia on 14-5-21.
- */
-void function (define) {
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-yes">169</span>
+<span class="cline-any cline-yes">169</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">77</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">void function (define) {
     define(
-        function () {
-            var DependencyNode = function () {
-                this.data = [];
-                this.children = [];
-                this.parent = null;
+        function (require) {
+            var util = require('./util');
+&nbsp;
+            function Container(context) {
+                this.context = context;
+                this.singletons = {};
+            }
+&nbsp;
+            Container.prototype.createInstance = function (component) {
+                if (!component) {
+                    return null;
+                }
+&nbsp;
+                var id = component.id;
+                if (component.scope === 'singleton' &amp;&amp; this.singletons.hasOwnProperty(id)) {
+                    return this.singletons[id];
+                }
+&nbsp;
+                if (component.scope === 'static') {
+                    return component.creator;
+                }
+&nbsp;
+                var args = createArgs(this, component);
+                var instance = component.creator.apply(null, args);
+                if (component.scope === 'singleton') {
+                    this.singletons[id] = instance;
+                }
+                return instance;
             };
 &nbsp;
-            DependencyNode.prototype.appendChild = function (node) {
-                node.parent = this;
-                this.children.push(node);
-                return node;
-            };
+            Container.prototype.injectPropDependencies = function (instance, deps) {
+                for (var k in deps) {
+                    var dep = deps[k];
+                    var value = dep;
 &nbsp;
-            DependencyNode.prototype.checkForCircular = function (id) {
-                var node = this.parent;
-                if (node !== null) {
-                    var data = node.data;
-                    for (var i = data.length - 1; i &gt; -1; --i) {
-                        if (node.data[i].id &amp;&amp; node.data[i].id === id) {
-                            return node.data[i];
+                    if (util.hasReference(dep)) {
+                        var component = this.context.getComponentConfig(dep.$ref);
+                        value = this.createInstance(component);
+                        <span class="missing-if-branch" title="else path not taken" >E</span>if (component) {
+                            this.injectPropDependencies(value, component.properties);
+                            this.injectSetterDependencies(value, component.setterDeps);
                         }
-&nbsp;
-                        return node.checkForCircular(id);
                     }
+&nbsp;
+                    var setter = this.getSetterName(k);
+                    typeof instance[setter] === 'function' ? instance[setter](value) : (instance[k] = value);
                 }
-                return null;
             };
 &nbsp;
-            DependencyNode.prototype.addData = function (data, checkForCircular) {
-                checkForCircular = !!checkForCircular;
-                <span class="missing-if-branch" title="if path not taken" >I</span>if (checkForCircular &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >this.checkForCircular(data.id))</span> {
-<span class="cstat-no" title="statement not covered" >                    return false;</span>
+            Container.prototype.injectSetterDependencies = function (instance, deps) {
+                deps = deps || [];
+                for (var i = deps.length - 1; i &gt; -1; --i) {
+                    var dep = deps[i];
+                    var value = null;
+                    var component = this.context.getComponentConfig(dep);
+                    <span class="missing-if-branch" title="else path not taken" >E</span>if (component) {
+                        value = this.createInstance(component);
+                        this.injectPropDependencies(value, component.properties);
+                        this.injectSetterDependencies(value, component.setterDeps);
+                    }
+                    instance[this.getSetterName(dep)](value);
                 }
-&nbsp;
-                this.data.push(data);
-                return true;
             };
 &nbsp;
-            return DependencyNode;
+            Container.prototype.getSetterName = function (prop) {
+                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
+&nbsp;
+            };
+&nbsp;
+            Container.prototype.dispose = function () {
+                var singletons = this.singletons;
+                for (var k in singletons) {
+                    var instance = singletons[k];
+                    instance &amp;&amp; typeof instance.dispose === 'function' &amp;&amp; instance.dispose();
+                }
+&nbsp;
+                this.singletons = null;
+            };
+&nbsp;
+&nbsp;
+            function createArgs(container, component) {
+                var argConfigs = component.args;
+                var args = Array(argConfigs.length);
+                for (var i = argConfigs.length - 1; i &gt; -1; --i) {
+                    var arg = argConfigs[i];
+                    args[i] = util.hasReference(arg) ?
+                        container.createInstance(container.context.getComponentConfig(arg.$ref))
+                        : arg;
+                }
+&nbsp;
+                return args;
+            }
+&nbsp;
+            return Container;
+&nbsp;
         });
 &nbsp;
 }(typeof define === 'function' &amp;&amp; define.amd ? define : <span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >function (factory) {</span> <span class="cstat-no" title="statement not covered" >module.exports = factory; </span>})</span>;</pre></td></tr>
@@ -359,7 +518,7 @@ void function (define) {
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 16 2014 15:01:09 GMT+0800 (CST)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jul 21 2014 15:53:52 GMT+0800 (CST)</div>
 </div>
 
 <script src="../prettify.js"></script>

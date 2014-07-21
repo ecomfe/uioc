@@ -144,7 +144,7 @@ describe('Ioc Integration Test', function () {
 
         iocInstance.getComponent('d', function (d) {
 
-            require(['A', 'B', 'C', 'D' ], function (A, B, C, D) {
+            require(['A', 'B', 'C', 'D', 'MyUtil' ], function (A, B, C, D, Util) {
 
                 assertInstanceOf(D, d);
 
@@ -156,6 +156,9 @@ describe('Ioc Integration Test', function () {
                 assertSame(d.b.c.number, 99);
                 assertSame(d.b.c.bool, true);
                 assertNull(d.b.c.nully);
+                assertSame(d.b.name, 'Tony Blair');
+
+                assertInstanceOf(Util, d.b.util);
 
                 done();
             });
@@ -226,13 +229,15 @@ describe('Ioc Integration Test', function () {
 
     it('autoInject', function (done) {
         iocInstance.getComponent('autoInject', function (autoInject) {
-            require(['A', 'B', 'C', 'D'], function (A, B, C, D) {
+            require(['A', 'B', 'C', 'D', 'MyUtil'], function (A, B, C, D, Util) {
                 spyOn(autoInject, 'setd');
                 spyOn(autoInject, 'settest');
                 assertInstanceOf(A, autoInject.a);
                 assertInstanceOf(B, autoInject.b);
                 assertInstanceOf(C, autoInject.c);
                 assertInstanceOf(D, autoInject.d);
+                assertInstanceOf(Util, autoInject.d.b.util);
+
                 assertNull(autoInject.e);
                 expect(autoInject.setd).not.toHaveBeenCalled();
                 expect(autoInject.settest).not.toHaveBeenCalled();
@@ -258,4 +263,5 @@ describe('Ioc Integration Test', function () {
      done();
      });
      });*/
-});
+})
+;

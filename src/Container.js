@@ -36,7 +36,12 @@ void function (define) {
                     var value = dep;
 
                     if (util.hasReference(dep)) {
-                        value = this.createInstance(this.context.getComponentConfig(dep.$ref));
+                        var component = this.context.getComponentConfig(dep.$ref);
+                        value = this.createInstance(component);
+                        if (component) {
+                            this.injectPropDependencies(value, component.properties);
+                            this.injectSetterDependencies(value, component.setterDeps);
+                        }
                     }
 
                     var setter = this.getSetterName(k);
@@ -45,9 +50,16 @@ void function (define) {
             };
 
             Container.prototype.injectSetterDependencies = function (instance, deps) {
+                deps = deps || [];
                 for (var i = deps.length - 1; i > -1; --i) {
                     var dep = deps[i];
-                    var value = this.createInstance(this.context.getComponentConfig(dep));
+                    var value = null;
+                    var component = this.context.getComponentConfig(dep);
+                    if (component) {
+                        value = this.createInstance(component);
+                        this.injectPropDependencies(value, component.properties);
+                        this.injectSetterDependencies(value, component.setterDeps);
+                    }
                     instance[this.getSetterName(dep)](value);
                 }
             };

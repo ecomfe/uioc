@@ -25,7 +25,10 @@ define(function () {
                 args: [
                     "Tony Blair",
                     { $ref: 'c' }
-                ]
+                ],
+                properties: {
+                    util: { $ref: 'anotherUtil' }
+                }
             },
             b3: {
                 module: "B",
