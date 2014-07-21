@@ -88,8 +88,19 @@ define(function () {
                     { $ref: 'b' }
                 ],
                 properties: {
-                    myFactory: 'myFactory'
+                    myFactory: 'myFactory',
+                    anotherAutoInject: {
+                        $ref: 'autoInject1'
+                    }
                 },
+                auto: true
+            },
+            autoInject1: {
+                module: 'AutoInject1',
+                args: [
+                    { $ref: 'a' },
+                    { $ref: 'b' }
+                ],
                 auto: true
             },
             creatorFn: {

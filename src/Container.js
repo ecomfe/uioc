@@ -30,45 +30,6 @@ void function (define) {
                 return instance;
             };
 
-            Container.prototype.injectPropDependencies = function (instance, deps) {
-                for (var k in deps) {
-                    var dep = deps[k];
-                    var value = dep;
-
-                    if (util.hasReference(dep)) {
-                        var component = this.context.getComponentConfig(dep.$ref);
-                        value = this.createInstance(component);
-                        if (component) {
-                            this.injectPropDependencies(value, component.properties);
-                            this.injectSetterDependencies(value, component.setterDeps);
-                        }
-                    }
-
-                    var setter = this.getSetterName(k);
-                    typeof instance[setter] === 'function' ? instance[setter](value) : (instance[k] = value);
-                }
-            };
-
-            Container.prototype.injectSetterDependencies = function (instance, deps) {
-                deps = deps || [];
-                for (var i = deps.length - 1; i > -1; --i) {
-                    var dep = deps[i];
-                    var value = null;
-                    var component = this.context.getComponentConfig(dep);
-                    if (component) {
-                        value = this.createInstance(component);
-                        this.injectPropDependencies(value, component.properties);
-                        this.injectSetterDependencies(value, component.setterDeps);
-                    }
-                    instance[this.getSetterName(dep)](value);
-                }
-            };
-
-            Container.prototype.getSetterName = function (prop) {
-                return 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
-
-            };
-
             Container.prototype.dispose = function () {
                 var singletons = this.singletons;
                 for (var k in singletons) {
@@ -78,7 +39,6 @@ void function (define) {
 
                 this.singletons = null;
             };
-
 
             function createArgs(container, component) {
                 var argConfigs = component.args;

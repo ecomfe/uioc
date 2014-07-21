@@ -1,6 +1,6 @@
 {
   "name": "uioc",
-  "version": "0.1.1-alpha.2",
+  "version": "0.1.1-alpha.3",
   "description": "an ioc framework",
   "main": "main.js",
   "maintainers": {

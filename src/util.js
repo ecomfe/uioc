@@ -77,6 +77,7 @@ void function (define, undefined) {
                 addToSet: addToSet,
                 isObject: isObject,
                 bind: bind,
+                indexOf: indexOf,
                 hasReference: hasReference,
                 warn: warn
             };

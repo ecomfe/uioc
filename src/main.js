@@ -191,10 +191,18 @@ void function (define, global, undefined) {
 
             function createInstances(ids, cb) {
                 var instances = Array(ids.length);
+                if (ids.length == 0) {
+                    return cb.apply(null, instances);
+                }
+
                 var container = this.container;
                 var parser = this.parser;
                 var context = this;
                 var needSetterModules = {};
+                var count = ids.length;
+                var done = function () {
+                    --count === 0 && cb.apply(null, instances);
+                };
 
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var component = this.components[ids[i]];
@@ -209,24 +217,56 @@ void function (define, global, undefined) {
                             component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
                             needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
                         }
+
+                        loadComponentModules(this, needSetterModules, u.bind(injectDeps, context, instance, component, done));
+                    } else {
+                        done();
                     }
                 }
+            }
 
-                loadComponentModules(this, needSetterModules, function () {
-                    injectDeps(context, instances, ids);
-                    cb.apply(null, instances);
+            function injectDeps(instance, component, cb) {
+                var complete = {
+                    prop: false,
+                    setter: false
+                };
+                var injected = function (type) {
+                    complete[type] = true;
+                    complete.prop && complete.setter && cb();
+                };
+                injectPropDependencies(this, instance, component, u.bind(injected, null, 'prop'));
+                injectSetterDependencies(this, instance, component, u.bind(injected, null, 'setter'));
+            }
+
+            function injectSetterDependencies(context, instance, component, cb) {
+                var deps = component.setterDeps || [];
+                context.getComponent(deps, function () {
+                    for (var i = deps.length - 1; i > -1; --i) {
+                        var dep = deps[i];
+                        setProperty(instance, dep, arguments[i]);
+                    }
+                    cb();
                 });
             }
 
-            function injectDeps(context, instances, componentIds) {
-                var container = context.container;
-                for (var i = instances.length - 1; i > -1; --i) {
-                    var component = context.getComponentConfig(componentIds[i]);
-                    if (component) {
-                        container.injectPropDependencies(instances[i], component.properties);
-                        container.injectSetterDependencies(instances[i], component.setterDeps);
+            function injectPropDependencies(context, instance, component, cb) {
+                var deps = component.propDeps;
+                var props = component.properties;
+                context.getComponent(deps, function () {
+                    for (var k in props) {
+                        var value = props[k];
+                        if (u.hasReference(value)) {
+                            value = arguments[u.indexOf(deps, value.$ref)];
+                        }
+                        setProperty(instance, k, value);
                     }
-                }
+                    cb();
+                });
+            }
+
+            function setProperty(instance, key, value) {
+                var name = 'set' + key.charAt(0).toUpperCase() + key.slice(1);
+                typeof instance[name] === 'function' ? instance[name](value) : (instance[key] = value);
             }
 
             return Context;
