@@ -32,7 +32,7 @@ void function (define) {
             DependencyParser.prototype.getDepsFromProperties = function (properties) {
                 var deps = [];
                 for (var k in properties) {
-                    if (u.hasOwnProperty(properties, k)) {
+                    if (u.hasOwn(properties, k)) {
                         var prop = properties[k];
                         u.hasReference(prop) && u.addToSet(deps, prop.$ref);
                     }
