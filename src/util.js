@@ -31,9 +31,9 @@ void function (define, undefined) {
                 !contains(arr, el) && arr.push(el);
             }
 
-            function warn() {
+            function warn(msg) {
                 if (typeof console !== 'undefined') {
-                    console.warn.apply(console, arguments)
+                    console.warn(msg);
                 }
             }
 
@@ -72,7 +72,7 @@ void function (define, undefined) {
 
             return {
                 CircularError: CircularError,
-                hasOwnProperty: hasOwnProperty,
+                hasOwn: hasOwnProperty,
                 contains: contains,
                 addToSet: addToSet,
                 isObject: isObject,

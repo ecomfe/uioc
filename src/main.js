@@ -166,7 +166,7 @@ void function (define, global, undefined) {
                     component.creator = function () {
                         creatorWrapper.prototype = creator.prototype;
                         return new creatorWrapper(creator, arguments);
-                    }
+                    };
                 }
             }
 
@@ -191,14 +191,14 @@ void function (define, global, undefined) {
 
             function createInstances(ids, cb) {
                 var instances = Array(ids.length);
-                if (ids.length == 0) {
+                if (ids.length === 0) {
                     return cb.apply(null, instances);
                 }
 
                 var container = this.container;
                 var parser = this.parser;
                 var context = this;
-                var needSetterModules = {};
+                var needModules = {};
                 var count = ids.length;
                 var done = function () {
                     --count === 0 && cb.apply(null, instances);
@@ -210,15 +210,15 @@ void function (define, global, undefined) {
                     instances[i] = instance;
 
                     if (component) {
-                        needSetterModules = parser.getDependentModules(component, {}, component.propDeps);
+                        needModules = parser.getDependentModules(component, {}, component.propDeps);
 
                         // 获取 setter 依赖
                         if (!component.setterDeps && component.auto) {
                             component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
-                            needSetterModules = parser.getDependentModules(component, needSetterModules, component.setterDeps);
+                            needModules = parser.getDependentModules(component, needModules, component.setterDeps);
                         }
 
-                        loadComponentModules(this, needSetterModules, u.bind(injectDeps, context, instance, component, done));
+                        loadComponentModules(this, needModules, u.bind(injectDeps, context, instance, component, done));
                     } else {
                         done();
                     }
