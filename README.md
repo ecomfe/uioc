@@ -235,12 +235,10 @@ ioc 的模块加载器，默认使用全局的 require，需要符合 AMD 接口
 若 creator 为字符串，则使用 config.module 配置的模块返回值的creator属性值作为 creator；
 
 ```javascript
-var config = {
-// 最终为 new a.method();
-    a: {
-        module: 'A',
-        creator: 'method'
-    }
+var myComponentConfig = {
+// 最终为 new A.method();
+     module: 'A',
+     creator: 'method'
 };
 ```
 
@@ -250,87 +248,70 @@ var config = {
  - 为 singleton，表示构件为单例，仅在第一次获取实例时调用一次 creator，之后返回同一个实例；
  - 为 static，直接返回 creator。
 
-##### {Boolean=false} isFactory
+##### {Boolean=false} config.isFactory
 标识 creator 是否为工厂函数，若为工厂，则在创建实例时，直接调用，否则用 new 进行调用。
 
-##### {Array} args
+##### {Array} config.args
 调用 creator 时传入的参数，完成构造函数依赖注入。
 若在单个参数的对象中设置了 $ref 操作符，则表示依赖某个构件，此时将此参数替换为$ref对应的构件实例
 
 ```javascript
-var config = {
-    a: {
-        creator: function (name, b){
-            this.name = name;
-            this.b = b;
-        },
-        // new creator('string', new B())
-        args: [ 'string', { $ref: 'B' } ]
-    },
-    b: {
-        module: 'B'
-    }
+var myComponentConfig = {
+     creator: function (name, b){
+         this.name = name;
+         this.b = b;
+     },
+     // new creator('string', new B())
+     args: [ 'string', { $ref: 'B' } ]
 };
 ```
 
-##### {Object} properties
+##### {Object} config.properties
 完成构件实例创建后，需要注入的属性，key 为属性名，值为要注入的属性值，若值为对象且有$ref，则该属性值会被替换为$ref对应的构件实例。
 
 $ref依赖创建后，若构件实例有set${Key}方法，则会直接调用该方法，并将依赖作为参数传入，否则直接执行 instance.${key} = {$refInstance}
 
 ```javascript
 
-var config = {
-    a: {
-        creator: function (){
-            this.setB = function(b) {
-                this.b = b;
-            }
-        },
-        properties: {
+var myComponentConfig = {
+     creator: function (){
+         this.setB = function(b) {
+             this.b = b;
+         }
+     },
+     properties: {
 
-            // 实例化 a 后，执行 aInstance.name = 'string';
-            name: 'string',
+         // 实例化 a 后，执行 aInstance.name = 'string';
+         name: 'string',
 
-            // 实例化 a 后，执行 aInstance.setB(b)
-            B: { $ref: 'B' }
-        }
-    },
-    b: {
-        module: 'B'
-    }
+         // 实例化 a 后，执行 aInstance.setB(b)
+         B: { $ref: 'B' }
+     }
 };
 ```
 
-##### {Boolean=false} auto
+##### {Boolean=false} config.auto
 设置是否自动注入，若为 true，则 ioc 容器会在创建构件实例后，寻找实例的 setter(set${Name})，
 之后会调用该 setter，将对应的 ${name}依赖作为参数传入 setter。
 ***注意：properties中的配置优先级高于自动注入***
 
 ```javascript
-var config = {
-    a: {
-        creator: function (){
-            this.setB = function(b) {
-                this.b = b;
-            }
-            this.setC = function(c) {
-                this.c = c;
-            }
-        },
-        // 会自动查找 setter的依赖，这里会查询到 setB 和 setC对应的依赖为'b','c'，
-        // 由于 c 在 propeties 中已经配置，优先级 properties 更高，因此这里不会去实例化构件 c，仅会实例化构件 b，并调用setB(b);
-        auto: true, 
-        properties: {
-            c: 'c' // 优先级高于自动注入，因此最终aInstance.c为'c'
-        }
-    },
-    b: {
-        module: 'B'
-    },
-    c: {
-        module: 'C'
-    }
+var myComponentConfig = {
+     creator: function () {
+         this.setB = function(b) {
+             this.b = b;
+         }
+         this.setC = function(c) {
+             this.c = c;
+         }
+     },
+     // 会自动查找 setter的依赖，这里会查询到 setB 和 setC对应的依赖为'b','c'，
+     // 由于 c 在 propeties 中已经配置，优先级 properties 更高，因此这里不会去实例化构件 c，仅会实例化构件 b，并调用setB(b);
+     auto: true, 
+     properties: {
+         c: 'c' // 优先级高于自动注入，因此最终aInstance.c为'c'
+     }
+    
 };
 ```
 
