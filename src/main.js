@@ -34,15 +34,6 @@ void function (define, global, undefined) {
              *
              * 容器会解析第一层的$ref，从值中获取对应的实例，若实例未注册，返回 null
              *
-             *
-             * 在 properties 中，可以使用 $setter 操作符：
-             *      {
-             *          properties: { prop1: { $setter: 'setProp1'， value: 'prop1' } }
-             *      }
-             * 容器会解析第一层的$setter，从值中调用实例的方法，传入属性名和属性值，
-             * 若未设置 setter，则使用instance.prop1 = value方式注入值
-             *
-             *
              * @param {String} id
              * @param {Object} [config]
              * @param {Function | String} config.creator 创建构件的函数或模块名称
@@ -70,6 +61,7 @@ void function (define, global, undefined) {
              *              name: 'xxxx'
              *          }
              *      });
+             *
              */
             Context.prototype.addComponent = function (id, config) {
                 if (typeof id === 'object') {

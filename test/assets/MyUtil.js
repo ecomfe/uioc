@@ -28,7 +28,7 @@ define(function () {
         return {
             a: a,
             b: b
-        }
+        };
     };
 
     MyUtil.creator = function (a, b) {

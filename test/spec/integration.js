@@ -18,16 +18,16 @@ describe('Ioc Integration Test', function () {
     }
 
     beforeEach(function (done) {
-        require(['ioc', 'config'], function (IOC, config) {
-            iocInstance = IOC(config);
+        require(['ioc', 'config'], function (IoC, config) {
+            iocInstance = IoC(config);
             done();
         });
     });
 
     it('customLoader', function (done) {
-        require(['ioc', 'config', 'MyFactory'], function (IOC, config, MyFactory) {
+        require(['ioc', 'config', 'MyFactory'], function (IoC, config, MyFactory) {
             var calledWidthArgs = {};
-            iocInstance = IOC();
+            iocInstance = IoC();
             iocInstance.addComponent(config.components);
             iocInstance.loader(function () {
                 calledWidthArgs[arguments[0][0]] = 1;
