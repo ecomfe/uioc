@@ -2,7 +2,7 @@ describe('import test', function () {
     var iocInstance = null;
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IoC, config) {
-            iocInstance = IoC(config);
+            iocInstance = IoC(config());
             done();
         });
     });
@@ -17,9 +17,9 @@ describe('import test', function () {
                 expect(obj.b instanceof B).toBe(true);
                 expect(obj.b.name).toBe('Tony Blair');
                 expect(obj.b.c instanceof C).toBe(true);
-                expect(obj.util instanceof MyUtil).toBe(true);
+                expect(obj.b.util instanceof MyUtil).toBe(true);
 
-                var myUtil = obj.myUtil;
+                var myUtil = importIns.myUtil;
                 expect(myUtil instanceof MyUtil).toBe(true);
                 expect(myUtil.importProp).toBe('importProp');
 
@@ -33,9 +33,10 @@ describe('import test', function () {
         });
     });
 
-    it('nested import', function (done) {
-
+    xit('nested import', function (done) {
     });
 
+    xit('nested import with auto', function (done) {
 
+    });
 });

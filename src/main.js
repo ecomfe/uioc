@@ -9,6 +9,8 @@ void function (define, global, undefined) {
             var u = require('./util');
             var Parser = require('./DependencyParser');
             var globalLoader = global.require;
+            var ANONY_PREFIX = '^uioc-';
+
             var creatorWrapper = function (creator, args) {
                 return creator.apply(this, args);
             };
@@ -34,7 +36,7 @@ void function (define, global, undefined) {
              *
              * 容器会解析第一层的$ref，从值中获取对应的实例，若实例未注册，返回 null
              *
-             * @param {String} id
+             * @param {String | Object} id
              * @param {Object} [config]
              * @param {Function | String} config.creator 创建构件的函数或模块名称
              * @param {Boolean=false} config.isFactory 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用
@@ -64,18 +66,28 @@ void function (define, global, undefined) {
              *
              */
             Context.prototype.addComponent = function (id, config) {
-                if (typeof id === 'object') {
+                var ids = [];
+                if (typeof id === 'string') {
+                    var conf = {};
+                    conf[id] = config;
+                    this.addComponent(conf);
+                }
+                else {
                     for (var k in id) {
-                        this.addComponent(k, id[k]);
+                        if (this.components[id]) {
+                            u.warn(id + ' has been add! This will be no effect');
+                            continue;
+                        }
+                        this.components[k] = createComponent.call(this, k, id[k]);
+                        ids.push(k);
                     }
-                } else {
-                    var component = this.components[id];
-                    if (component) {
-                        u.warn(id + ' has been add! This will be no effect');
-                        return;
-                    }
+                }
 
-                    this.components[id] = createComponent.call(this, id, config);
+                for (var i = ids.length - 1; i > -1; --i) {
+                    var component = this.getComponentConfig(ids[i]);
+                    !component.anonyDeps && transferAnonymousComponents(this, component);
+                    component.argDeps = this.parser.getDepsFromArgs(component.args);
+                    component.propDeps = this.parser.getDepsFromProperties(component.properties);
                 }
             };
 
@@ -122,6 +134,7 @@ void function (define, global, undefined) {
                     id: id,
                     args: config.args || [],
                     properties: config.properties || {},
+                    anonyDeps: null,
                     argDeps: null,
                     propDeps: null,
                     setterDeps: null,
@@ -135,8 +148,7 @@ void function (define, global, undefined) {
 
                 // creator为函数，那么先包装下
                 typeof component.creator === 'function' && createCreator(component);
-                component.argDeps = this.parser.getDepsFromArgs(component.args);
-                component.propDeps = this.parser.getDepsFromProperties(component.properties);
+
                 return component;
             }
 
@@ -159,6 +171,50 @@ void function (define, global, undefined) {
                         creatorWrapper.prototype = creator.prototype;
                         return new creatorWrapper(creator, arguments);
                     };
+                }
+            }
+
+            function createAnonymousComponent(context, component, config, idPrefix) {
+                var importId = config.$import;
+                var refConfig = context.getComponentConfig(importId);
+                if (!refConfig) {
+                    throw new Error('$import `%s` component, but it is not exist, please check!!', config.$import);
+                }
+
+                var id = component.id + '-' + idPrefix + importId;
+                config.id = id = (id.indexOf(ANONY_PREFIX) !== -1 ? '' : ANONY_PREFIX) + id;
+                delete config.$import;
+                context.addComponent(id, u.merge(refConfig, config));
+
+                return id;
+            }
+
+            /**
+             * 抽取匿名构件
+             * @ignored
+             * @param {Context} context
+             * @param {Object} component
+             */
+            function transferAnonymousComponents(context, component) {
+                component.anonyDeps = [];
+                var args = component.args;
+                var id = null;
+                for (var i = args.length - 1; i > -1; --i) {
+                    if (u.hasImport(args[i])) {
+                        // 给匿名组件配置生成一个 ioc 构件id
+                        id = createAnonymousComponent(context, component, args[i], '$arg.');
+                        args[i] = { $ref: id };
+                        component.anonyDeps.push(id);
+                    }
+                }
+
+                var props = component.properties;
+                for (var k in props) {
+                    if (u.hasImport(props[k])) {
+                        id = createAnonymousComponent(context, component, props[k], '$prop.');
+                        props[k] = { $ref: id };
+                        component.anonyDeps.push(id);
+                    }
                 }
             }
 
@@ -196,24 +252,32 @@ void function (define, global, undefined) {
                     --count === 0 && cb.apply(null, instances);
                 };
 
-                for (var i = 0, len = ids.length; i < len; ++i) {
-                    var component = this.components[ids[i]];
-                    var instance = container.createInstance(component);
-                    instances[i] = instance;
 
-                    if (component) {
-                        needModules = parser.getDependentModules(component, {}, component.propDeps);
+                var task = function (index, component) {
+                    return function (instance) {
+                        instances[index] = instance;
+                        if (component) {
+                            needModules = parser.getDependentModules(component, {}, component.propDeps);
 
-                        // 获取 setter 依赖
-                        if (!component.setterDeps && component.auto) {
-                            component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
-                            needModules = parser.getDependentModules(component, needModules, component.setterDeps);
+                            // 获取 setter 依赖
+                            if (!component.setterDeps && component.auto) {
+                                component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
+                                needModules = parser.getDependentModules(component, needModules, component.setterDeps);
+                            }
+
+                            loadComponentModules(
+                                context, needModules, u.bind(injectDeps, context, instance, component, done)
+                            );
                         }
+                        else {
+                            done();
+                        }
+                    };
+                };
 
-                        loadComponentModules(this, needModules, u.bind(injectDeps, context, instance, component, done));
-                    } else {
-                        done();
-                    }
+                for (var i = ids.length - 1; i > -1; --i) {
+                    var component = this.components[ids[i]];
+                    container.createInstance(component, task(i, component));
                 }
             }
 

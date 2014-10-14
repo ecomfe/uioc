@@ -19,7 +19,7 @@ describe('Ioc Integration Test', function () {
 
     beforeEach(function (done) {
         require(['ioc', 'config'], function (IoC, config) {
-            iocInstance = IoC(config);
+            iocInstance = IoC(config());
             done();
         });
     });
@@ -28,7 +28,7 @@ describe('Ioc Integration Test', function () {
         require(['ioc', 'config', 'MyFactory'], function (IoC, config, MyFactory) {
             var calledWidthArgs = {};
             iocInstance = IoC();
-            iocInstance.addComponent(config.components);
+            iocInstance.addComponent(config().components);
             iocInstance.loader(function () {
                 calledWidthArgs[arguments[0][0]] = 1;
                 return require.apply(null, arguments);
@@ -85,9 +85,9 @@ describe('Ioc Integration Test', function () {
                     assertInstanceOf(MyFactory, myFactory1);
                     assertSame(myFactory1, myFactory2);
                 });
-                done()
-            })
-        })
+                done();
+            });
+        });
     });
 
     it('simpleConstructorInjectLiterals', function (done) {
@@ -119,6 +119,7 @@ describe('Ioc Integration Test', function () {
                 assertSame(a.b.c.number, 99);
                 assertSame(a.b.c.bool, true);
                 assertNull(a.b.c.nully);
+                expect(a.b.c.cProp).toBe('cProp');
 
                 done();
             });
@@ -184,7 +185,7 @@ describe('Ioc Integration Test', function () {
             assertSame(b3.useUtil(), true);
 
             done();
-        })
+        });
     });
 
     it('utilCreator', function (done) {
@@ -196,7 +197,7 @@ describe('Ioc Integration Test', function () {
                 assertInstanceOf(C, utilCreator.c);
                 done();
             });
-        })
+        });
     });
 
     it('utilFactoryCreator', function (done) {
@@ -207,8 +208,8 @@ describe('Ioc Integration Test', function () {
                 assertInstanceOf(B, utilFactoryCreator.b);
                 assertInstanceOf(C, utilFactoryCreator.c);
                 done();
-            })
-        })
+            });
+        });
     });
 
     it('jquery', function (done) {
