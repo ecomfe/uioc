@@ -198,6 +198,8 @@ define(function () {
                 x: {
                     module: 'X' //shouldn't exist
                 },
+
+                // import test
                 importA: {
                     module: 'import/A',
                     args: [
@@ -219,6 +221,49 @@ define(function () {
                             }
                         }
                     }
+                },
+                importNest: {
+                    module: 'import/Nest',
+                    args: [
+                        {
+                            $import: 'a',
+                            properties: {
+                                util: {
+                                    $import: 'myUtil',
+                                    args: [
+                                        {
+                                            $import: 'a',
+                                            properties: {
+                                                argImportProp: 'argImportProp',
+                                                d3: {
+                                                    $import: 'd3',
+                                                    properties: {
+                                                        d3Prop: 'd3Prop'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    properties: {
+                                        importProp: 'importProp'
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            $import: 'f'
+                        }
+                    ],
+                    properties: {
+                        c: {
+                            $import: 'c',
+                            properties: {
+                                cProp: 'nestProp'
+                            }
+                        }
+                    },
+                    scope: 'singleton',
+                    auto: true
                 }
             }
         };

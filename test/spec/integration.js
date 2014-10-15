@@ -1,4 +1,4 @@
-describe('Ioc Integration Test', function () {
+describe('Ioc Integration Test: ', function () {
     var iocInstance = null;
 
     function assertInstanceOf(Constructor, instance) {
