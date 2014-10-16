@@ -1,7 +1,7 @@
 /**
- * Created by exodia on 14-4-14.
+ * @file IoC 类
+ * @author exodia (d_xinxin@163.com)
  */
-
 void function (define, global, undefined) {
     define(
         function (require) {
@@ -9,14 +9,27 @@ void function (define, global, undefined) {
             var u = require('./util');
             var Parser = require('./DependencyParser');
             var globalLoader = global.require;
+            var ANONY_PREFIX = '^uioc-';
+
             var creatorWrapper = function (creator, args) {
                 return creator.apply(this, args);
             };
 
-            function Context(config) {
+            /**
+             * IoC 容器类，根据配置实例化一个 IoC 容器
+             * @class IoC
+             *
+             * @param {Object} [config] IoC 配置
+             * @param {Function} [config.loader=require] 符合 AMD 规范的模块加载器，默认为全局的 require
+             * @param {Object.<string, ComponentConfig>} [config.components]
+             * 批量配置构件, 其中每个key 为构件 id，值为构建配置对象，配置选项见 @link IoC#addComponent
+             *
+             * @returns {IoC}
+             */
+            function IoC(config) {
                 config = config || {};
-                if (!(this instanceof Context)) {
-                    return new Context(config);
+                if (!(this instanceof IoC)) {
+                    return new IoC(config);
                 }
 
                 this.moduleLoader = config.loader || globalLoader;
@@ -27,67 +40,107 @@ void function (define, global, undefined) {
             }
 
             /**
-             * 向容器中注册构件，配置中，args 和 properties 中的每个元素，可以使用 $ref 操作符：
-             *      {
-             *        args: [ { $ref: 'otherComponent' } ]
-             *     }
+             * 构件配置对象
              *
-             * 容器会解析第一层的$ref，从值中获取对应的实例，若实例未注册，返回 null
-             *
-             *
-             * 在 properties 中，可以使用 $setter 操作符：
-             *      {
-             *          properties: { prop1: { $setter: 'setProp1'， value: 'prop1' } }
-             *      }
-             * 容器会解析第一层的$setter，从值中调用实例的方法，传入属性名和属性值，
-             * 若未设置 setter，则使用instance.prop1 = value方式注入值
-             *
-             *
-             * @param {String} id
-             * @param {Object} [config]
-             * @param {Function | String} config.creator 创建构件的函数或模块名称
-             * @param {Boolean=false} config.isFactory 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用
-             * @param {'transient' | 'singleton' | 'static'} [config.scope = 'transient']
-             * 构件作用域，默认为 transient，每次获取构件，都会新建一个实例返回，若为 singleton，则会返回同一个实例
-             * 若为 static，则直接返回creator
-             *
-             * @param {Array} config.args 传递给创建构件函数的参数
-             * @param {Object} config.properties 附加给实例的属性
-             *      ioc.addComponent('List', {
-             *          // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
-             *          creator: require('./List'),
-             *          scope: 'transient',
-             *          args: [
-             *              {
-             *                   $ref: 'entityName'
-             *              }
-             *          ],
-             *
-             *          // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
-             *          properties: {
-             *              model: { $ref: 'ListModel' },
-             *              view: { $ref: 'ListView' },
-             *              name: 'xxxx'
-             *          }
-             *      });
+             * @typedef {Object} ComponentConfig
+             * @property {Function | string} creator 创建构件的函数或模块名称
+             * @property {boolean} [isFactory=false] 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用
+             * @property {'transient' | 'singleton' | 'static'} [scope='transient']
+             * 构件作用域，默认为 transient，每次获取构件，都会新建一个实例返回，若为 singleton，则会返回同一个实例，若为 static，则直接返回creator
+             * @property {DependencyConfig[]} args 传递给构件构造函数的参数，
+             * 获取构件时，根据 args 的配置，自动创建其依赖，作为构造函数参数传入
+             * @property {Object.<string, DependencyConfig>} [properties] 附加给构件实例的属性，
+             * 获取构件时，IoC 会根据 properties 的配置，自动创建其依赖， 作为属性注入构件实例。
+             * **note:** 若构件实例存在 ```set + 属性名首字母大些的方法```，则会调用此方法，并将依赖传入，
+             * 否则简单的调用 ```this.{propertyName} = {property}```
              */
-            Context.prototype.addComponent = function (id, config) {
-                if (typeof id === 'object') {
-                    for (var k in id) {
-                        this.addComponent(k, id[k]);
-                    }
-                } else {
-                    var component = this.components[id];
-                    if (component) {
-                        u.warn(id + ' has been add! This will be no effect');
-                        return;
-                    }
 
-                    this.components[id] = createComponent.call(this, id, config);
+            /**
+             * 构件依赖配置对象，用于配置构件的依赖，若未配置$ref与$import，则本身作为依赖值，否则将根据$ref/$import的声明查找依赖。
+             *
+             * @typedef {* | Object} DependencyConfig
+             * @mixes ComponentConfig
+             *
+             * @property {string} [$ref] 声明依赖的构件，获取构件时，会自动创建其依赖的构件，作为构造函数参数传入
+             * @property {string} [$import] 导入指定构件的配置，将创建一个匿名构件配置，其余的配置将覆盖掉导入的配置
+             */
+
+            /**
+             *
+             * 向容器中注册构件
+             *
+             * @method IoC#addComponent
+             * @param {String | ComponentConfig} id
+             * @param {ComponentConfig} [config]
+             * @example
+             * ioc.addComponent('list', {
+             *     // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
+             *     creator: require('./List'),
+             *     scope: 'transient',
+             *     args: [{$ref: 'entityName'}],
+             *
+             *     // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
+             *     properties: {
+             *          model: {$ref: 'listModel'},
+             *          view: {$ref: 'listView'},
+             *          name: 'xxxx' // 未设置$ref/$import操作符，'xxxx' 即为依赖值
+             *     }
+             * });
+             *
+             * ioc.addComponent('listData', {
+             *     creator: 'ListDatal',
+             *     scope: 'transient',
+             *
+             *     properties: {
+             *          data: {
+             *              $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，
+             *              args:['list', 'list'] // 重写 requestStrategy 的 args 配置
+             *          },
+             *     }
+             * });
+             */
+            IoC.prototype.addComponent = function (id, config) {
+                var ids = [];
+                if (typeof id === 'string') {
+                    var conf = {};
+                    conf[id] = config;
+                    this.addComponent(conf);
+                }
+                else {
+                    for (var k in id) {
+                        if (this.components[id]) {
+                            u.warn(id + ' has been add! This will be no effect');
+                            continue;
+                        }
+                        this.components[k] = createComponent.call(this, k, id[k]);
+                        ids.push(k);
+                    }
+                }
+
+                for (var i = ids.length - 1; i > -1; --i) {
+                    var component = this.getComponentConfig(ids[i]);
+                    !component.anonyDeps && transferAnonymousComponents(this, component);
+                    component.argDeps = this.parser.getDepsFromArgs(component.args);
+                    component.propDeps = this.parser.getDepsFromProperties(component.properties);
                 }
             };
 
-            Context.prototype.getComponent = function (ids, cb) {
+
+            /**
+             * 获取构件实例成功后的回调函数
+             *
+             * @callback getComponentCallback
+             * @param {...*} component 获取的构件实例，顺序对应传入的 id 顺序
+             */
+            /**
+             * 获取构件实例
+             *
+             * @method IoC#getComponent
+             * @param {string | string[]} ids 构件 id，数组或者字符串
+             * @param {getComponentCallback} cb 获取构件成功后的回调函数，构件将按 id 的顺序依次作为参数传入
+             * @returns {IoC}
+             */
+            IoC.prototype.getComponent = function (ids, cb) {
                 ids = ids instanceof Array ? ids : [ids];
                 var needModules = {};
                 var me = this;
@@ -108,18 +161,26 @@ void function (define, global, undefined) {
                 return this;
             };
 
-            Context.prototype.getComponentConfig = function (id) {
+            IoC.prototype.getComponentConfig = function (id) {
                 return this.components[id];
             };
 
-            Context.prototype.loader = function (loader) {
+            /**
+             * 设置 IoC 的模块加载器
+             *
+             * @method IoC#loader
+             * @param {Function} loader 符合 AMD 规范的模块加载器
+             */
+            IoC.prototype.loader = function (loader) {
                 this.moduleLoader = loader;
             };
 
             /**
              * 销毁容器，会遍历容器中的单例，如果有设置dispose，调用他们的 dispose 方法
+             *
+             * @method IoC#dispose
              */
-            Context.prototype.dispose = function () {
+            IoC.prototype.dispose = function () {
                 this.container.dispose();
                 this.components = null;
                 this.parser = null;
@@ -130,6 +191,7 @@ void function (define, global, undefined) {
                     id: id,
                     args: config.args || [],
                     properties: config.properties || {},
+                    anonyDeps: null,
                     argDeps: null,
                     propDeps: null,
                     setterDeps: null,
@@ -143,8 +205,7 @@ void function (define, global, undefined) {
 
                 // creator为函数，那么先包装下
                 typeof component.creator === 'function' && createCreator(component);
-                component.argDeps = this.parser.getDepsFromArgs(component.args);
-                component.propDeps = this.parser.getDepsFromProperties(component.properties);
+
                 return component;
             }
 
@@ -167,6 +228,50 @@ void function (define, global, undefined) {
                         creatorWrapper.prototype = creator.prototype;
                         return new creatorWrapper(creator, arguments);
                     };
+                }
+            }
+
+            function createAnonymousComponent(context, component, config, idPrefix) {
+                var importId = config.$import;
+                var refConfig = context.getComponentConfig(importId);
+                if (!refConfig) {
+                    throw new Error('$import `%s` component, but it is not exist, please check!!', config.$import);
+                }
+
+                var id = component.id + '-' + idPrefix + importId;
+                config.id = id = (id.indexOf(ANONY_PREFIX) !== -1 ? '' : ANONY_PREFIX) + id;
+                delete config.$import;
+                context.addComponent(id, u.merge(refConfig, config));
+
+                return id;
+            }
+
+            /**
+             * 抽取匿名构件
+             * @ignored
+             * @param {Context} context
+             * @param {Object} component
+             */
+            function transferAnonymousComponents(context, component) {
+                component.anonyDeps = [];
+                var args = component.args;
+                var id = null;
+                for (var i = args.length - 1; i > -1; --i) {
+                    if (u.hasImport(args[i])) {
+                        // 给匿名组件配置生成一个 ioc 构件id
+                        id = createAnonymousComponent(context, component, args[i], '$arg.');
+                        args[i] = { $ref: id };
+                        component.anonyDeps.push(id);
+                    }
+                }
+
+                var props = component.properties;
+                for (var k in props) {
+                    if (u.hasImport(props[k])) {
+                        id = createAnonymousComponent(context, component, props[k], '$prop.');
+                        props[k] = { $ref: id };
+                        component.anonyDeps.push(id);
+                    }
                 }
             }
 
@@ -204,24 +309,32 @@ void function (define, global, undefined) {
                     --count === 0 && cb.apply(null, instances);
                 };
 
-                for (var i = 0, len = ids.length; i < len; ++i) {
-                    var component = this.components[ids[i]];
-                    var instance = container.createInstance(component);
-                    instances[i] = instance;
 
-                    if (component) {
-                        needModules = parser.getDependentModules(component, {}, component.propDeps);
+                var task = function (index, component) {
+                    return function (instance) {
+                        instances[index] = instance;
+                        if (component) {
+                            needModules = parser.getDependentModules(component, {}, component.propDeps);
 
-                        // 获取 setter 依赖
-                        if (!component.setterDeps && component.auto) {
-                            component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
-                            needModules = parser.getDependentModules(component, needModules, component.setterDeps);
+                            // 获取 setter 依赖
+                            if (!component.setterDeps && component.auto) {
+                                component.setterDeps = parser.getDepsFromSetters(instance, component.properties);
+                                needModules = parser.getDependentModules(component, needModules, component.setterDeps);
+                            }
+
+                            loadComponentModules(
+                                context, needModules, u.bind(injectDeps, context, instance, component, done)
+                            );
                         }
+                        else {
+                            done();
+                        }
+                    };
+                };
 
-                        loadComponentModules(this, needModules, u.bind(injectDeps, context, instance, component, done));
-                    } else {
-                        done();
-                    }
+                for (var i = ids.length - 1; i > -1; --i) {
+                    var component = this.components[ids[i]];
+                    container.createInstance(component, task(i, component));
                 }
             }
 
@@ -269,7 +382,7 @@ void function (define, global, undefined) {
                 typeof instance[name] === 'function' ? instance[name](value) : (instance[key] = value);
             }
 
-            return Context;
+            return IoC;
         }
     );
 

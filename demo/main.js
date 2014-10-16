@@ -8,5 +8,5 @@ define(function (require) {
                 list.enter();
             });
         }
-    }
+    };
 });

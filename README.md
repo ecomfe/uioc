@@ -203,150 +203,61 @@ require(
 
 ```
 
-## API
+## $ref 操作符
 
-### new IoC(iocConfig)
-
-#### {Object} iocConfig
-ioc 配置
-
-##### {Object} config.components
-构件批量配置对象, 其中每个key 为构件id，值为构建配置，配置选项见IoC.prototype.addComponent
-
-##### {Function} config.loader
-ioc 的模块加载器，默认使用全局的 require，需要符合 AMD 接口规范
-
-### IoC.prototype.addComponent(id, config)
-给容器添加一个构件配置
-
-#### {String} id
-构件id，不能重复
-
-#### {Object} config
-单个构件配置对象
-
-##### {String} config.module
-模块加载的路径，将传给 loader，对 AMD loader，不可使用相对路径（使用的是全局 require）
-
-*** 若配置了config.creator 函数,此配置无效。 ***
-
-##### {Function | String} config.creator
-构件的构造函数或工厂函数，若未设置为函数，则使用config.module配置的返回值作为creator；
-若 creator 为字符串，则使用 config.module 配置的模块返回值的creator属性值作为 creator；
+$ref 用来声明当前构件所依赖的构件，IoC容器获取当前构件时，会自动寻找其依赖并创建依赖，最后将其按照指定的注入方式（构造函数/属性/setter）注入。
 
 ```javascript
-var myComponentConfig = {
-// 最终为 new A.method();
-     module: 'A',
-     creator: 'method'
-};
-```
-
-#####  {'transient' | 'singleton' | 'static'} config.scope
-构件实例的管理方式，默认为 transient：
- - 为 transient，每次获取构件实例时，都会调用 creator返回一个新的实例；
- - 为 singleton，表示构件为单例，仅在第一次获取实例时调用一次 creator，之后返回同一个实例；
- - 为 static，直接返回 creator。
-
-##### {Boolean=false} config.isFactory
-标识 creator 是否为工厂函数，若为工厂，则在创建实例时，直接调用，否则用 new 进行调用。
-
-##### {Array} config.args
-调用 creator 时传入的参数，完成构造函数依赖注入。
-若在单个参数的对象中设置了 $ref 操作符，则表示依赖某个构件，此时将此参数替换为$ref对应的构件实例
-
-```javascript
-var myComponentConfig = {
-     creator: function (name, b){
-         this.name = name;
-         this.b = b;
-     },
-     // new creator('string', new B())
-     args: [ 'string', { $ref: 'B' } ]
-};
-```
-
-##### {Object} config.properties
-完成构件实例创建后，需要注入的属性，key 为属性名，值为要注入的属性值，若值为对象且有$ref，则该属性值会被替换为$ref对应的构件实例。
-
-$ref依赖创建后，若构件实例有set${Key}方法，则会直接调用该方法，并将依赖作为参数传入，否则直接执行 instance.${key} = {$refInstance}
-
-```javascript
-
-var myComponentConfig = {
-     creator: function (){
-         this.setB = function(b) {
-             this.b = b;
-         }
-     },
-     properties: {
-
-         // 实例化 a 后，执行 aInstance.name = 'string';
-         name: 'string',
-
-         // 实例化 a 后，执行 aInstance.setB(b)
-         B: { $ref: 'B' }
-     }
-};
-```
-
-##### {Boolean=false} config.auto
-设置是否自动注入，若为 true，则 ioc 容器会在创建构件实例后，寻找实例的 setter(set${Name})，
-之后会调用该 setter，将对应的 ${name}依赖作为参数传入 setter。
-***注意：properties中的配置优先级高于自动注入***
-
-```javascript
-var myComponentConfig = {
-     creator: function () {
-         this.setB = function(b) {
-             this.b = b;
-         }
-         this.setC = function(c) {
-             this.c = c;
-         }
-     },
-     // 会自动查找 setter的依赖，这里会查询到 setB 和 setC对应的依赖为'b','c'，
-     // 由于 c 在 propeties 中已经配置，优先级 properties 更高，因此这里不会去实例化构件 c，仅会实例化构件 b，并调用setB(b);
-     auto: true, 
-     properties: {
-         c: 'c' // 优先级高于自动注入，因此最终aInstance.c为'c'
-     }
-    
-};
-```
-
-### IoC.prototype.addComponent(configs)
-给容器批量添加构件配置
-
-#### {Object} configs
-键为构件id，值为构件配置
-
-### IoC.prototype.getComponent(ids, cb)
-获取构件实例
-
-#### {String | Array} ids
-需要获取的构件 id，可为数组或字符串；
-为字符串时，获取id 对应的构件，为数组时，批量获取数组中每个字符串 id 对应的构件
-
-#### {Function} cb
-构件获取完毕后的回调函数，会将实例按照 id 的传入顺序作为参数依次传递给 cb：
-
-```javascript
-ioc.getComponent(['a', 'b'], function(a, b){
-
+ioc.addComponent('action', {
+    module: 'Action',
+    args: [
+        { $ref: 'view' },
+        { $ref: 'model' },
+    ]
 });
 ```
 
-### IoC.prototype.loader(loader)
-设置 ioc 实例的模块加载器
-
-### IoC.prototype.dispose
-销毁容器，若 scope 为 singleton 的构件有 dispose 方法，ioc会自动调用。
+如上代码：获取 action 时，将会创建 view 和 model 的依赖，并作为参数传递给 action 的构造函数
 
 
-## TODO
+## $import 操作符
 
-- 支持循环依赖的注入
+$import 操作符是为了简化配置而诞生的，在实际场景中经常遇到需要重用一个模块，但仅仅是参数不同，0.1版本时需要重新定义一个构件配置，
+使用$import操作符则可以重用现有的构件配置，同时覆盖需要的配置项，IoC 会为$import创建一个匿名的构件配置。
+
+```javascript
+var components = {
+       requestStrategy: {
+                module: 'common/RequestStrategy'
+       },
+       appData: {
+              // ....
+             properties: {
+                    requestStrategy: {
+                            $import: 'requestStrategy',
+                            args: ['app', 'app']
+                    }
+             }
+       },
+      creativeData: {
+              // ....
+             properties: {
+                    requestStrategy: {
+                            $import: 'requestStrategy',
+                            args: ['creative', 'creative']
+                    }
+             }
+       }
+};
+
+var ioc = IoC({ components: components });
+
+```
+
+如上代码：appData 与 creativeData 重用了 requestStrategy 的配置，并覆盖了 args 的配置项。
+
+
+## [API](http://ecomfe.github.io/uioc/doc/IoC.html)
 
 
 
