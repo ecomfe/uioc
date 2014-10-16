@@ -1,7 +1,7 @@
 define(function () {
 
-    var MyUtil = function () {
-
+    var MyUtil = function (obj) {
+        this.obj = obj;
     };
 
     MyUtil.prototype.isArray = function (obj) {
@@ -28,7 +28,7 @@ define(function () {
         return {
             a: a,
             b: b
-        }
+        };
     };
 
     MyUtil.creator = function (a, b) {

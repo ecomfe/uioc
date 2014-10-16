@@ -6,7 +6,7 @@ void function (define, undefined) {
             var nativeBind = Function.prototype.bind;
 
             function hasOwnProperty(object, key) {
-                return Object.prototype.hasOwnProperty.call(object, key)
+                return Object.prototype.hasOwnProperty.call(object, key);
             }
 
             function indexOf(arr, el) {
@@ -31,9 +31,9 @@ void function (define, undefined) {
                 !contains(arr, el) && arr.push(el);
             }
 
-            function warn(msg) {
+            function warn() {
                 if (typeof console !== 'undefined') {
-                    console.warn(msg);
+                    console.warn.apply(console, arguments);
                 }
             }
 
@@ -43,6 +43,10 @@ void function (define, undefined) {
 
             function hasReference(obj) {
                 return isObject(obj) && typeof obj.$ref === 'string';
+            }
+
+            function hasImport(obj) {
+                return isObject(obj) && typeof obj.$import === 'string';
             }
 
             function bind(fn) {
@@ -56,6 +60,18 @@ void function (define, undefined) {
                     args.push.apply(args, arguments);
                     fn.apply(scope, args);
                 };
+            }
+
+            function merge() {
+                var ret = {};
+                for (var i = 0, len = arguments.length; i < len; ++i) {
+                    var arg = arguments[i];
+                    for (var k in arg) {
+                        ret[k] = arg[k];
+                    }
+                }
+
+                return ret;
             }
 
             // 循环依赖错误
@@ -75,10 +91,12 @@ void function (define, undefined) {
                 hasOwn: hasOwnProperty,
                 contains: contains,
                 addToSet: addToSet,
+                merge: merge,
                 isObject: isObject,
                 bind: bind,
                 indexOf: indexOf,
                 hasReference: hasReference,
+                hasImport: hasImport,
                 warn: warn
             };
         });
