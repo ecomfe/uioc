@@ -33,7 +33,9 @@ void function (define, undefined) {
 
             function warn() {
                 if (typeof console !== 'undefined') {
-                    console.warn.apply(console, arguments);
+                    typeof console.warn.apply === 'function' ?
+                        console.warn.apply(console, arguments) :
+                        console.warn(arguments[0], arguments[1]);
                 }
             }
 
