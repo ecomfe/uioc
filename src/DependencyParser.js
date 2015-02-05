@@ -47,7 +47,9 @@ void function (define) {
                 for (var k in instance) {
                     if (typeof instance[k] === 'function') {
                         prop = this.getPropertyFromSetter(k);
-                        prop && !exclude.hasOwnProperty(prop) && deps.push(prop);
+
+                        // 有属性，未排除，已注册
+                        prop && !exclude.hasOwnProperty(prop) && this.context.hasComponent(prop) && deps.push(prop);
                     }
                 }
                 return deps;
