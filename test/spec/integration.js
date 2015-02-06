@@ -228,49 +228,6 @@ describe('Ioc Integration Test: ', function () {
         }).toThrow();
     });
 
-    it('autoInject', function (done) {
-        iocInstance.getComponent('autoInject', function (autoInject) {
-            require(['A', 'B', 'C', 'D', 'MyUtil', 'AutoInject', 'AutoInject1'],
-                function (A, B, C, D, Util, AutoInject, AutoInject1) {
-                    spyOn(autoInject, 'setd');
-                    spyOn(autoInject, 'settest');
-                    assertInstanceOf(A, autoInject.a);
-                    assertInstanceOf(B, autoInject.b);
-                    assertInstanceOf(C, autoInject.c);
-                    assertInstanceOf(D, autoInject.d);
-                    assertInstanceOf(Util, autoInject.d.b.util);
-
-                    assertNull(autoInject.e);
-                    expect(autoInject.setd).not.toHaveBeenCalled();
-                    expect(autoInject.settest).not.toHaveBeenCalled();
-
-                    var anotherInject = autoInject.anotherAutoInject;
-                    assertInstanceOf(AutoInject, anotherInject);
-                    assertInstanceOf(AutoInject1, anotherInject);
-                    assertInstanceOf(A, anotherInject.a);
-                    assertInstanceOf(B, anotherInject.b);
-                    assertInstanceOf(C, anotherInject.c);
-                    assertInstanceOf(D, anotherInject.d);
-                    assertInstanceOf(Util, anotherInject.d.b.util);
-
-                    assertNull(anotherInject.e);
-                    done();
-                });
-        });
-    });
-
-    it('autoInject setter priority', function (done) {
-        iocInstance.getComponent('autoInject', function (autoInject) {
-            require(['MyFactory'], function (MyFactory) {
-                expect(autoInject.myFactory).toBe('myFactory');
-                expect(autoInject.setCCalledCount).toBe(1);
-                assertInstanceOf(MyFactory, autoInject.anotherAutoInject.myFactory);
-                done();
-            });
-        });
-    });
-
-
     /* it('circularAllowed', 1, function (done) {
 
      iocInstance.allowCircular = true;
