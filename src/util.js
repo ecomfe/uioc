@@ -33,7 +33,7 @@ void function (define, undefined) {
 
             function warn() {
                 if (typeof console !== 'undefined') {
-                    console.warn.apply(console, arguments);
+                    Function.prototype.apply.call(console.warn, console, arguments);
                 }
             }
 
@@ -58,7 +58,7 @@ void function (define, undefined) {
                 return function () {
                     var scope = args.shift();
                     args.push.apply(args, arguments);
-                    fn.apply(scope, args);
+                    Function.prototype.apply.call(fn, scope, args);
                 };
             }
 

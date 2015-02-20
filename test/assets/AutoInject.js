@@ -35,6 +35,10 @@ define(
 
         };
 
+        AutoInject.prototype.setUnRegisterComponent = function () {
+
+        };
+
         return AutoInject;
     }
 );

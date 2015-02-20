@@ -33,7 +33,7 @@ void function (define, global, undefined) {
                 }
 
                 this.moduleLoader = config.loader || globalLoader;
-                this.parser = new (config.parser || Parser)(this);
+                this.parser = new Parser(this);
                 this.components = {};
                 this.container = new Container(this);
                 this.addComponent(config.components || {});
@@ -161,6 +161,10 @@ void function (define, global, undefined) {
                 return this;
             };
 
+            IoC.prototype.hasComponent = function (id) {
+                return !!this.components[id];
+            };
+
             IoC.prototype.getComponentConfig = function (id) {
                 return this.components[id];
             };
@@ -260,7 +264,7 @@ void function (define, global, undefined) {
                     if (u.hasImport(args[i])) {
                         // 给匿名组件配置生成一个 ioc 构件id
                         id = createAnonymousComponent(context, component, args[i], '$arg.');
-                        args[i] = { $ref: id };
+                        args[i] = {$ref: id};
                         component.anonyDeps.push(id);
                     }
                 }
@@ -269,7 +273,7 @@ void function (define, global, undefined) {
                 for (var k in props) {
                     if (u.hasImport(props[k])) {
                         id = createAnonymousComponent(context, component, props[k], '$prop.');
-                        props[k] = { $ref: id };
+                        props[k] = {$ref: id};
                         component.anonyDeps.push(id);
                     }
                 }
