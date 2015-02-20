@@ -45,7 +45,7 @@ void function (define) {
             function createArgs(container, component, cb) {
                 var argConfigs = component.args;
                 var count = argConfigs.length;
-                var args = Array(count);
+                var args = new Array(count);
                 if (!count) {
                     return cb(args);
                 }
@@ -67,4 +67,4 @@ void function (define) {
 
         });
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; });
+}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });

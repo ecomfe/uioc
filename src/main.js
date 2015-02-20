@@ -364,4 +364,5 @@ void function (define, global, undefined) {
         }
     );
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; }, this);
+}(typeof define === 'function' && define.amd ?
+    define : function (factory) { module.exports = factory(require); }, this);

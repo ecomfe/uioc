@@ -99,6 +99,7 @@ void function (define, undefined) {
                 hasImport: hasImport,
                 warn: warn
             };
-        });
+        }
+    );
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; });
+}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });
