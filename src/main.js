@@ -5,7 +5,7 @@
 void function (define, global, undefined) {
     define(
         function (require) {
-            var Container = require('./Container');
+            var Injector = require('./Injector');
             var u = require('./util');
             var Ref = require('./operator/Ref');
             var Import = require('./operator/Import');
@@ -38,7 +38,7 @@ void function (define, global, undefined) {
                     ref: new Ref(this),
                     setter: new Setter(this)
                 };
-                this.container = new Container(this);
+                this.injector = new Injector(this);
                 this.addComponent(config.components || {});
             }
 
@@ -160,9 +160,8 @@ void function (define, global, undefined) {
              * @method IoC#dispose
              */
             IoC.prototype.dispose = function () {
-                this.container.dispose();
+                this.injector.dispose();
                 this.components = null;
-                this.dependencyResolver = null;
             };
 
             function createComponent(id, config) {
@@ -194,7 +193,7 @@ void function (define, global, undefined) {
                     return cb.apply(null, instances);
                 }
 
-                var container = this.container;
+                var injector = this.injector;
                 var loader = this.loader;
                 var context = this;
                 var moduleMap = {};
@@ -203,14 +202,14 @@ void function (define, global, undefined) {
                     --count === 0 && cb.apply(null, instances);
                 };
 
-                var task = function (index, component) {
+                var task = function (index, config) {
                     return function (instance) {
                         instances[index] = instance;
-                        if (component) {
+                        if (config) {
                             // 获取 setter 依赖
-                            context.operators.setter.resolveDependencies(component, instance);
-                            moduleMap = loader.resolveDependentModules(component, {}, component.propDeps.concat(component.setterDeps));
-                            loader.loadModuleMap(moduleMap, u.bind(injectDeps, context, instance, component, done));
+                            context.operators.setter.resolveDependencies(config, instance);
+                            moduleMap = loader.resolveDependentModules(config, {}, config.propDeps.concat(config.setterDeps));
+                            loader.loadModuleMap(moduleMap, u.bind(injector.injectDependencies, injector, instance, config, done));
                         }
                         else {
                             done();
@@ -220,52 +219,8 @@ void function (define, global, undefined) {
 
                 for (var i = ids.length - 1; i > -1; --i) {
                     var component = this.components[ids[i]];
-                    container.createInstance(component, task(i, component));
+                    injector.createInstance(component, task(i, component));
                 }
-            }
-
-            function injectDeps(instance, component, cb) {
-                var complete = {
-                    prop: false,
-                    setter: false
-                };
-                var injected = function (type) {
-                    complete[type] = true;
-                    complete.prop && complete.setter && cb();
-                };
-                injectPropDependencies(this, instance, component, u.bind(injected, null, 'prop'));
-                injectSetterDependencies(this, instance, component, u.bind(injected, null, 'setter'));
-            }
-
-            function injectSetterDependencies(context, instance, component, cb) {
-                var deps = component.setterDeps || [];
-                context.getComponent(deps, function () {
-                    for (var i = deps.length - 1; i > -1; --i) {
-                        var dep = deps[i];
-                        setProperty(instance, dep, arguments[i]);
-                    }
-                    cb();
-                });
-            }
-
-            function injectPropDependencies(context, instance, component, cb) {
-                var deps = component.propDeps;
-                var props = component.properties;
-                context.getComponent(deps, function () {
-                    for (var k in props) {
-                        var value = props[k];
-                        if (context.operators.ref.has(value)) {
-                            value = arguments[u.indexOf(deps, value.$ref)];
-                        }
-                        setProperty(instance, k, value);
-                    }
-                    cb();
-                });
-            }
-
-            function setProperty(instance, key, value) {
-                var name = 'set' + key.charAt(0).toUpperCase() + key.slice(1);
-                typeof instance[name] === 'function' ? instance[name](value) : (instance[key] = value);
             }
 
             return IoC;

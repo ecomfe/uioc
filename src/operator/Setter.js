@@ -44,14 +44,14 @@ void function (define, undefined) {
             };
 
             /**
-             * 检测是否有$import操作符
+             * 检测是否有$setter操作符
              *
              * @param {Object} obj 检测对象
              *
              * @return {boolean}
              */
             Setter.prototype.has = function (obj) {
-                return u.isObject(obj) && typeof obj.$ref === 'string';
+                return u.isObject(obj) && typeof obj.$setter === 'string';
             };
 
             /**
@@ -70,6 +70,16 @@ void function (define, undefined) {
                 }
 
                 return prop;
+            };
+
+            Setter.prototype.setProperty = function (instance, propertyName, value, setterName) {
+                if (setterName) {
+                    return instance[setterName](value);
+                }
+
+                var method = 'set' + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
+                typeof instance[method] === 'function' ? instance[method](value) : (instance[propertyName] = value);
+
             };
 
             return Setter;
