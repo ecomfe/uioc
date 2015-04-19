@@ -70,6 +70,19 @@ void function (define, undefined) {
                 return ret;
             }
 
+            function keys(obj) {
+                if (typeof Object.keys === 'function') {
+                    return Object.keys(obj);
+                }
+
+                var result = [];
+                for (var k in obj) {
+                    result.push(k);
+                }
+
+                return result;
+            }
+
             // 循环依赖错误
             function CircularError(message, component) {
                 this.message = message;
@@ -93,7 +106,8 @@ void function (define, undefined) {
                 indexOf: indexOf,
                 hasReference: hasReference,
                 warn: warn,
-                slice: [].slice
+                keys: keys,
+                slice: slice
             };
         }
     );

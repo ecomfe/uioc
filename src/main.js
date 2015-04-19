@@ -7,14 +7,11 @@ void function (define, global, undefined) {
         function (require) {
             var Container = require('./Container');
             var u = require('./util');
-            var DependencyResolver = require('./DependencyResolver');
             var Ref = require('./operator/Ref');
             var Import = require('./operator/Import');
             var Setter = require('./operator/Setter');
+            var Loader = require('./Loader');
             var globalLoader = global.require;
-            var creatorWrapper = function (creator, args) {
-                return creator.apply(this, args);
-            };
 
             /**
              * IoC 容器类，根据配置实例化一个 IoC 容器
@@ -33,8 +30,8 @@ void function (define, global, undefined) {
                     return new IoC(config);
                 }
 
-                this.moduleLoader = config.loader || globalLoader;
-                this.dependencyResolver = new DependencyResolver(this);
+                this.loader = new Loader(this);
+                this.setLoaderFunction(config.loader || globalLoader);
                 this.components = {};
                 this.operators = {
                     import: new Import(this),
@@ -121,9 +118,8 @@ void function (define, global, undefined) {
              */
             IoC.prototype.getComponent = function (ids, cb) {
                 ids = ids instanceof Array ? ids : [ids];
-                var needModules = {};
-                var me = this;
-                var resolver = me.dependencyResolver;
+                var moduleMap = {};
+
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var id = ids[i];
                     var config = this.getComponentConfig(id);
@@ -131,11 +127,11 @@ void function (define, global, undefined) {
                         u.warn('`%s` has not been added to the Ioc', id);
                     }
                     else {
-                        needModules = resolver.getDependentModules(config, needModules, config.argDeps);
+                        moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
                     }
                 }
 
-                loadComponentModules(this, needModules, u.bind(createInstances, this, ids, cb));
+                this.loader.loadModuleMap(moduleMap, u.bind(createInstances, this, ids, cb));
 
                 return this;
             };
@@ -151,11 +147,11 @@ void function (define, global, undefined) {
             /**
              * 设置 IoC 的模块加载器
              *
-             * @method IoC#loader
-             * @param {Function} loader 符合 AMD 规范的模块加载器
+             * @method IoC#setAMDLoader
+             * @param {Function} amdLoader 符合 AMD 规范的模块加载器
              */
-            IoC.prototype.loader = function (loader) {
-                this.moduleLoader = loader;
+            IoC.prototype.setLoaderFunction = function (amdLoader) {
+                this.loader.setLoaderFunction(amdLoader);
             };
 
             /**
@@ -187,50 +183,9 @@ void function (define, global, undefined) {
                 };
 
                 // creator为函数，那么先包装下
-                typeof component.creator === 'function' && createCreator(component);
+                typeof component.creator === 'function' && this.loader.wrapCreator(component);
 
                 return component;
-            }
-
-            function createCreator(component, module) {
-                var creator = component.creator = component.creator || module;
-
-                if (typeof creator === 'string') {
-                    var method = module[creator];
-                    var moduleFactory = function () {
-                        return method.apply(module, arguments);
-                    };
-
-                    creator = (!component.isFactory || component.scope === 'static') ? method : moduleFactory;
-                    component.creator = creator;
-                }
-
-                // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator
-                if (!component.isFactory && component.scope !== 'static') {
-                    component.creator = function () {
-                        creatorWrapper.prototype = creator.prototype;
-                        return new creatorWrapper(creator, arguments);
-                    };
-                }
-            }
-
-            function loadComponentModules(context, moduleMaps, cb) {
-                var modules = [];
-                for (var k in moduleMaps) {
-                    modules.push(k);
-                }
-
-                context.moduleLoader(modules, function () {
-                    for (var i = arguments.length - 1; i > -1; --i) {
-                        var module = arguments[i];
-                        var components = moduleMaps[modules[i]];
-                        for (var j = components.length - 1; j > -1; --j) {
-                            var component = components[j];
-                            typeof component.creator !== 'function' && createCreator(component, module);
-                        }
-                    }
-                    cb();
-                });
             }
 
             function createInstances(ids, cb) {
@@ -240,9 +195,9 @@ void function (define, global, undefined) {
                 }
 
                 var container = this.container;
-                var resolver = this.dependencyResolver;
+                var loader = this.loader;
                 var context = this;
-                var needModules = {};
+                var moduleMap = {};
                 var count = ids.length;
                 var done = function () {
                     --count === 0 && cb.apply(null, instances);
@@ -254,10 +209,8 @@ void function (define, global, undefined) {
                         if (component) {
                             // 获取 setter 依赖
                             context.operators.setter.resolveDependencies(component, instance);
-                            needModules = resolver.getDependentModules(component, {}, component.propDeps.concat(component.setterDeps));
-                            loadComponentModules(
-                                context, needModules, u.bind(injectDeps, context, instance, component, done)
-                            );
+                            moduleMap = loader.resolveDependentModules(component, {}, component.propDeps.concat(component.setterDeps));
+                            loader.loadModuleMap(moduleMap, u.bind(injectDeps, context, instance, component, done));
                         }
                         else {
                             done();

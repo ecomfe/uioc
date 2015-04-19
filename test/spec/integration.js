@@ -29,7 +29,7 @@ describe('Ioc Integration Test: ', function () {
             var calledWidthArgs = {};
             iocInstance = IoC();
             iocInstance.addComponent(config().components);
-            iocInstance.loader(function () {
+            iocInstance.setLoaderFunction(function () {
                 calledWidthArgs[arguments[0][0]] = 1;
                 return require.apply(null, arguments);
             });
