@@ -14,7 +14,7 @@ void function (define) {
                 }
 
                 var id = component.id;
-                if (component.scope === 'singleton' && this.singletons.hasOwnProperty(id)) {
+                if (component.scope === 'singleton' && u.hasOwn(this.singletons, id)) {
                     return cb(this.singletons[id]);
                 }
 

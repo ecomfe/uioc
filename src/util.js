@@ -45,10 +45,6 @@ void function (define, undefined) {
                 return isObject(obj) && typeof obj.$ref === 'string';
             }
 
-            function hasImport(obj) {
-                return isObject(obj) && typeof obj.$import === 'string';
-            }
-
             function bind(fn) {
                 var args = slice.call(arguments, 1);
                 if (typeof fn.bind === 'function' && fn.bind === nativeBind) {
@@ -96,8 +92,8 @@ void function (define, undefined) {
                 bind: bind,
                 indexOf: indexOf,
                 hasReference: hasReference,
-                hasImport: hasImport,
-                warn: warn
+                warn: warn,
+                slice: [].slice
             };
         }
     );
