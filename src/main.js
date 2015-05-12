@@ -39,6 +39,7 @@ void function (define, global, undefined) {
                     setter: new Setter(this)
                 };
                 this.injector = new Injector(this);
+
                 this.addComponent(config.components || {});
             }
 
@@ -77,7 +78,6 @@ void function (define, global, undefined) {
              * });
              */
             IoC.prototype.addComponent = function (id, config) {
-                var ids = [];
                 if (typeof id === 'string') {
                     var conf = {};
                     conf[id] = config;
@@ -90,17 +90,9 @@ void function (define, global, undefined) {
                             continue;
                         }
                         this.components[k] = createComponent.call(this, k, id[k]);
-                        ids.push(k);
                     }
                 }
-
-                for (var i = ids.length - 1; i > -1; --i) {
-                    config = this.getComponentConfig(ids[i]);
-                    this.operators.import.resolveDependencies(config);
-                    this.operators.ref.resolveDependencies(config);
-                }
             };
-
 
             /**
              * 获取构件实例成功后的回调函数
@@ -127,6 +119,7 @@ void function (define, global, undefined) {
                         u.warn('`%s` has not been added to the Ioc', id);
                     }
                     else {
+                        this.processStaticConfig(id);
                         moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
                     }
                 }
@@ -142,6 +135,12 @@ void function (define, global, undefined) {
 
             IoC.prototype.getComponentConfig = function (id) {
                 return this.components[id];
+            };
+
+            IoC.prototype.processStaticConfig = function (id) {
+                var config = this.getComponentConfig(id);
+                this.operators.import.process(config);
+                this.operators.ref.process(config);
             };
 
             /**

@@ -16,13 +16,13 @@ void function (define, undefined) {
             }
 
             /**
-             * 解析组件依赖
+             * 处理组件配置
              *
              * @param {ComponentConfig} config 组件配置
              *
              * @returns {ComponentConfig}
              */
-            Import.prototype.resolveDependencies = function resolveDependencies(config) {
+            Import.prototype.process = function process(config) {
                 config.anonyDeps = config.anonyDeps || this.transformAnonymousComponents(config);
                 return config;
             };
