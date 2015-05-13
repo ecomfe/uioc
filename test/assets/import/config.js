@@ -55,6 +55,12 @@ define(
                         },
                         {
                             $import: 'f'
+                        },
+                        {
+                            $import: 'f',
+                            properties: {
+                                repeatImport: 'repeatImport'
+                            }
                         }
                     ],
                     properties: {
@@ -62,6 +68,12 @@ define(
                             $import: 'c',
                             properties: {
                                 cProp: 'nestProp'
+                            }
+                        },
+                        c1: {
+                            $import: 'c',
+                            properties: {
+                                repeatImport: 'repeatImport'
                             }
                         }
                     },

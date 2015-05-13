@@ -1,5 +1,6 @@
 define(function (require) {
     return function () {
+        var listConfig = require('./list/config')();
         var importConfig = require('./import/config')();
         var config = {
             components: {

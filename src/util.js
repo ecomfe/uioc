@@ -106,8 +106,7 @@ void function (define, undefined) {
                 indexOf: indexOf,
                 hasReference: hasReference,
                 warn: warn,
-                keys: keys,
-                slice: slice
+                keys: keys
             };
         }
     );

@@ -10,6 +10,7 @@ void function (define, global, undefined) {
             var Ref = require('./operator/Ref');
             var Import = require('./operator/Import');
             var Setter = require('./operator/Setter');
+            var List = require('./operator/List');
             var Loader = require('./Loader');
             var globalLoader = global.require;
 
@@ -34,12 +35,14 @@ void function (define, global, undefined) {
                 this.setLoaderFunction(config.loader || globalLoader);
                 this.components = {};
                 this.operators = {
-                    import: new Import(this),
+                    opImport: new Import(this),
                     ref: new Ref(this),
-                    setter: new Setter(this)
+                    setter: new Setter(this),
+                    list: new List(this)
                 };
                 this.injector = new Injector(this);
 
+                this.addComponent(List.LIST_COMPONENT_ID, List.LIST_COMPONENT_CONFIG);
                 this.addComponent(config.components || {});
             }
 
@@ -86,7 +89,7 @@ void function (define, global, undefined) {
                 else {
                     for (var k in id) {
                         if (this.hasComponent(k)) {
-                            u.warn(id + ' has been add! This will be no effect');
+                            u.warn(k + ' has been add! This will be no effect');
                             continue;
                         }
                         this.components[k] = createComponent.call(this, k, id[k]);
@@ -139,7 +142,8 @@ void function (define, global, undefined) {
 
             IoC.prototype.processStaticConfig = function (id) {
                 var config = this.getComponentConfig(id);
-                this.operators.import.process(config);
+                this.operators.list.process(config);
+                this.operators.opImport.process(config);
                 this.operators.ref.process(config);
             };
 
