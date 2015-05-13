@@ -16,13 +16,13 @@ void function (define, undefined) {
             }
 
             /**
-             * 解析组件依赖
+             * 处理组件配置
              *
              * @param {ComponentConfig} config 组件配置
              *
              * @returns {ComponentConfig}
              */
-            Ref.prototype.resolveDependencies = function resolveDependencies(config) {
+            Ref.prototype.process = function process(config) {
                 config.argDeps = config.argDeps || this.getDependenciesFromArgs(config.args);
                 config.propDeps = config.propDeps || this.getDependenciesFromProperties(config.properties);
                 return config;

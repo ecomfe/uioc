@@ -39,6 +39,7 @@ void function (define, undefined) {
                         result[module] = result[module] || [];
                         result[module].push(component);
                     }
+                    context.processStaticConfig(component.id);
 
                     var circular = depTree.checkForCircular(component.id);
                     if (circular) {
@@ -58,7 +59,7 @@ void function (define, undefined) {
                 return result;
             }
 
-            Loader.prototype.loadModuleMap = function loadModules(moduleMap, cb) {
+            Loader.prototype.loadModuleMap = function loadModuleMap(moduleMap, cb) {
                 var modules = u.keys(moduleMap);
                 var me = this;
                 this.amdLoader(modules, function () {

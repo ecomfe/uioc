@@ -1,8 +1,9 @@
 define(
     function (require) {
-        function Nest(obj, f) {
+        function Nest(obj, f, f1) {
             this.obj = obj;
             this.f = f;
+            this.f1 = f1;
         }
 
         Nest.prototype.setImportA = function (importA) {

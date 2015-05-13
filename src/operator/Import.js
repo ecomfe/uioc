@@ -16,13 +16,13 @@ void function (define, undefined) {
             }
 
             /**
-             * 解析组件依赖
+             * 处理组件配置
              *
              * @param {ComponentConfig} config 组件配置
              *
              * @returns {ComponentConfig}
              */
-            Import.prototype.resolveDependencies = function resolveDependencies(config) {
+            Import.prototype.process = function process(config) {
                 config.anonyDeps = config.anonyDeps || this.transformAnonymousComponents(config);
                 return config;
             };
@@ -52,7 +52,7 @@ void function (define, undefined) {
                 for (var i = args.length - 1; i > -1; --i) {
                     if (this.has(args[i])) {
                         // 给匿名组件配置生成一个 ioc 构件id
-                        id = this.createAnonymousConfig(config, args[i], '$arg.');
+                        id = this.createAnonymousConfig(config, args[i], '$arg.' + i + '.');
                         args[i] = {$ref: id};
                         deps.push(id);
                     }
@@ -62,7 +62,7 @@ void function (define, undefined) {
                 var props = config.properties;
                 for (var k in props) {
                     if (this.has(props[k])) {
-                        id = this.createAnonymousConfig(config, props[k], '$prop.');
+                        id = this.createAnonymousConfig(config, props[k], '$prop.' + k + '.');
                         props[k] = {$ref: id};
                         deps.push(id);
                     }
