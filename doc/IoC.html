@@ -23,41 +23,45 @@
 
 
 
+
 <section>
 
 <header>
-    <h2>
-    IoC
-    </h2>
+    
+        <h2>
+        IoC
+        </h2>
+        
     
 </header>
 
 <article>
     <div class="container-overview">
     
+        
 
     
-        
-<dt>
+
     <h4 class="name" id="IoC"><span class="type-signature"></span>new IoC<span class="signature">(config<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="IoC.html">IoC</a>}</span></h4>
 
     
-</dt>
-<dd>
 
-    
-    <div class="description">
-        IoC 容器类，根据配置实例化一个 IoC 容器
-    </div>
-    
 
-    
 
-    
+<div class="description">
+    IoC 容器类，根据配置实例化一个 IoC 容器
+</div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
     
-        <h5>Parameters:</h5>
-        
 
 <table class="params">
     <thead>
@@ -214,16 +218,27 @@
     
     </tbody>
 </table>
+
             </td>
         </tr>
 
     
     </tbody>
 </table>
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-<dl class="details">
+
+    
+
     
 
     
@@ -257,20 +272,20 @@
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
-    <h5>Returns:</h5>
-    
-            
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
 
 
 <dl>
@@ -285,15 +300,12 @@
     </dd>
 </dl>
 
-        
-
     
-</dd>
+
+
 
     
     </div>
-
-    
 
     
 
@@ -310,28 +322,31 @@
     
         <h3 class="subsection-title">Methods</h3>
 
-        <dl>
+        
             
-<dt>
+
+    
+
     <h4 class="name" id="addComponent"><span class="type-signature"></span>addComponent<span class="signature">(id, config<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
-</dt>
-<dd>
 
-    
-    <div class="description">
-        向容器中注册构件
-    </div>
-    
 
-    
 
-    
+<div class="description">
+    向容器中注册构件
+</div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
     
-        <h5>Parameters:</h5>
-        
 
 <table class="params">
     <thead>
@@ -423,10 +438,20 @@
     
     </tbody>
 </table>
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-<dl class="details">
+
+    
+
     
 
     
@@ -448,7 +473,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line68">line 68</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line53">line 53</a>
     </li></ul></dd>
     
 
@@ -460,21 +485,21 @@
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
 
+
+
+
+
+
+
+
+    <h5>Example</h5>
     
-        <h5>Example</h5>
-        
     <pre class="prettyprint"><code>ioc.addComponent('list', {
     // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
     creator: require('./List'),
@@ -490,7 +515,7 @@
 });
 
 ioc.addComponent('listData', {
-    creator: 'ListDatal',
+    creator: 'ListData',
     scope: 'transient',
 
     properties: {
@@ -501,32 +526,43 @@ ioc.addComponent('listData', {
     }
 });</code></pre>
 
-    
-</dd>
+
 
         
             
-<dt>
+
+    
+
     <h4 class="name" id="dispose"><span class="type-signature"></span>dispose<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
-</dt>
-<dd>
 
-    
-    <div class="description">
-        销毁容器，会遍历容器中的单例，如果有设置dispose，调用他们的 dispose 方法
-    </div>
-    
 
-    
 
-    
+<div class="description">
+    销毁容器，会遍历容器中的单例，如果有设置dispose，调用他们的 dispose 方法
+</div>
 
-    
 
-    
+
+
+
+
+
+
+
+
+
+
+
 <dl class="details">
+
+    
+
+    
+
+    
+
     
 
     
@@ -548,7 +584,7 @@ ioc.addComponent('listData', {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line178">line 178</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line180">line 180</a>
     </li></ul></dd>
     
 
@@ -560,43 +596,45 @@ ioc.addComponent('listData', {
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
-</dd>
+
+
+
+
+
+
+
 
         
             
-<dt>
+
+    
+
     <h4 class="name" id="getComponent"><span class="type-signature"></span>getComponent<span class="signature">(ids, cb)</span><span class="type-signature"> &rarr; {<a href="IoC.html">IoC</a>}</span></h4>
 
     
-</dt>
-<dd>
 
-    
-    <div class="description">
-        获取构件实例
-    </div>
-    
 
-    
 
-    
+<div class="description">
+    获取构件实例
+</div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
     
-        <h5>Parameters:</h5>
-        
 
 <table class="params">
     <thead>
@@ -668,10 +706,20 @@ ioc.addComponent('listData', {
     
     </tbody>
 </table>
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-<dl class="details">
+
+    
+
     
 
     
@@ -693,7 +741,7 @@ ioc.addComponent('listData', {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line135">line 135</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line110">line 110</a>
     </li></ul></dd>
     
 
@@ -705,20 +753,20 @@ ioc.addComponent('listData', {
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
-    <h5>Returns:</h5>
-    
-            
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
 
 
 <dl>
@@ -733,33 +781,35 @@ ioc.addComponent('listData', {
     </dd>
 </dl>
 
-        
-
     
-</dd>
+
+
 
         
             
-<dt>
-    <h4 class="name" id="loader"><span class="type-signature"></span>loader<span class="signature">(loader)</span><span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        设置 IoC 的模块加载器
-    </div>
-    
 
     
 
-    
+    <h4 class="name" id="setAMDLoader"><span class="type-signature"></span>setAMDLoader<span class="signature">(amdLoader)</span><span class="type-signature"></span></h4>
 
     
-        <h5>Parameters:</h5>
-        
+
+
+
+<div class="description">
+    设置 IoC 的模块加载器
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
 
 <table class="params">
     <thead>
@@ -783,7 +833,7 @@ ioc.addComponent('listData', {
 
         <tr>
             
-                <td class="name"><code>loader</code></td>
+                <td class="name"><code>amdLoader</code></td>
             
 
             <td class="type">
@@ -805,10 +855,20 @@ ioc.addComponent('listData', {
     
     </tbody>
 </table>
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-<dl class="details">
+
+    
+
     
 
     
@@ -830,7 +890,7 @@ ioc.addComponent('listData', {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line168">line 168</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line170">line 170</a>
     </li></ul></dd>
     
 
@@ -842,22 +902,21 @@ ioc.addComponent('listData', {
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
-</dd>
 
-        </dl>
+
+
+
+
+
+
+
+        
     
 
     
@@ -873,13 +932,13 @@ ioc.addComponent('listData', {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="IoC.html">IoC</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="IoC.html">IoC</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
-<br clear="both">
+<br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Thu Oct 16 2014 12:05:44 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Fri May 15 2015 17:03:39 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

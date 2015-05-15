@@ -23,24 +23,34 @@
 
 
 
+
 <section>
 
 <header>
-    <h2>
     
-    </h2>
+        <h2>
+        
+        </h2>
+        
     
 </header>
 
 <article>
     <div class="container-overview">
     
+        
+
+        
+
+
+<dl class="details">
 
     
-        
 
-        
-<dl class="details">
+    
+
+    
+
     
 
     
@@ -79,8 +89,6 @@
 
     
 
-    
-
      
 
     
@@ -92,39 +100,36 @@
     
         <h3 class="subsection-title">Type Definitions</h3>
 
-        <dl>
+        
                 
-<dt>
-    <h4 class="name" id="ComponentConfig">ComponentConfig</h4>
+<h4 class="name" id="ComponentConfig">ComponentConfig</h4>
 
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        构件配置对象
-    </div>
-    
 
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
+
+
+<div class="description">
+    构件配置对象
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
 <span class="param-type">Object</span>
 
 
-            </li>
-        </ul>
-    
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
 
     
-<dl class="details">
-    
-
-        <h5 class="subsection-title">Properties:</h5>
-
-        <dl>
 
 <table class="props">
     <thead>
@@ -338,7 +343,18 @@
 
     
     </tbody>
-</table></dl>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
 
     
 
@@ -361,7 +377,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line42">line 42</a>
+        <a href="meta.js.html">meta.js</a>, <a href="meta.js.html#line5">line 5</a>
     </li></ul></dd>
     
 
@@ -373,47 +389,43 @@
 </dl>
 
 
-    
 
-    
-</dd>
+
+
 
             
                 
-<dt>
-    <h4 class="name" id="DependencyConfig">DependencyConfig</h4>
+<h4 class="name" id="DependencyConfig">DependencyConfig</h4>
 
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        构件依赖配置对象，用于配置构件的依赖，若未配置$ref与$import，则本身作为依赖值，否则将根据$ref/$import的声明查找依赖。
-    </div>
-    
 
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
+
+
+<div class="description">
+    构件依赖配置对象，用于配置构件的依赖，若未配置$ref与$import，则本身作为依赖值，否则将根据$ref/$import的声明查找依赖。
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
 <span class="param-type">*</span>
 |
 
 <span class="param-type">Object</span>
 
 
-            </li>
-        </ul>
-    
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
 
     
-<dl class="details">
-    
-
-        <h5 class="subsection-title">Properties:</h5>
-
-        <dl>
 
 <table class="props">
     <thead>
@@ -424,8 +436,6 @@
 
         <th>Type</th>
 
-        
-        <th>Attributes</th>
         
 
         
@@ -452,18 +462,10 @@
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
 
             
 
-            <td class="description last">声明依赖的构件，获取构件时，会自动创建其依赖的构件，作为构造函数参数传入</td>
+            <td class="description last">声明依赖的构件，获取构件时，会自动创建其声明的依赖构件并注入</td>
         </tr>
 
     
@@ -483,14 +485,6 @@
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
 
             
 
@@ -498,8 +492,59 @@
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>$list</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">声明数组形式的依赖，获取构件时，会创建一个数组，数组元素根据其对应$list中所声明的配置进行创建</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$map</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">声明对象（映射表）形式的依赖，获取构件时，会创建一个对象，对象的属性根据其对应$map中所声明的配置进行创建</td>
+        </tr>
+
+    
     </tbody>
-</table></dl>
+</table>
+
+
+
+
+<dl class="details">
 
     
 
@@ -507,6 +552,20 @@
 
     
 
+    
+
+    
+
+    
+
+    
+        <dt class="mixes">Mixes In:</dt>
+
+        <dd class="mixes"><ul>
+        
+            <li><a href="global.html#ComponentConfig">ComponentConfig</a></li>
+        
+        </ul></dd>
     
 
     
@@ -522,7 +581,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line58">line 58</a>
+        <a href="meta.js.html">meta.js</a>, <a href="meta.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -534,33 +593,35 @@
 </dl>
 
 
-    
 
-    
-</dd>
+
+
 
             
                 
-<dt>
+
+    
+
     <h4 class="name" id="getComponentCallback"><span class="type-signature"></span>getComponentCallback<span class="signature">(&hellip;component)</span><span class="type-signature"></span></h4>
 
     
-</dt>
-<dd>
 
-    
-    <div class="description">
-        获取构件实例成功后的回调函数
-    </div>
-    
 
-    
 
-    
+<div class="description">
+    获取构件实例成功后的回调函数
+</div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
     
-        <h5>Parameters:</h5>
-        
 
 <table class="params">
     <thead>
@@ -618,10 +679,20 @@
     
     </tbody>
 </table>
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-<dl class="details">
+
+    
+
     
 
     
@@ -643,7 +714,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line129">line 129</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -655,22 +726,21 @@
 </dl>
 
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
 
-    
-</dd>
 
-            </dl>
+
+
+
+
+
+
+
+            
     
 
     
@@ -684,13 +754,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="IoC.html">IoC</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="IoC.html">IoC</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
-<br clear="both">
+<br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Thu Oct 16 2014 12:05:44 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Fri May 15 2015 17:03:39 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>
