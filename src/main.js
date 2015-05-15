@@ -11,6 +11,7 @@ void function (define, global, undefined) {
             var Import = require('./operator/Import');
             var Setter = require('./operator/Setter');
             var List = require('./operator/List');
+            var Map = require('./operator/Map');
             var Loader = require('./Loader');
             var globalLoader = global.require;
 
@@ -38,11 +39,14 @@ void function (define, global, undefined) {
                     opImport: new Import(this),
                     ref: new Ref(this),
                     setter: new Setter(this),
-                    list: new List(this)
+                    list: new List(this),
+                    map: new Map(this)
                 };
                 this.injector = new Injector(this);
 
                 this.addComponent(List.LIST_COMPONENT_ID, List.LIST_COMPONENT_CONFIG);
+                this.addComponent(Map.MAP_COMPONENT_ID, Map.MAP_COMPONENT_CONFIG);
+
                 this.addComponent(config.components || {});
             }
 
@@ -132,17 +136,33 @@ void function (define, global, undefined) {
                 return this;
             };
 
+            /**
+             * 检测是否注册过某个构件
+             *
+             * @param {string} id 构件id
+             * @returns {boolean}
+             */
             IoC.prototype.hasComponent = function (id) {
                 return !!this.components[id];
             };
 
+            /**
+             * 获取构件配置，不传入则返回所有构件配置
+             *
+             * @param {string} [id] 构件id
+             * @returns {*}
+             */
             IoC.prototype.getComponentConfig = function (id) {
-                return this.components[id];
+                return id ? this.components[id] : this.components;
             };
 
+            /**
+             * @private
+             */
             IoC.prototype.processStaticConfig = function (id) {
                 var config = this.getComponentConfig(id);
                 this.operators.list.process(config);
+                this.operators.map.process(config);
                 this.operators.opImport.process(config);
                 this.operators.ref.process(config);
             };

@@ -1,6 +1,19 @@
 define(function (require) {
+    function merge() {
+        var ret = {};
+        for (var i = 0, len = arguments.length; i < len; ++i) {
+            var arg = arguments[i];
+            for (var k in arg) {
+                ret[k] = arg[k];
+            }
+        }
+
+        return ret;
+    }
+
     return function () {
         var listConfig = require('./list/config')();
+        var mapConfig = require('./map/config')();
         var importConfig = require('./import/config')();
         var config = {
             components: {
@@ -202,14 +215,8 @@ define(function (require) {
                 }
             }
         };
-        var components = config.components;
-        for (var k in importConfig) {
-            components[k] = importConfig[k];
-        }
+        config.components = merge(config.components, listConfig, mapConfig, importConfig);
 
-        for (var k in listConfig) {
-            components[k] = listConfig[k];
-        }
         return config;
     };
 });

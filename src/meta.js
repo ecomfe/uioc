@@ -28,14 +28,8 @@
  * @typedef {* | Object} DependencyConfig
  * @mixes ComponentConfig
  *
- * @property {string} $ref 声明依赖的构件，获取构件时，会自动创建其依赖的构件，作为构造函数参数传入
+ * @property {string} $ref 声明依赖的构件，获取构件时，会自动创建其声明的依赖构件并注入
  * @property {string} $import 导入指定构件的配置，将创建一个匿名构件配置，其余的配置将覆盖掉导入的配置
- */
-
-/**
- * 拦截器对象，可用于扩展新的操作符，ioc会在组件的不同生命周期调用拦截器的相关方法
- *
- * @typedef {Object} Interceptor
- * @property {Function} Interceptor.add 在组件注册时候调用，会传入当前 ioc 容器实例，当前组件配置，必须返回一个配置对象作为当前组件的配置
- * @property {Function} Interceptor.get 在组件被获取时调用，会传入当前 ioc 容器实例，当前组件配置，当前组件实例，返回值会作为组件实例
+ * @property {Array} $list 声明数组形式的依赖，获取构件时，会创建一个数组，数组元素根据其对应$list中所声明的配置进行创建
+ * @property {Object} $map 声明对象（映射表）形式的依赖，获取构件时，会创建一个对象，对象的属性根据其对应$map中所声明的配置进行创建
  */
