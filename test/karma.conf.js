@@ -19,13 +19,12 @@ module.exports = function (config) {
             {pattern: 'test/spec/*.js'},
             {pattern: 'test/assets/*.js', included: false},
             {pattern: 'test/assets/**/*.js', included: false},
-            {pattern: 'src/*.js', included: false}
+            {pattern: 'src/**/*.js', included: false}
         ],
 
 
         // list of files to exclude
-        exclude: [
-        ],
+        exclude: [],
 
 
         // preprocess matching files before serving them to the browser
@@ -65,6 +64,25 @@ module.exports = function (config) {
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ['Chrome', 'IE'],
+
+        customLaunchers: {
+            Edge: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=edge'
+            },
+            IE10: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE10'
+            },
+            IE9: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE9'
+            },
+            IE8: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE8'
+            }
+        },
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

@@ -45,10 +45,6 @@ void function (define, undefined) {
                 return isObject(obj) && typeof obj.$ref === 'string';
             }
 
-            function hasImport(obj) {
-                return isObject(obj) && typeof obj.$import === 'string';
-            }
-
             function bind(fn) {
                 var args = slice.call(arguments, 1);
                 if (typeof fn.bind === 'function' && fn.bind === nativeBind) {
@@ -74,6 +70,19 @@ void function (define, undefined) {
                 return ret;
             }
 
+            function keys(obj) {
+                if (typeof Object.keys === 'function') {
+                    return Object.keys(obj);
+                }
+
+                var result = [];
+                for (var k in obj) {
+                    result.push(k);
+                }
+
+                return result;
+            }
+
             // 循环依赖错误
             function CircularError(message, component) {
                 this.message = message;
@@ -96,9 +105,10 @@ void function (define, undefined) {
                 bind: bind,
                 indexOf: indexOf,
                 hasReference: hasReference,
-                hasImport: hasImport,
-                warn: warn
+                warn: warn,
+                keys: keys
             };
-        });
+        }
+    );
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; });
+}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });

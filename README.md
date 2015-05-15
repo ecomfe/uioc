@@ -256,6 +256,61 @@ var ioc = IoC({ components: components });
 
 如上代码：appData 与 creativeData 重用了 requestStrategy 的配置，并覆盖了 args 的配置项。
 
+## 集合操作符 $list 与 $map
+
+$list 与 $map 让我们可以声明某个依赖为数组或映射表集合，在集合配置中，我们还可以**嵌套的使用 uioc 提供的各种操作符（$import, $ref, $list, $map）进行更深层次的依赖声明**。
+
+$list 可以让一系列的依赖以数组集合的形式注入到实例上，$list的配置为数组：{$list: ['value', {$ref: 'dep'}, {$list: ['nested value']}]}
+
+$map 则是让一系列的依赖以对象集合的形式注入到实例上，$map的配置为简单的对象: {$map: {value: 1, dep: {$ref: 'dep'}, nest: {$map: {nestProp: 'nested prop'}}}
+
+demo 如下：
+
+```javascript
+var components = {
+      a: {
+          creator: function () {
+              this.say = function () {
+                  console.log('a');
+              };
+          }
+      },
+      b: {
+         creator: function () {
+             this.say = function () {
+                  console.log('b');
+              };
+         }
+      },
+      main: {
+         creator: function (name, listArg) {
+            this.name = name;
+            this.listArg = listArg;
+            this.say = function () {
+                console.log(this.name);
+                this.listArg.forEach(function (item) {
+                    item.say();
+                });
+            };
+         },
+         args: ['main', {$list: [{$ref: 'a'}, {$ref: 'b'}]}],
+         properties: {
+              mapCollection: {
+                    a: {$ref: 'a'},
+                    b: {$ref: 'b'}
+              }
+         }
+      }
+};
+
+var ioc = IoC({components: components});
+ioc.getComponent('main', function (main) {
+    main.say(); // 输出：main a b
+    main.mapCollection.a.say(); // 输出 a
+    main.mapCollection.b.say(); // 输出 b
+});
+
+```
 
 ## [API](http://ecomfe.github.io/uioc/doc/IoC.html)
 

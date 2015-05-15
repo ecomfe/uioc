@@ -1,11 +1,26 @@
-define(function () {
+define(function (require) {
+    function merge() {
+        var ret = {};
+        for (var i = 0, len = arguments.length; i < len; ++i) {
+            var arg = arguments[i];
+            for (var k in arg) {
+                ret[k] = arg[k];
+            }
+        }
+
+        return ret;
+    }
+
     return function () {
-        return {
+        var listConfig = require('./list/config')();
+        var mapConfig = require('./map/config')();
+        var importConfig = require('./import/config')();
+        var config = {
             components: {
                 a: {
                     module: 'A',
                     args: [
-                        { $ref: 'b' }
+                        {$ref: 'b'}
                     ]
                 },
                 a2: {
@@ -15,10 +30,10 @@ define(function () {
                             $import: 'b',
                             args: [
                                 'Tony Blair',
-                                { $ref: 'c' }
+                                {$ref: 'c'}
                             ],
                             properties: {
-                                util: { $ref: 'anotherUtil' }
+                                util: {$ref: 'anotherUtil'}
                             }
                         }
                     ]
@@ -27,35 +42,35 @@ define(function () {
                     module: 'B',
                     args: [
                         'Geoff Capes',
-                        { $ref: 'c' }
+                        {$ref: 'c'}
                     ]
                 },
                 b2: {
                     module: 'B',
                     args: [
                         'Tony Blair',
-                        { $ref: 'c' }
+                        {$ref: 'c'}
                     ],
                     properties: {
-                        util: { $ref: 'anotherUtil' }
+                        util: {$ref: 'anotherUtil'}
                     }
                 },
                 b3: {
                     module: 'B',
                     properties: {
-                        util: { $ref: 'myUtil' }
+                        util: {$ref: 'myUtil'}
                     }
                 },
                 c: {
                     module: 'C',
-                    args: [ 'String', 99, true, null ],
+                    args: ['String', 99, true, null],
                     properties: {
                         cProp: 'cProp'
                     }
                 },
                 c2: {
                     module: 'C',
-                    args: [ 'String', { $ref: 'myFactory' }, true, null ]
+                    args: ['String', {$ref: 'myFactory'}, true, null]
                 },
                 d: {
                     module: 'D',
@@ -64,15 +79,15 @@ define(function () {
                         str: 'hi',
                         bool: false,
                         nully: null,
-                        b: { $ref: 'b2' },
+                        b: {$ref: 'b2'},
                         fromMethod: 'set',
-                        fromMethodArray: [ 'one', 'two']
+                        fromMethodArray: ['one', 'two']
                     }
                 },
                 d2: {
                     module: 'D',
                     properties: {
-                        b: { $ref: 'b' }
+                        b: {$ref: 'b'}
                     },
                     scope: 'singleton'
                 },
@@ -97,8 +112,8 @@ define(function () {
                 autoInject: {
                     module: 'AutoInject',
                     args: [
-                        { $ref: 'a' },
-                        { $ref: 'b' }
+                        {$ref: 'a'},
+                        {$ref: 'b'}
                     ],
                     properties: {
                         myFactory: 'myFactory',
@@ -111,8 +126,8 @@ define(function () {
                 autoInject1: {
                     module: 'AutoInject1',
                     args: [
-                        { $ref: 'a' },
-                        { $ref: 'b' }
+                        {$ref: 'a'},
+                        {$ref: 'b'}
                     ],
                     auto: true
                 },
@@ -122,10 +137,10 @@ define(function () {
                     },
                     scope: 'singleton',
                     args: [
-                        { $ref: 'a' }
+                        {$ref: 'a'}
                     ],
                     properties: {
-                        b: { $ref: 'b' }
+                        b: {$ref: 'b'}
                     }
                 },
                 myFactory: {
@@ -143,11 +158,11 @@ define(function () {
                     module: 'MyUtil',
                     creator: 'creator',
                     args: [
-                        { $ref: 'a' },
-                        { $ref: 'b' }
+                        {$ref: 'a'},
+                        {$ref: 'b'}
                     ],
                     properties: {
-                        c: { $ref: 'c' }
+                        c: {$ref: 'c'}
                     }
                 },
                 utilFactoryCreator: {
@@ -155,11 +170,11 @@ define(function () {
                     creator: 'factoryCreator',
                     isFactory: true,
                     args: [
-                        { $ref: 'a' },
-                        { $ref: 'b' }
+                        {$ref: 'a'},
+                        {$ref: 'b'}
                     ],
                     properties: {
-                        c: { $ref: 'c' }
+                        c: {$ref: 'c'}
                     }
                 },
                 jquery: {
@@ -169,27 +184,27 @@ define(function () {
                 f: {
                     module: 'F',
                     properties: {
-                        $: { $ref: 'jquery' }
+                        $: {$ref: 'jquery'}
                     }
                 },
                 circular1: {
                     module: 'A',
                     properties: {
                         a: 1,
-                        b: { $ref: 'circular2' }
+                        b: {$ref: 'circular2'}
                     }
                 },
                 circular2: {
                     module: 'A',
                     properties: {
                         a: 2,
-                        b: { $ref: 'circular3' }
+                        b: {$ref: 'circular3'}
                     }
                 },
                 circular3: {
                     module: 'A',
                     args: [
-                        { $ref: 'circular1' }
+                        {$ref: 'circular1'}
                     ],
                     properties: {
                         a: 3
@@ -197,75 +212,11 @@ define(function () {
                 },
                 x: {
                     module: 'X' //shouldn't exist
-                },
-
-                // import test
-                importA: {
-                    module: 'import/A',
-                    args: [
-                        {
-                            $import: 'a2',
-                            properties: {
-                                importTest: 'importTest'
-                            }
-                        }
-                    ],
-                    properties: {
-                        myUtil: {
-                            $import: 'myUtil',
-                            properties: {
-                                importProp: 'importProp',
-                                importRef: {
-                                    $ref: 'utilCreator'
-                                }
-                            }
-                        }
-                    }
-                },
-                importNest: {
-                    module: 'import/Nest',
-                    args: [
-                        {
-                            $import: 'a',
-                            properties: {
-                                util: {
-                                    $import: 'myUtil',
-                                    args: [
-                                        {
-                                            $import: 'a',
-                                            properties: {
-                                                argImportProp: 'argImportProp',
-                                                d3: {
-                                                    $import: 'd3',
-                                                    properties: {
-                                                        d3Prop: 'd3Prop'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ],
-                                    properties: {
-                                        importProp: 'importProp'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            $import: 'f'
-                        }
-                    ],
-                    properties: {
-                        c: {
-                            $import: 'c',
-                            properties: {
-                                cProp: 'nestProp'
-                            }
-                        }
-                    },
-                    scope: 'singleton',
-                    auto: true
                 }
             }
         };
+        config.components = merge(config.components, listConfig, mapConfig, importConfig);
+
+        return config;
     };
 });

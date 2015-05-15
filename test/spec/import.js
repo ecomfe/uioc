@@ -38,8 +38,13 @@ describe('import test: ', function () {
             require(['import/Nest', 'A', 'MyUtil', 'D', 'F', 'C'], function (Nest, A, MyUtil, D, F, C) {
                 expect(nest instanceof Nest).toBe(true);
                 expect(nest.f instanceof F).toBe(true);
+                expect(nest.f1 instanceof F).toBe(true);
+                expect(nest.f1.repeatImport).toBe('repeatImport');
+
                 expect(nest.c instanceof C).toBe(true);
+                expect(nest.c1 instanceof C).toBe(true);
                 expect(nest.c.cProp).toBe('nestProp');
+                expect(nest.c1.repeatImport).toBe('repeatImport');
 
                 var a = nest.obj;
                 expect(a instanceof A).toBe(true);
