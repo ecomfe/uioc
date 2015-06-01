@@ -82,14 +82,14 @@ void function (define, undefined) {
              */
             Import.prototype.createAnonymousConfig = function createAnonymousConfig(componentConfig, config, idPrefix) {
                 var importId = config && config.$import;
-                var refConfig = this.context.getComponentConfig(importId);
-                if (!refConfig) {
+                if (!this.context.hasComponent(importId)) {
                     throw new Error('$import `%s` component, but it is not exist, please check!!', config.$import);
                 }
 
+                var refConfig = this.context.getComponentConfig(importId);
                 var id = componentConfig.id + '-' + idPrefix + importId;
                 config.id = id = (id.indexOf(ANONY_PREFIX) !== -1 ? '' : ANONY_PREFIX) + id;
-                delete config.$import;
+                config.$import = null;
                 this.context.addComponent(id, u.merge(refConfig, config));
 
                 return id;
