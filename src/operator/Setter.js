@@ -4,7 +4,8 @@ void function (define, undefined) {
         function (require) {
 
             var u = require('../util');
-            var SETTER_REGEX = /^set([A-Z].*)$/;
+            var SETTER_REGEX = /^set[A-Z]/;
+            var SET_LEGTH = 'set'.length;
 
             /**
              * Setter操作符，负责解析$stter, 以及setter注入相关工作
@@ -25,21 +26,41 @@ void function (define, undefined) {
              * @returns {ComponentConfig}
              */
             Setter.prototype.resolveDependencies = function resolveDependencies(config, instance) {
-                if (!config.setterDeps && config.auto) {
-                    var exclude = config.properties || {};
-                    var deps = [];
-                    var prop = null;
-                    for (var k in instance) {
-                        if (typeof instance[k] === 'function') {
-                            prop = this.getPropertyFromSetter(k);
+                if (config.setterDeps || !config.auto) {
+                    return config;
+                }
 
-                            // 有属性，未和属性配置冲突，且组件已注册
-                            prop && !u.hasOwn(exclude, prop) && this.context.hasComponent(prop) && deps.push(prop);
+                var exclude = config.properties || {};
+                var deps = [];
+                var context = this.context;
+                var prop = null;
+
+
+                if (typeof Object.getOwnPropertyNames === 'function' && typeof Object.getPrototypeOf === 'function') {
+                    var resultSet = Object.create(null);
+                    for (var proto = instance; proto; proto = Object.getPrototypeOf(proto)) {
+                        var properties = Object.getOwnPropertyNames(proto);
+                        for (var i = 0, len = properties.length; i < len; ++i) {
+                            prop = properties[i];
+                            // 去重
+                            if (!resultSet[prop]) {
+                                resultSet[prop] = true;
+                                prop = this.getPropertyFromSetter(instance, prop);
+                                prop && !u.hasOwn(exclude, prop) && context.hasComponent(prop) && deps.push(prop);
+                            }
                         }
                     }
-
-                    config.setterDeps = deps;
                 }
+
+                else {
+                    for (var k in instance) {
+                        prop = this.getPropertyFromSetter(instance, k);
+                        // 有属性，未和属性配置冲突，且组件已注册
+                        prop && !u.hasOwn(exclude, prop) && context.hasComponent(prop) && deps.push(prop);
+                    }
+                }
+
+                config.setterDeps = deps;
                 return config;
             };
 
@@ -57,16 +78,13 @@ void function (define, undefined) {
             /**
              * 从setter函数名解析对应的属性名
              *
-             * @param {string} name 函数名
-             *
-             * @returns {string}
+             * @private
+             * @returns {string | null}
              */
-            Setter.prototype.getPropertyFromSetter = function (name) {
+            Setter.prototype.getPropertyFromSetter = function (instance, name) {
                 var prop = null;
-                var matches = name.match(SETTER_REGEX);
-                if (matches) {
-                    prop = matches[1];
-                    prop = prop.charAt(0).toLowerCase() + prop.slice(1);
+                if (typeof instance[name] === 'function' && SETTER_REGEX.test(name)) {
+                    prop = name.charAt(SET_LEGTH).toLowerCase() + name.slice(SET_LEGTH + 1);
                 }
 
                 return prop;
@@ -84,6 +102,8 @@ void function (define, undefined) {
 
             return Setter;
         }
-    );
+    )
+    ;
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });
+}(typeof define === 'function'
+&& define.amd ? define : function (factory) { module.exports = factory(require); });

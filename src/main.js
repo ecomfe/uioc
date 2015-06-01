@@ -121,11 +121,11 @@ void function (define, global, undefined) {
 
                 for (var i = 0, len = ids.length; i < len; ++i) {
                     var id = ids[i];
-                    var config = this.getComponentConfig(id);
-                    if (!config) {
+                    if (!this.hasComponent(id)) {
                         u.warn('`%s` has not been added to the Ioc', id);
                     }
                     else {
+                        var config = this.getComponentConfig(id);
                         this.processStaticConfig(id);
                         moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
                     }
@@ -241,7 +241,7 @@ void function (define, global, undefined) {
                 };
 
                 for (var i = ids.length - 1; i > -1; --i) {
-                    var component = this.components[ids[i]];
+                    var component = this.hasComponent(ids[i]) ? this.getComponentConfig(ids[i]) : null;
                     injector.createInstance(component, task(i, component));
                 }
             }
