@@ -1,4 +1,4 @@
-uioc
+uioc ![building status](https://travis-ci.org/ecomfe/uioc.svg?branch=master)
 ====
 uioc 是一个轻量级的前端 ioc 容器，因为不知道叫什么名字好，所以就是 unnamed ioc 了。！
 uioc 能够很好的与 AMD/CMD 模块加载器配合工作，将依赖的创建转移给 ioc，能够更大程度的提高模块复用性。
