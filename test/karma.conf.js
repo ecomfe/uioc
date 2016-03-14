@@ -63,7 +63,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Chrome', 'IE'],
+        browsers: process.env.TRAVIS ? ['Chrome_travis_ci', 'PhantomJS'] : ['Chrome', 'IE'],
 
         customLaunchers: {
             Edge: {
@@ -81,6 +81,10 @@ module.exports = function (config) {
             IE8: {
                 base: 'IE',
                 'x-ua-compatible': 'IE=EmulateIE8'
+            },
+            Chrome_travis_ci: {
+                base: 'Chrome',
+                flags: ['--no-sandbox']
             }
         },
 
