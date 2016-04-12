@@ -1,79 +1,75 @@
-describe('auto inject test', function () {
+import IoC from 'ioc';
+import A from 'A';
+import B from 'B';
+import C from 'C';
+import D from 'D';
+import MyUtil from 'MyUtil';
+import AutoInject from 'AutoInject';
+import AutoInject1 from 'AutoInject1';
+import MyFactory from 'MyFactory';
+import config from 'config';
+
+describe('auto inject test', () => {
 
     function assertInstanceOf(Constructor, instance) {
         expect(instance instanceof Constructor).toBe(true);
-    }
-
-    function assertSame(a, b) {
-        expect(a).toBe(b);
-    }
-
-    function assertEqual(a, b) {
-        expect(a).toEqual(b);
     }
 
     function assertNull(v) {
         expect(v).toBeNull();
     }
 
-    var iocInstance = null;
-    beforeEach(function (done) {
-        require(['ioc', 'config'], function (IoC, config) {
-            iocInstance = IoC(config());
-            done();
-        });
+    let iocInstance = null;
+    beforeEach(() => iocInstance = new IoC(config()));
+
+    it('normal inject', done => {
+        spyOn(AutoInject.prototype, 'setd');
+        spyOn(AutoInject.prototype, 'settest');
+        iocInstance.getComponent(
+            'autoInject',
+            autoInject => {
+                assertInstanceOf(A, autoInject.a);
+                assertInstanceOf(B, autoInject.b);
+                assertInstanceOf(C, autoInject.c);
+                assertInstanceOf(D, autoInject.d);
+                assertInstanceOf(MyUtil, autoInject.d.b.util);
+
+                assertNull(autoInject.e);
+                expect(autoInject.setd).not.toHaveBeenCalled();
+                expect(autoInject.settest).not.toHaveBeenCalled();
+
+                let anotherInject = autoInject.anotherAutoInject;
+                assertInstanceOf(AutoInject, anotherInject);
+                assertInstanceOf(AutoInject1, anotherInject);
+                assertInstanceOf(A, anotherInject.a);
+                assertInstanceOf(B, anotherInject.b);
+                assertInstanceOf(C, anotherInject.c);
+                assertInstanceOf(D, anotherInject.d);
+                assertInstanceOf(MyUtil, anotherInject.d.b.util);
+
+                assertNull(anotherInject.e);
+                done();
+            }
+        );
     });
 
-    it('normal inject', function (done) {
-        require(['A', 'B', 'C', 'D', 'MyUtil', 'AutoInject', 'AutoInject1'],
-            function (A, B, C, D, Util, AutoInject, AutoInject1) {
-                spyOn(AutoInject.prototype, 'setd');
-                spyOn(AutoInject.prototype, 'settest');
-                iocInstance.getComponent('autoInject', function (autoInject) {
-
-                    assertInstanceOf(A, autoInject.a);
-                    assertInstanceOf(B, autoInject.b);
-                    assertInstanceOf(C, autoInject.c);
-                    assertInstanceOf(D, autoInject.d);
-                    assertInstanceOf(Util, autoInject.d.b.util);
-
-                    assertNull(autoInject.e);
-                    expect(autoInject.setd).not.toHaveBeenCalled();
-                    expect(autoInject.settest).not.toHaveBeenCalled();
-
-                    var anotherInject = autoInject.anotherAutoInject;
-                    assertInstanceOf(AutoInject, anotherInject);
-                    assertInstanceOf(AutoInject1, anotherInject);
-                    assertInstanceOf(A, anotherInject.a);
-                    assertInstanceOf(B, anotherInject.b);
-                    assertInstanceOf(C, anotherInject.c);
-                    assertInstanceOf(D, anotherInject.d);
-                    assertInstanceOf(Util, anotherInject.d.b.util);
-
-                    assertNull(anotherInject.e);
-                    done();
-                });
-            });
-    });
-
-    it('setter and property priority', function (done) {
-        iocInstance.getComponent('autoInject', function (autoInject) {
-            require(['MyFactory'], function (MyFactory) {
+    it('setter and property priority', done => {
+        iocInstance.getComponent(
+            'autoInject',
+            autoInject => {
                 expect(autoInject.myFactory).toBe('myFactory');
                 expect(autoInject.setCCalledCount).toBe(1);
                 assertInstanceOf(MyFactory, autoInject.anotherAutoInject.myFactory);
                 done();
-            });
-        });
+            }
+        );
     });
 
-    it('setter dependency which has no register', function (done) {
-        require(['AutoInject'], function (AutoInject) {
-            spyOn(AutoInject.prototype, 'setUnRegisterComponent');
-            iocInstance.getComponent('autoInject', function (autoInject) {
-                expect(autoInject.setUnRegisterComponent).not.toHaveBeenCalled();
-                done();
-            });
+    it('setter dependency which has no register', done => {
+        spyOn(AutoInject.prototype, 'setUnRegisterComponent');
+        iocInstance.getComponent('autoInject', autoInject => {
+            expect(autoInject.setUnRegisterComponent).not.toHaveBeenCalled();
+            done();
         });
     });
 

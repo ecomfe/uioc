@@ -1,5 +1,15 @@
-describe('Ioc Integration Test: ', function () {
-    var iocInstance = null;
+import IoC from 'ioc';
+import CircularError from 'ioc/CircularError';
+import A from 'A';
+import B from 'B';
+import C from 'C';
+import D from 'D';
+import MyUtil from 'MyUtil';
+import MyFactory from 'MyFactory';
+import config from 'config';
+
+describe('Ioc Integration Test: ', () => {
+    let iocInstance = null;
 
     function assertInstanceOf(Constructor, instance) {
         expect(instance instanceof Constructor).toBe(true);
@@ -17,82 +27,68 @@ describe('Ioc Integration Test: ', function () {
         expect(v).toBeNull();
     }
 
-    beforeEach(function (done) {
-        require(['ioc', 'config'], function (IoC, config) {
-            iocInstance = IoC(config());
+    beforeEach(() => iocInstance = new IoC(config()));
+
+    it('customLoader', done => {
+        let calledWidthArgs = {};
+        iocInstance = new IoC();
+        iocInstance.addComponent(config().components);
+        iocInstance.setLoaderFunction(function () {
+            calledWidthArgs[arguments[0][0]] = 1;
+            return require.apply(null, arguments);
+        });
+        iocInstance.getComponent('myFactory', myFactory => {
+            assertInstanceOf(MyFactory, myFactory);
+            expect(calledWidthArgs.MyFactory).toBe(1);
             done();
         });
     });
 
-    it('customLoader', function (done) {
-        require(['ioc', 'config', 'MyFactory'], function (IoC, config, MyFactory) {
-            var calledWidthArgs = {};
-            iocInstance = IoC();
-            iocInstance.addComponent(config().components);
-            iocInstance.setLoaderFunction(function () {
-                calledWidthArgs[arguments[0][0]] = 1;
-                return require.apply(null, arguments);
-            });
-            iocInstance.getComponent('myFactory', function (myFactory) {
-                assertInstanceOf(MyFactory, myFactory);
-                expect(calledWidthArgs.MyFactory).toBe(1);
-                done();
-            });
+    it('simpleInstance', done => {
+
+        iocInstance.getComponent('a', a => {
+            assertInstanceOf(A, a);
+            done();
         });
     });
 
-    it('simpleInstance', function (done) {
-
-        iocInstance.getComponent('a', function (a) {
-            require(['A'], function (A) {
-                assertInstanceOf(A, a);
-                done();
-            });
-        });
-    });
-
-    it('multiInstantiate', function (done) {
-
-        iocInstance.getComponent(['a', 'b', 'c'], function (a, b, c) {
-
-            require(['A', 'B', 'C'], function (A, B, C) {
-
+    it('multiInstantiate', done => {
+        iocInstance.getComponent(
+            ['a', 'b', 'c'],
+            (a, b, c) => {
                 assertInstanceOf(A, a);
                 assertInstanceOf(B, b);
                 assertInstanceOf(C, c);
-
                 done();
-            });
-        });
+            }
+        );
     });
 
-    it('simpleInstanceNull', function (done) {
-
-        iocInstance.getComponent(['a', 'b', 'z'], function (a, b, z) {
-            require(['A', 'B'], function (A, B) {
+    it('simpleInstanceNull', done => {
+        iocInstance.getComponent(
+            ['a', 'b', 'z'],
+            (a, b, z) => {
                 assertInstanceOf(A, a);
                 assertInstanceOf(B, b);
                 assertNull(z);
                 done();
+            }
+        );
+    });
+
+    it('singletonInstance', done => {
+        iocInstance.getComponent('myFactory', myFactory1 => {
+            iocInstance.getComponent('myFactory', myFactory2 => {
+                assertInstanceOf(MyFactory, myFactory1);
+                assertSame(myFactory1, myFactory2);
             });
+            done();
         });
     });
 
-    it('singletonInstance', function (done) {
-        iocInstance.getComponent('myFactory', function (myFactory1) {
-            iocInstance.getComponent('myFactory', function (myFactory2) {
-                require(['MyFactory'], function (MyFactory) {
-                    assertInstanceOf(MyFactory, myFactory1);
-                    assertSame(myFactory1, myFactory2);
-                });
-                done();
-            });
-        });
-    });
+    it('simpleConstructorInjectLiterals', done => {
 
-    it('simpleConstructorInjectLiterals', function (done) {
-
-        iocInstance.getComponent('c', function (c) {
+        iocInstance.getComponent('c', c => {
             assertSame(c.str, 'String');
             assertSame(c.number, 99);
             assertSame(c.bool, true);
@@ -101,34 +97,31 @@ describe('Ioc Integration Test: ', function () {
         });
     });
 
-    it('simpleConstructorInjectDependency', function (done) {
+    it('simpleConstructorInjectDependency', done => {
 
-        iocInstance.getComponent(['a', 'a2'], function (a, a2) {
-            require(['A', 'B', 'C'], function (A, B, C) {
+        iocInstance.getComponent(['a', 'a2'], (a, a2) => {
+            assertInstanceOf(A, a);
+            assertInstanceOf(A, a2);
 
-                assertInstanceOf(A, a);
-                assertInstanceOf(A, a2);
+            assertInstanceOf(B, a.b);
+            assertInstanceOf(B, a2.b);
 
-                assertInstanceOf(B, a.b);
-                assertInstanceOf(B, a2.b);
+            assertInstanceOf(C, a.b.c);
+            assertInstanceOf(C, a2.b.c);
 
-                assertInstanceOf(C, a.b.c);
-                assertInstanceOf(C, a2.b.c);
+            assertSame(a.b.c.str, 'String');
+            assertSame(a.b.c.number, 99);
+            assertSame(a.b.c.bool, true);
+            assertNull(a.b.c.nully);
+            expect(a.b.c.cProp).toBe('cProp');
 
-                assertSame(a.b.c.str, 'String');
-                assertSame(a.b.c.number, 99);
-                assertSame(a.b.c.bool, true);
-                assertNull(a.b.c.nully);
-                expect(a.b.c.cProp).toBe('cProp');
-
-                done();
-            });
+            done();
         });
     });
 
-    it('simplePropertyInjectLiterals', function (done) {
+    it('simplePropertyInjectLiterals', done => {
 
-        iocInstance.getComponent('d', function (d) {
+        iocInstance.getComponent('d', d => {
 
             assertSame(d.str, 'hi');
             assertSame(d.number, 88);
@@ -141,79 +134,67 @@ describe('Ioc Integration Test: ', function () {
         });
     });
 
-    it('simplePropertyInjectDependency', function (done) {
+    it('simplePropertyInjectDependency', done => {
 
-        iocInstance.getComponent('d', function (d) {
+        iocInstance.getComponent('d', d => {
+            assertInstanceOf(D, d);
+            assertInstanceOf(B, d.b);
+            assertInstanceOf(C, d.b.c);
 
-            require(['A', 'B', 'C', 'D', 'MyUtil' ], function (A, B, C, D, Util) {
+            assertSame(d.b.c.str, 'String');
+            assertSame(d.b.c.number, 99);
+            assertSame(d.b.c.bool, true);
+            assertNull(d.b.c.nully);
+            assertSame(d.b.name, 'Tony Blair');
 
-                assertInstanceOf(D, d);
+            assertInstanceOf(MyUtil, d.b.util);
 
-                assertInstanceOf(B, d.b);
-
-                assertInstanceOf(C, d.b.c);
-
-                assertSame(d.b.c.str, 'String');
-                assertSame(d.b.c.number, 99);
-                assertSame(d.b.c.bool, true);
-                assertNull(d.b.c.nully);
-                assertSame(d.b.name, 'Tony Blair');
-
-                assertInstanceOf(Util, d.b.util);
-
-                done();
-            });
+            done();
         });
     });
 
-    it('Simple Creator Function', function (done) {
-        iocInstance.getComponent('creatorFn', function (creatorFn) {
-            require(['A', 'B'], function (A, B) {
-                assertInstanceOf(A, creatorFn.a);
-                assertInstanceOf(B, creatorFn.b);
-                creatorFn.dispose = function () {};
-                spyOn(creatorFn, 'dispose');
-                iocInstance.dispose();
-                expect(creatorFn.dispose).toHaveBeenCalled();
-                done();
-            });
+    it('Simple Creator Function', done => {
+        iocInstance.getComponent('creatorFn', creatorFn => {
+            assertInstanceOf(A, creatorFn.a);
+            assertInstanceOf(B, creatorFn.b);
+            creatorFn.dispose = () => {};
+            spyOn(creatorFn, 'dispose');
+            iocInstance.dispose();
+            expect(creatorFn.dispose).toHaveBeenCalled();
+            done();
         });
     });
 
-    it('utilsInject', function (done) {
-        iocInstance.getComponent('b3', function (b3) {
+    it('utilsInject', done => {
+        iocInstance.getComponent('b3', b3 => {
             assertSame(b3.useUtil(), true);
 
             done();
         });
     });
 
-    it('utilCreator', function (done) {
-        iocInstance.getComponent('utilCreator', function (utilCreator) {
-            require(['MyUtil', 'A', 'B', 'C'], function (MyUtil, A, B, C) {
-                assertInstanceOf(MyUtil.creator, utilCreator);
-                assertInstanceOf(A, utilCreator.a);
-                assertInstanceOf(B, utilCreator.b);
-                assertInstanceOf(C, utilCreator.c);
-                done();
-            });
+    it('utilCreator', done => {
+        iocInstance.getComponent('utilCreator', utilCreator => {
+            assertInstanceOf(MyUtil.creator, utilCreator);
+            assertInstanceOf(A, utilCreator.a);
+            assertInstanceOf(B, utilCreator.b);
+            assertInstanceOf(C, utilCreator.c);
+            done();
         });
     });
 
-    it('utilFactoryCreator', function (done) {
-        iocInstance.getComponent('utilFactoryCreator', function (utilFactoryCreator) {
-            require(['MyUtil', 'A', 'B', 'C'], function (MyUtil, A, B, C) {
-                expect(utilFactoryCreator.constructor).toBe(Object);
-                assertInstanceOf(A, utilFactoryCreator.a);
-                assertInstanceOf(B, utilFactoryCreator.b);
-                assertInstanceOf(C, utilFactoryCreator.c);
-                done();
-            });
+    it('utilFactoryCreator', done => {
+        iocInstance.getComponent('utilFactoryCreator', utilFactoryCreator => {
+            expect(utilFactoryCreator.constructor).toBe(Object);
+            assertInstanceOf(A, utilFactoryCreator.a);
+            assertInstanceOf(B, utilFactoryCreator.b);
+            assertInstanceOf(C, utilFactoryCreator.c);
+            done();
         });
     });
 
-    it('jquery', function (done) {
-        iocInstance.getComponent('f', function (f) {
+    it('jquery', done => {
+        iocInstance.getComponent('f', f => {
 
             assertSame(f.isNumber(999), true);
             assertSame(f.isNumber('NaN'), false);
@@ -221,11 +202,13 @@ describe('Ioc Integration Test: ', function () {
             done();
         });
     });
+    
 
-    it('circularError', function () {
-        expect(function () {
-            iocInstance.getComponent('circular1', function (circular1) {})
-        }).toThrow();
+    xit('circularError', () => {
+        expect(() => {
+            iocInstance.getComponent('circular1', circular1 => {});
+        }).toThrowError(CircularError);
+        // expect(foo).toThrowError(CircularError, 'circular1 has circular dependencies ');
     });
 
     /* it('circularAllowed', 1, function (done) {
@@ -236,5 +219,4 @@ describe('Ioc Integration Test: ', function () {
      done();
      });
      });*/
-})
-;
+});

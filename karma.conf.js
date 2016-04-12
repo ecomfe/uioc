@@ -5,34 +5,41 @@ module.exports = function (config) {
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '..',
+        basePath: '.',
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'requirejs'],
 
 
         // list of files / patterns to load in the browser
         files: [
-            'test/assets/esl.js',
+            'node_modules/babel-polyfill/dist/polyfill.js',
             'test/test-main.js',
-            {pattern: 'test/spec/*.js'},
-            {pattern: 'test/assets/*.js', included: false},
-            {pattern: 'test/assets/**/*.js', included: false},
-            {pattern: 'src/**/*.js', included: false}
+            {pattern: 'src/**/*.js', included: false},
+            {pattern: 'test/**/*.js', included: false}
         ],
-
 
         // list of files to exclude
         exclude: [],
 
-
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'src/*.js': ['coverage']
+            'test/spec/**/*.js': ['babel', 'sourcemap'],
+            'src/**/*.js': process.env.COVERAGE ? ['babel', 'sourcemap', 'coverage'] : ['babel', 'sourcemap']
         },
 
+        babelPreprocessor: {
+            options: {
+                presets: ['es2015', 'stage-0'],
+                sourceMap: 'inline',
+                plugins: ["transform-es2015-modules-umd"]
+            },
+            sourceFileName: function (file) {
+                return file.originalPath;
+            }
+        },
 
         // test results reporter to use
         // possible values: 'dots', 'progress'
@@ -58,7 +65,7 @@ module.exports = function (config) {
 
 
         // enable / disable watching file and executing tests whenever any file changes
-        autoWatch: false,
+        autoWatch: true,
 
 
         // start these browsers
@@ -77,10 +84,6 @@ module.exports = function (config) {
             IE9: {
                 base: 'IE',
                 'x-ua-compatible': 'IE=EmulateIE9'
-            },
-            IE8: {
-                base: 'IE',
-                'x-ua-compatible': 'IE=EmulateIE8'
             },
             Chrome_travis_ci: {
                 base: 'Chrome',

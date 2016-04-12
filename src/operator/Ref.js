@@ -1,65 +1,36 @@
-void function (define, undefined) {
+import u from '../util';
 
-    define(
-        function (require) {
+export default class Ref {
+    constructor(context) {
+        this.context = context;
+    }
 
-            var u = require('../util');
+    process(config) {
+        config.argDeps = config.argDeps || this.getDependenciesFromArgs(config.args);
+        config.propDeps = config.propDeps || this.getDependenciesFromProperties(config.properties);
+        return config;
+    }
 
-            /**
-             * Ref操作符，负责解析 $ref
-             *
-             * @param {IoC} context ioc容器实例
-             * @constructor
-             */
-            function Ref(context) {
-                this.context = context;
-            }
+    has(obj) {
+        return u.isObject(obj) && typeof obj.$ref === 'string';
+    }
 
-            /**
-             * 处理组件配置
-             *
-             * @param {ComponentConfig} config 组件配置
-             *
-             * @returns {ComponentConfig}
-             */
-            Ref.prototype.process = function process(config) {
-                config.argDeps = config.argDeps || this.getDependenciesFromArgs(config.args);
-                config.propDeps = config.propDeps || this.getDependenciesFromProperties(config.properties);
-                return config;
-            };
-
-            /**
-             * 检测是否有$ref操作符
-             *
-             * @param {Object} obj 检测对象
-             *
-             * @return {boolean}
-             */
-            Ref.prototype.has = function (obj) {
-                return u.isObject(obj) && typeof obj.$ref === 'string';
-            };
-
-            Ref.prototype.getDependenciesFromArgs = function getDependenciesFromArgs(args) {
-                var deps = [];
-                for (var i = args.length - 1; i > -1; --i) {
-                    this.has(args[i]) && u.addToSet(deps, args[i].$ref);
-                }
-                return deps;
-            };
-
-            Ref.prototype.getDependenciesFromProperties = function getDependenciesFromProperties(properties) {
-                var deps = [];
-                for (var k in properties) {
-                    if (u.hasOwn(properties, k)) {
-                        var prop = properties[k];
-                        this.has(prop) && u.addToSet(deps, prop.$ref);
-                    }
-                }
-                return deps;
-            };
-
-            return Ref;
+    getDependenciesFromArgs(args) {
+        let deps = [];
+        for (let i = args.length - 1; i > -1; --i) {
+            this.has(args[i]) && u.addToSet(deps, args[i].$ref);
         }
-    );
+        return deps;
+    }
 
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });
+    getDependenciesFromProperties(properties) {
+        let deps = [];
+        for (let k in properties) {
+            if (u.hasOwn(properties, k)) {
+                let prop = properties[k];
+                this.has(prop) && u.addToSet(deps, prop.$ref);
+            }
+        }
+        return deps;
+    }
+}
