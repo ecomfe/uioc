@@ -1,3 +1,5 @@
+const OBJECT = Object.prototype.toString.call({});
+
 function hasOwn(object, key) {
     return Object.prototype.hasOwnProperty.call(object, key);
 }
@@ -7,7 +9,7 @@ function addToSet(arr, el) {
 }
 
 function isObject(obj) {
-    return obj !== null && obj !== undefined && Object.prototype.toString.call(obj) === '[object Object]';
+    return Object.prototype.toString.call(obj) === OBJECT;
 }
 
 function warn() {

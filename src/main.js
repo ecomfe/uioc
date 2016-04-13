@@ -4,13 +4,13 @@
  */
 
 import Injector from './Injector';
-import u  from './util';
-import Ref  from './operator/Ref';
+import u from './util';
+import Ref from './operator/Ref';
 import Import from './operator/Import';
 import Setter from './operator/Setter';
 import List from './operator/List';
 import Map from './operator/Map';
-import  Loader from './Loader';
+import Loader from './Loader';
 
 export default class IoC {
     constructor(config = {}) {
@@ -34,12 +34,12 @@ export default class IoC {
 
     addComponent(id, config) {
         if (typeof id === 'string') {
-            const conf = {};
+            let conf = {};
             conf[id] = config;
             this.addComponent(conf);
         }
         else {
-            for (const k in id) {
+            for (let k in id) {
                 if (this.hasComponent(k)) {
                     u.warn(`${k} has been add! This will be no effect`);
                     continue;
@@ -49,25 +49,34 @@ export default class IoC {
         }
     }
 
-    getComponent(ids, cb) {
-        ids = ids instanceof Array ? ids : [ids];
+    getComponent(ids) {
+        let isSingle = true;
+        if (ids instanceof Array) {
+            isSingle = false;
+        }
+        ids = [].concat(ids);
         let moduleMap = {};
 
         for (let i = 0, len = ids.length; i < len; ++i) {
-            const id = ids[i];
+            let id = ids[i];
             if (!this.hasComponent(id)) {
                 u.warn('`%s` has not been added to the Ioc', id);
             }
             else {
-                const config = this.getComponentConfig(id);
+                let config = this.getComponentConfig(id);
                 this.processStaticConfig(id);
-                moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
+                try {
+                    moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
+                }
+                catch (e) {
+                    return Promise.reject(e);
+                }
             }
         }
 
-        this.loader.loadModuleMap(moduleMap, createInstances.bind(this, ids, cb));
-
-        return this;
+        return this.loader.loadModuleMap(moduleMap)
+            .then(() => this::createInstances(ids))
+            .then(instances => isSingle ? instances[0] : instances);
     }
 
     hasComponent(id) {
@@ -79,7 +88,7 @@ export default class IoC {
     }
 
     processStaticConfig(id) {
-        const config = this.getComponentConfig(id);
+        let config = this.getComponentConfig(id);
         this.operators.list.process(config);
         this.operators.map.process(config);
         this.operators.opImport.process(config);
@@ -97,7 +106,7 @@ export default class IoC {
 }
 
 function createComponent(id, config) {
-    const component = {
+    let component = {
         id,
         args: config.args || [],
         properties: config.properties || {},
@@ -119,39 +128,36 @@ function createComponent(id, config) {
     return component;
 }
 
-function createInstances(ids, cb) {
-    const instances = new Array(ids.length);
-    if (ids.length === 0) {
-        return cb.apply(null, instances);
-    }
-
-    const injector = this.injector;
-    const loader = this.loader;
-    const context = this;
+function createInstances(ids) {
+    let injector = this.injector;
+    let loader = this.loader;
+    let setter = this.operators.setter;
     let moduleMap = {};
-    let count = ids.length;
-    const done = () => {
-        --count === 0 && cb.apply(null, instances);
-    };
 
-    const task = (index, config) => instance => {
-        instances[index] = instance;
+    function task(config, instance) {
         if (config) {
             // 获取 setter 依赖
-            context.operators.setter.resolveDependencies(config, instance);
-            moduleMap = loader.resolveDependentModules(config, {}, config.propDeps.concat(config.setterDeps));
-            injector.injectDependencies(instance, config, done);
+            setter.resolveDependencies(config, instance);
+            try {
+                moduleMap = loader.resolveDependentModules(config, {}, config.propDeps.concat(config.setterDeps));
+            }
+            catch (e) {
+                return Promise.reject(e);
+            }
 
-//            loader.loadModuleMap(moduleMap, u.bind(injector.injectDependencies, injector, instance, config, done));
+            return injector.injectDependencies(instance, config).then(() => instance);
         }
         else {
-            done();
+            return Promise.resolve(instance);
         }
-    };
-
-    for (let i = ids.length - 1; i > -1; --i) {
-        const component = this.hasComponent(ids[i]) ? this.getComponentConfig(ids[i]) : null;
-        injector.createInstance(component, task(i, component));
     }
-}
 
+    return Promise.all(
+        ids.map(
+            id => {
+                let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
+                return injector.createInstance(component).then(task.bind(null, component));
+            }
+        )
+    );
+}

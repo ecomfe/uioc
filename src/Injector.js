@@ -10,91 +10,77 @@ export default class Injector {
         this.context = context;
     }
 
-    createInstance(component, cb) {
+    createInstance(component) {
         if (!component) {
-            return cb(null);
+            return Promise.resolve(null);
         }
 
         let id = component.id;
         if (component.scope === 'singleton' && id in this.singletons) {
-            return cb(this.singletons[id]);
+            return Promise.resolve(this.singletons[id]);
         }
 
         if (component.scope === 'static') {
-            return cb(component.creator);
+            return Promise.resolve(component.creator);
         }
 
-        this.injectArgs(component, args => {
-            let instance = component.creator(...args);
-            if (component.scope === 'singleton') {
-                this.singletons[id] = instance;
+        return this.injectArgs(component).then(
+            args => {
+                let instance = component.creator(...args);
+                if (component.scope === 'singleton') {
+                    this.singletons[id] = instance;
+                }
+                return Promise.resolve(instance);
             }
-            cb(instance);
-        });
+        );
     }
 
-    injectArgs(componentConfig, cb) {
-        let argConfigs = componentConfig.args;
-        let count = argConfigs.length;
-        let args = new Array(count);
+    injectArgs({args}) {
         let ref = this.context.operators.ref;
-        if (!count) {
-            return cb(args);
-        }
 
-        function done(index, instance) {
-            args[index] = instance;
-            --count === 0 && cb(args);
-        }
-
-        for (let i = argConfigs.length - 1; i > -1; --i) {
-            let arg = argConfigs[i];
-            ref.has(arg) ? this.context.getComponent(arg.$ref, done.bind(null, i)) : done(i, arg);
-        }
+        return Promise.all(
+            args.map(
+                arg => new Promise(
+                    resolve => ref.has(arg) ? this.context.getComponent(arg.$ref).then(resolve) : resolve(arg)
+                )
+            )
+        );
     }
 
-    injectProperties(instance, componentConfig, cb) {
+    injectProperties(instance, componentConfig) {
         let deps = componentConfig.propDeps;
         let props = componentConfig.properties;
         let ref = this.context.operators.ref;
         let setter = this.context.operators.setter;
-
-        this.context.getComponent(deps, (...args) => {
-            for (let k in props) {
-                let property = props[k];
-                let value = ref.has(property) ? args[deps.indexOf(property.$ref)] : property;
-                setter.setProperty(instance, k, value, setter.has(property) && property.$setter);
+        return this.context.getComponent(deps).then(
+            args => {
+                for (let k in props) {
+                    let property = props[k];
+                    let value = ref.has(property) ? args[deps.indexOf(property.$ref)] : property;
+                    setter.setProperty(instance, k, value, setter.has(property) && property.$setter);
+                }
             }
-            cb();
-        });
+        );
     }
 
-    injectSetters(instance, componentConfig, cb) {
-        let deps = componentConfig.setterDeps || [];
-        let setter = this.context.operators.setter;
-
-        this.context.getComponent(deps, (...args) => {
-            for (let i = deps.length - 1; i > -1; --i) {
-                let dep = deps[i];
-                setter.setProperty(instance, dep, args[i]);
-            }
-            cb();
-        });
-    }
-
-    injectDependencies(instance, componentConfig, cb) {
-        let complete = {
-            prop: false,
-            setter: false
-        };
-
-        function done(type) {
-            complete[type] = true;
-            complete.prop && complete.setter && cb();
+    injectSetters(instance, {setterDeps}) {
+        setterDeps = setterDeps || [];
+        if (!setterDeps.length) {
+            return Promise.resolve();
         }
+        let setter = this.context.operators.setter;
+        return this.context.getComponent(setterDeps).then(
+            components => components.forEach(
+                (component, index) => setter.setProperty(instance, setterDeps[index], component)
+            )
+        );
+    }
 
-        this.injectProperties(instance, componentConfig, done.bind(null, 'prop'));
-        this.injectSetters(instance, componentConfig, done.bind(null, 'setter'));
+    injectDependencies(instance, componentConfig) {
+        return Promise.all([
+            this.injectProperties(instance, componentConfig),
+            this.injectSetters(instance, componentConfig)
+        ]);
     }
 
     dispose() {

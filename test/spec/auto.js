@@ -25,8 +25,7 @@ describe('auto inject test', () => {
     it('normal inject', done => {
         spyOn(AutoInject.prototype, 'setd');
         spyOn(AutoInject.prototype, 'settest');
-        iocInstance.getComponent(
-            'autoInject',
+        iocInstance.getComponent('autoInject').then(
             autoInject => {
                 assertInstanceOf(A, autoInject.a);
                 assertInstanceOf(B, autoInject.b);
@@ -54,8 +53,7 @@ describe('auto inject test', () => {
     });
 
     it('setter and property priority', done => {
-        iocInstance.getComponent(
-            'autoInject',
+        iocInstance.getComponent('autoInject').then(
             autoInject => {
                 expect(autoInject.myFactory).toBe('myFactory');
                 expect(autoInject.setCCalledCount).toBe(1);
@@ -67,10 +65,12 @@ describe('auto inject test', () => {
 
     it('setter dependency which has no register', done => {
         spyOn(AutoInject.prototype, 'setUnRegisterComponent');
-        iocInstance.getComponent('autoInject', autoInject => {
-            expect(autoInject.setUnRegisterComponent).not.toHaveBeenCalled();
-            done();
-        });
+        iocInstance.getComponent('autoInject').then(
+            autoInject => {
+                expect(autoInject.setUnRegisterComponent).not.toHaveBeenCalled();
+                done();
+            }
+        );
     });
 
 });

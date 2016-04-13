@@ -21,22 +21,24 @@ export default class Loader {
         return getDependentModules(componentConfig, this.context, result, new DependencyTree(), deps);
     }
 
-    loadModuleMap(moduleMap, cb) {
+    loadModuleMap(moduleMap) {
         let moduleIds = Object.keys(moduleMap);
-        this.amdLoader(
-            moduleIds,
-            (...modules) => {
-                modules.forEach(
-                    (factory, index) => {
-                        let moduleId = moduleIds[index];
-                        moduleMap[moduleId].forEach(
-                            config => typeof config.creator !== 'function' && this.wrapCreator(config, factory)
-                        );
-                    }
-                );
-                cb();
-            }
-        );
+        return new Promise(resolve => {
+            this.amdLoader(
+                moduleIds,
+                (...modules) => {
+                    modules.forEach(
+                        (factory, index) => {
+                            let moduleId = moduleIds[index];
+                            moduleMap[moduleId].forEach(
+                                config => typeof config.creator !== 'function' && this.wrapCreator(config, factory)
+                            );
+                        }
+                    );
+                    resolve();
+                }
+            );
+        });
     }
 
     wrapCreator(config, factory) {
