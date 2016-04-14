@@ -7,10 +7,10 @@ import Injector from './Injector';
 import u from './util';
 import Ref from './operator/Ref';
 import Setter from './operator/Setter';
-import List from './operator/List';
-import Map from './operator/Map';
 import Loader from './Loader';
 import ImportPlugin from './plugins/ImportPlugin';
+import ListPlugin from './plugins/ListPlugin';
+import MapPlugin from './plugins/MapPlugin';
 
 const PLUGIN_COLLECTION = Symbol('collection');
 
@@ -18,13 +18,15 @@ export default class IoC {
     components = {};
 
     constructor(config = {}) {
-        this[PLUGIN_COLLECTION] = new PluginCollection([new ImportPlugin()]);
+        this[PLUGIN_COLLECTION] = new PluginCollection([
+            new ListPlugin(),
+            new MapPlugin(),
+            new ImportPlugin()
+        ]);
         this.loader = new Loader(this);
         this.operators = {
             ref: new Ref(this),
-            setter: new Setter(this),
-            list: new List(this),
-            map: new Map(this)
+            setter: new Setter(this)
         };
         this.injector = new Injector(this);
         this[PLUGIN_COLLECTION].addPlugins(config.plugins);
@@ -39,8 +41,6 @@ export default class IoC {
 
         iocConfig.loader && this.setLoaderFunction(iocConfig.loader);
 
-        this.addComponent(List.LIST_COMPONENT_ID, List.LIST_COMPONENT_CONFIG);
-        this.addComponent(Map.MAP_COMPONENT_ID, Map.MAP_COMPONENT_CONFIG);
         this.addComponent(iocConfig.components || {});
     }
 
@@ -111,8 +111,6 @@ export default class IoC {
 
     processStaticConfig(id) {
         let config = this.getComponentConfig(id);
-        this.operators.list.process(config);
-        this.operators.map.process(config);
         config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
         this.components[id] = config;
         this.operators.ref.process(config);
