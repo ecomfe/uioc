@@ -12,6 +12,10 @@ function isObject(obj) {
     return Object.prototype.toString.call(obj) === OBJECT;
 }
 
+function isPromise(obj) {
+    return isObject(obj) && typeof obj.then === 'function';
+}
+
 function warn() {
     if (typeof console !== 'undefined') {
         Function.prototype.apply.call(console.warn, console, arguments);
@@ -22,5 +26,6 @@ export default {
     hasOwn,
     addToSet,
     isObject,
+    isPromise,
     warn
 }

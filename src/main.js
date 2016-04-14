@@ -6,37 +6,47 @@
 import Injector from './Injector';
 import u from './util';
 import Ref from './operator/Ref';
-import Import from './operator/Import';
 import Setter from './operator/Setter';
 import List from './operator/List';
 import Map from './operator/Map';
 import Loader from './Loader';
+import ImportPlugin from './plugins/ImportPlugin';
+
+const PLUGIN_COLLECTION = Symbol('collection');
 
 export default class IoC {
+    components = {};
+
     constructor(config = {}) {
+        this[PLUGIN_COLLECTION] = new PluginCollection([new ImportPlugin()]);
         this.loader = new Loader(this);
-        config.loader && this.setLoaderFunction(config.loader);
-        this.components = {};
         this.operators = {
-            opImport: new Import(this),
             ref: new Ref(this),
             setter: new Setter(this),
             list: new List(this),
             map: new Map(this)
         };
         this.injector = new Injector(this);
+        this[PLUGIN_COLLECTION].addPlugins(config.plugins);
+        config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
+        this.initConfig(config);
+    }
+
+    /**
+     * @protected
+     */
+    initConfig(iocConfig) {
+
+        iocConfig.loader && this.setLoaderFunction(iocConfig.loader);
 
         this.addComponent(List.LIST_COMPONENT_ID, List.LIST_COMPONENT_CONFIG);
         this.addComponent(Map.MAP_COMPONENT_ID, Map.MAP_COMPONENT_CONFIG);
-
-        this.addComponent(config.components || {});
+        this.addComponent(iocConfig.components || {});
     }
 
     addComponent(id, config) {
         if (typeof id === 'string') {
-            let conf = {};
-            conf[id] = config;
-            this.addComponent(conf);
+            this.addComponent({[id]: config});
         }
         else {
             for (let k in id) {
@@ -79,6 +89,18 @@ export default class IoC {
             .then(instances => isSingle ? instances[0] : instances);
     }
 
+    addPlugins(plugins, pos) {
+        return this[PLUGIN_COLLECTION].addPlugins(plugins, pos);
+    }
+
+    getPlugins() {
+        return this[PLUGIN_COLLECTION].getPlugins();
+    }
+
+    removePlugin(pluginOrPos) {
+        return this[PLUGIN_COLLECTION].removePlugin(pluginOrPos);
+    }
+
     hasComponent(id) {
         return !!this.components[id];
     }
@@ -91,7 +113,8 @@ export default class IoC {
         let config = this.getComponentConfig(id);
         this.operators.list.process(config);
         this.operators.map.process(config);
-        this.operators.opImport.process(config);
+        config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
+        this.components[id] = config;
         this.operators.ref.process(config);
     }
 
@@ -100,17 +123,18 @@ export default class IoC {
     }
 
     dispose() {
+        this[PLUGIN_COLLECTION].onContainerDispose(this);
         this.injector.dispose();
         this.components = null;
     }
 }
 
 function createComponent(id, config) {
+    config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
     let component = {
         id,
         args: config.args || [],
         properties: config.properties || {},
-        anonyDeps: null,
         argDeps: null,
         propDeps: null,
         setterDeps: null,
@@ -155,9 +179,80 @@ function createInstances(ids) {
     return Promise.all(
         ids.map(
             id => {
+                let instance = this[PLUGIN_COLLECTION].beforeCreateInstance(this, id);
+                if (u.isPromise(instance)) {
+                    return instance;
+                }
+
                 let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
-                return injector.createInstance(component).then(task.bind(null, component));
+                return injector.createInstance(component)
+                    .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance))
+                    .then(task.bind(null, component));
             }
         )
     );
+}
+
+const PLUGINS = Symbol('plugins');
+
+class PluginCollection {
+    constructor(plugins = []) {
+        this[PLUGINS] = plugins;
+    }
+
+    onContainerInit(ioc, iocConfig) {
+        return this[PLUGINS].reduce(
+            (config, plugin) => plugin.onContainerInit(ioc, config),
+            iocConfig
+        );
+    }
+
+    onAddComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) => plugin.onAddComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    onGetComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) => plugin.onGetComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    beforeCreateInstance(ioc, componentId) {
+        return this[PLUGINS].reduce(
+            (instance, plugin) => plugin.beforeCreateInstance(ioc, componentId, instance),
+            undefined
+        );
+    }
+
+    afterCreateInstance(ioc, componentId, instance) {
+        return this[PLUGINS].reduce(
+            (instance, plugin) => plugin.afterCreateInstance(ioc, componentId, instance),
+            instance
+        );
+    }
+
+    onContainerDispose(ioc) {
+        this[PLUGINS].forEach(plugin => plugin.onContainerDispose(ioc));
+    }
+
+    addPlugins(plugins = [], pos = this[PLUGINS].length) {
+        this[PLUGINS].splice(pos, 0, ...plugins);
+    }
+
+    getPlugins() {
+        return this[PLUGINS].slice(0);
+    }
+
+    removePlugin(pluginOrPos) {
+        if (typeof pluginOrPos !== 'number') {
+            pluginOrPos = this[PLUGINS].indexOf(pluginOrPos);
+            pluginOrPos = pluginOrPos === -1 ? this[PLUGINS].length : pluginOrPos;
+        }
+
+        return !!this[PLUGINS].splice(pluginOrPos, 1).length;
+    }
 }

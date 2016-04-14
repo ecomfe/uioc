@@ -1,15 +1,18 @@
 export default class BasePlugin {
+    get name() {
+        throw new Error('need to be implement');
+    }
 
     onContainerInit(ioc, iocConfig) {
         return iocConfig;
     }
 
-    onAddComponent(ioc, componentId) {
-        return ioc.getComponentConfig(componentId);
+    onAddComponent(ioc, componentId, componentConfig) {
+        return componentConfig;
     }
 
-    onGetComponent(ioc, componentId) {
-        return ioc.getComponentConfig(componentId);
+    onGetComponent(ioc, componentId, componentConfig) {
+        return componentConfig;
     }
 
     beforeCreateInstance(ioc, componentId, instance) {
@@ -23,5 +26,4 @@ export default class BasePlugin {
     onContainerDispose(ioc) {
 
     }
-
 }
