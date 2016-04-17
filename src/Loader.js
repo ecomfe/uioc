@@ -69,7 +69,7 @@ function getDependentModules(component, context, result, depTree, deps) {
         result[module] = result[module] || [];
         result[module].push(component);
     }
-    context.processStaticConfig(component.id);
+    context.processConfig(component.id);
 
     let circular = depTree.checkForCircular(component.id);
     if (circular) {

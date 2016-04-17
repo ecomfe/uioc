@@ -224,7 +224,7 @@ describe('Ioc Integration Test: ', () => {
         iocInstance.getComponent('circular1').catch(
             e => {
                 expect(e instanceof CircularError);
-                // expect(e.message).toBe('circular1 has circular dependencies ');
+                expect(e.message).toBe('circular3 has circular dependencies ');
                 done();
             }
         );

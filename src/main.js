@@ -5,7 +5,6 @@
 
 import Injector from './Injector';
 import u from './util';
-import Ref from './Ref';
 import Loader from './Loader';
 import ImportPlugin from './plugins/ImportPlugin';
 import AutoPlugin from './plugins/AutoPlugin';
@@ -27,9 +26,6 @@ export default class IoC {
             new AutoPlugin()
         ]);
         this.loader = new Loader(this);
-        this.operators = {
-            ref: new Ref(this)
-        };
         this.injector = new Injector(this);
         this[PLUGIN_COLLECTION].addPlugins(config.plugins);
         config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
@@ -76,7 +72,7 @@ export default class IoC {
             }
             else {
                 let config = this.getComponentConfig(id);
-                this.processStaticConfig(id);
+                this.processConfig(id);
                 try {
                     moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
                 }
@@ -111,11 +107,17 @@ export default class IoC {
         return id ? this.components[id] : this.components;
     }
 
-    processStaticConfig(id) {
+    processConfig(id) {
         let config = this.getComponentConfig(id);
         config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
         this.components[id] = config;
-        this.operators.ref.process(config);
+        if (!config.argDeps) {
+            let deps = config.argDeps = [];
+            let args = config.args;
+            for (let i = args.length - 1; i > -1; --i) {
+                u.hasRef(args[i]) && deps.push(args[i].$ref);
+            }
+        }
     }
 
     setLoaderFunction(amdLoader) {
