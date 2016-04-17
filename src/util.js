@@ -22,10 +22,15 @@ function warn() {
     }
 }
 
+function hasRef(obj) {
+    return isObject(obj) && typeof obj.$ref === 'string';
+}
+
 export default {
     hasOwn,
     addToSet,
     isObject,
     isPromise,
+    hasRef: hasRef,
     warn
 }

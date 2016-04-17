@@ -2,7 +2,10 @@ var Builder = require('systemjs-builder');
 
 var builder = new Builder('.');
 builder.config({
-    paths: {'*': '*.js'}
+    paths: {'*': '*.js'},
+    babelOptions: {
+        stage: 0
+    }
 });
 builder
     .buildStatic('src/main', 'dist/bundle.js', {minify: true, sourceMaps: true, format: 'umd'})

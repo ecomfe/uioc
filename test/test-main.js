@@ -7,7 +7,7 @@ Object.keys(window.__karma__.files).forEach(function (file) {
         // Normalize paths to RequireJS module names.
         // If you require sub-dependencies of test files to be loaded as-is (requiring file extension)
         // then do not normalize the paths
-        var normalizedTestModule = file.replace('^\/base\/', '../');
+        var normalizedTestModule = file.replace('/base/test/', '').replace('.js', '');
         allTestFiles.push(normalizedTestModule);
     }
 });
@@ -20,16 +20,16 @@ require.config({
         {
             name: 'ioc',
             location: '../../src'
+        },
+        {
+            name: 'spec',
+            location: '../spec'
         }
     ],
-    // dynamically load all test files
-    deps: allTestFiles,
-
-    // we have to kickoff jasmine, as it is asynchronous
-    callback: window.__karma__.start,
     paths: {
         jquery: 'https://ss0.bdstatic.com/5a21bjqh_Q23odCf/static/superplus/js/lib/jquery-1.10.2_d88366fd'
     }
 });
 
 define.amd.jQuery = true;
+require(allTestFiles, window.__karma__.start);

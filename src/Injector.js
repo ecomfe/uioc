@@ -3,6 +3,8 @@
  * @author exodia(d_xinxin@163.com)
  */
 
+import u from './util';
+
 export default class Injector {
     singletons = Object.create(null);
 
@@ -36,51 +38,13 @@ export default class Injector {
     }
 
     injectArgs({args}) {
-        let ref = this.context.operators.ref;
-
         return Promise.all(
             args.map(
                 arg => new Promise(
-                    resolve => ref.has(arg) ? this.context.getComponent(arg.$ref).then(resolve) : resolve(arg)
+                    resolve => u.hasRef(arg) ? this.context.getComponent(arg.$ref).then(resolve) : resolve(arg)
                 )
             )
         );
-    }
-
-    injectProperties(instance, componentConfig) {
-        let deps = componentConfig.propDeps;
-        let props = componentConfig.properties;
-        let ref = this.context.operators.ref;
-        let setter = this.context.operators.setter;
-        return this.context.getComponent(deps).then(
-            args => {
-                for (let k in props) {
-                    let property = props[k];
-                    let value = ref.has(property) ? args[deps.indexOf(property.$ref)] : property;
-                    setter.setProperty(instance, k, value, setter.has(property) && property.$setter);
-                }
-            }
-        );
-    }
-
-    injectSetters(instance, {setterDeps}) {
-        setterDeps = setterDeps || [];
-        if (!setterDeps.length) {
-            return Promise.resolve();
-        }
-        let setter = this.context.operators.setter;
-        return this.context.getComponent(setterDeps).then(
-            components => components.forEach(
-                (component, index) => setter.setProperty(instance, setterDeps[index], component)
-            )
-        );
-    }
-
-    injectDependencies(instance, componentConfig) {
-        return Promise.all([
-            this.injectProperties(instance, componentConfig),
-            this.injectSetters(instance, componentConfig)
-        ]);
     }
 
     dispose() {

@@ -5,10 +5,11 @@
 
 import Injector from './Injector';
 import u from './util';
-import Ref from './operator/Ref';
-import Setter from './operator/Setter';
+import Ref from './Ref';
 import Loader from './Loader';
 import ImportPlugin from './plugins/ImportPlugin';
+import AutoPlugin from './plugins/AutoPlugin';
+import PropertyPlugin from './plugins/PropertyPlugin';
 import ListPlugin from './plugins/ListPlugin';
 import MapPlugin from './plugins/MapPlugin';
 
@@ -21,12 +22,13 @@ export default class IoC {
         this[PLUGIN_COLLECTION] = new PluginCollection([
             new ListPlugin(),
             new MapPlugin(),
-            new ImportPlugin()
+            new ImportPlugin(),
+            new PropertyPlugin(),
+            new AutoPlugin()
         ]);
         this.loader = new Loader(this);
         this.operators = {
-            ref: new Ref(this),
-            setter: new Setter(this)
+            ref: new Ref(this)
         };
         this.injector = new Injector(this);
         this[PLUGIN_COLLECTION].addPlugins(config.plugins);
@@ -152,27 +154,6 @@ function createComponent(id, config) {
 
 function createInstances(ids) {
     let injector = this.injector;
-    let loader = this.loader;
-    let setter = this.operators.setter;
-    let moduleMap = {};
-
-    function task(config, instance) {
-        if (config) {
-            // 获取 setter 依赖
-            setter.resolveDependencies(config, instance);
-            try {
-                moduleMap = loader.resolveDependentModules(config, {}, config.propDeps.concat(config.setterDeps));
-            }
-            catch (e) {
-                return Promise.reject(e);
-            }
-
-            return injector.injectDependencies(instance, config).then(() => instance);
-        }
-        else {
-            return Promise.resolve(instance);
-        }
-    }
 
     return Promise.all(
         ids.map(
@@ -184,8 +165,7 @@ function createInstances(ids) {
 
                 let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
                 return injector.createInstance(component)
-                    .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance))
-                    .then(task.bind(null, component));
+                    .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));
             }
         )
     );
@@ -228,8 +208,10 @@ class PluginCollection {
 
     afterCreateInstance(ioc, componentId, instance) {
         return this[PLUGINS].reduce(
-            (instance, plugin) => plugin.afterCreateInstance(ioc, componentId, instance),
-            instance
+            (instancePromise, plugin) => instancePromise.then(
+                instance => plugin.afterCreateInstance(ioc, componentId, instance)
+            ),
+            Promise.resolve(instance)
         );
     }
 
