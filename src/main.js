@@ -13,11 +13,14 @@ import ListPlugin from './plugins/ListPlugin';
 import MapPlugin from './plugins/MapPlugin';
 
 const PLUGIN_COLLECTION = Symbol('collection');
+const COMPONENTS = Symbol('components');
+const CREATE_COMPONENT = Symbol('createComponent');
+const CREATE_INSTANCE = Symbol('createInstance');
 
 export default class IoC {
-    components = {};
 
     constructor(config = {}) {
+        this[COMPONENTS] = Object.create(null);
         this[PLUGIN_COLLECTION] = new PluginCollection([
             new ListPlugin(),
             new MapPlugin(),
@@ -25,9 +28,9 @@ export default class IoC {
             new PropertyPlugin(),
             new AutoPlugin()
         ]);
+        this[PLUGIN_COLLECTION].addPlugins(config.plugins);
         this.loader = new Loader(this);
         this.injector = new Injector(this);
-        this[PLUGIN_COLLECTION].addPlugins(config.plugins);
         config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
         this.initConfig(config);
     }
@@ -52,7 +55,7 @@ export default class IoC {
                     u.warn(`${k} has been add! This will be no effect`);
                     continue;
                 }
-                this.components[k] = createComponent.call(this, k, id[k]);
+                this[COMPONENTS][k] = this[CREATE_COMPONENT].call(this, k, id[k]);
             }
         }
     }
@@ -63,7 +66,7 @@ export default class IoC {
             isSingle = false;
         }
         ids = [].concat(ids);
-        let moduleMap = {};
+        let moduleMap = Object.create(null);
 
         for (let i = 0, len = ids.length; i < len; ++i) {
             let id = ids[i];
@@ -83,7 +86,7 @@ export default class IoC {
         }
 
         return this.loader.loadModuleMap(moduleMap)
-            .then(() => this::createInstances(ids))
+            .then(() => this[CREATE_INSTANCE](ids))
             .then(instances => isSingle ? instances[0] : instances);
     }
 
@@ -100,17 +103,17 @@ export default class IoC {
     }
 
     hasComponent(id) {
-        return !!this.components[id];
+        return !!this[COMPONENTS][id];
     }
 
     getComponentConfig(id) {
-        return id ? this.components[id] : this.components;
+        return id ? this[COMPONENTS][id] : this[COMPONENTS];
     }
 
     processConfig(id) {
         let config = this.getComponentConfig(id);
         config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
-        this.components[id] = config;
+        this[COMPONENTS][id] = config;
         if (!config.argDeps) {
             let deps = config.argDeps = [];
             let args = config.args;
@@ -127,51 +130,50 @@ export default class IoC {
     dispose() {
         this[PLUGIN_COLLECTION].onContainerDispose(this);
         this.injector.dispose();
-        this.components = null;
+        this[COMPONENTS] = null;
+    }
+
+    [CREATE_COMPONENT](id, config) {
+        config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
+        let component = {
+            id,
+            args: config.args || [],
+            properties: config.properties || {},
+            argDeps: null,
+            propDeps: null,
+            setterDeps: null,
+            scope: config.scope || 'transient',
+            creator: config.creator || null,
+            module: config.module || undefined,
+            isFactory: !!config.isFactory,
+            auto: !!config.auto,
+            instance: null
+        };
+
+        // creator为函数，那么先包装下
+        typeof component.creator === 'function' && this.loader.wrapCreator(component);
+
+        return component;
+    }
+
+    [CREATE_INSTANCE](ids) {
+        return Promise.all(
+            ids.map(
+                id => {
+                    let instance = this[PLUGIN_COLLECTION].beforeCreateInstance(this, id);
+                    if (u.isPromise(instance)) {
+                        return instance;
+                    }
+
+                    let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
+                    return this.injector.createInstance(component)
+                        .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));
+                }
+            )
+        );
     }
 }
 
-function createComponent(id, config) {
-    config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
-    let component = {
-        id,
-        args: config.args || [],
-        properties: config.properties || {},
-        argDeps: null,
-        propDeps: null,
-        setterDeps: null,
-        scope: config.scope || 'transient',
-        creator: config.creator || null,
-        module: config.module || undefined,
-        isFactory: !!config.isFactory,
-        auto: !!config.auto,
-        instance: null
-    };
-
-    // creator为函数，那么先包装下
-    typeof component.creator === 'function' && this.loader.wrapCreator(component);
-
-    return component;
-}
-
-function createInstances(ids) {
-    let injector = this.injector;
-
-    return Promise.all(
-        ids.map(
-            id => {
-                let instance = this[PLUGIN_COLLECTION].beforeCreateInstance(this, id);
-                if (u.isPromise(instance)) {
-                    return instance;
-                }
-
-                let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
-                return injector.createInstance(component)
-                    .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));
-            }
-        )
-    );
-}
 
 const PLUGINS = Symbol('plugins');
 

@@ -1,5 +1,4 @@
 import IoC from 'ioc';
-import CircularError from 'ioc/CircularError';
 import A from 'A';
 import B from 'B';
 import C from 'C';
@@ -223,7 +222,6 @@ describe('Ioc Integration Test: ', () => {
     it('circularError', done => {
         iocInstance.getComponent('circular1').catch(
             e => {
-                expect(e instanceof CircularError);
                 expect(e.message).toBe('circular3 has circular dependencies ');
                 done();
             }

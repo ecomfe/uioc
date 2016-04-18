@@ -1,18 +1,21 @@
-var Builder = require('systemjs-builder');
+var rollup = require('rollup');
+var fs = require('fs');
+var uglify = require('rollup-plugin-uglify');
+var babel = require('rollup-plugin-babel');
 
-var builder = new Builder('.');
-builder.config({
-    paths: {'*': '*.js'},
-    babelOptions: {
-        stage: 0
-    }
-});
-builder
-    .buildStatic('src/main', 'dist/bundle.js', {minify: true, sourceMaps: true, format: 'umd'})
-    .then(function () {
-        console.log('Build complete');
-    })
-    .catch(function (err) {
-        console.log('Build error');
-        console.log(err);
+rollup.rollup({
+    entry: 'src/main.js',
+    plugins: [
+        babel({presets: ['es2015-rollup', 'stage-0']}),
+        uglify()
+    ]
+}).then(function (bundle) {
+    bundle.write({
+        sourceMap: true,
+        format: 'umd',
+        moduleName: 'uioc',
+        dest: 'dist/bundle.js'
     });
+}).catch(function (err) {
+    console.log('build fail: ', err);
+});
