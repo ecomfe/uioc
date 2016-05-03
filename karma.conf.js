@@ -14,6 +14,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
+            'node_modules/babel-polyfill/dist/polyfill.js',
             'test/assets/esl.js',
             'test/test-main.js',
             {pattern: 'src/**/*.js', included: false},
@@ -27,7 +28,7 @@ module.exports = function (config) {
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
             'test/spec/**/*.js': ['babel', 'sourcemap'],
-            'src/**/*.js': process.env.COVERAGE ? ['babel', 'sourcemap', 'coverage'] : ['babel', 'sourcemap']
+            'src/**/*.js': process.env.TRAVIS ? ['babel', 'sourcemap', 'coverage'] : ['babel', 'sourcemap']
         },
 
         babelPreprocessor: {
