@@ -20,7 +20,7 @@ export default class BasePlugin {
     }
 
     afterCreateInstance(ioc, componentId, instance) {
-        return instance;
+        return Promise.resolve(instance);
     }
 
     onContainerDispose(ioc) {

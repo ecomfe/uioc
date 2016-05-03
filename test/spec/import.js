@@ -84,8 +84,7 @@ describe('import test: ', () => {
         });
     });
 
-    // TODO: to be resolved
-    xit('nested parallel import with auto and singleton', done => {
+    it('nested parallel import with auto and singleton', done => {
         Promise.all([
             iocInstance.getComponent('importNest'),
             iocInstance.getComponent('importNest')

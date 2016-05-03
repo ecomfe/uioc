@@ -13,7 +13,7 @@ function isObject(obj) {
 }
 
 function isPromise(obj) {
-    return isObject(obj) && typeof obj.then === 'function';
+    return obj && typeof obj === 'object' && typeof obj.then === 'function';
 }
 
 function warn() {

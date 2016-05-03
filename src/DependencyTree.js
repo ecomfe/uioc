@@ -1,5 +1,5 @@
 /**
- * @file DependencyNode.js 依赖树
+ * @file DependencyNode 依赖树
  * @author exodia(d_xinxin@163.com)
  */
 

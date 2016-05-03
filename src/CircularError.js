@@ -1,9 +1,9 @@
 /**
- * @file CircularError.js 循环依赖错误
+ * @file 循环依赖错误
+ * @internal
  * @author exodia(d_xinxin@163.com)
  */
 
-// 循环依赖错误
 export default class CircularError extends Error {
     constructor(message, component) {
         super(message);

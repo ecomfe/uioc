@@ -1,15 +1,18 @@
 /**
- * @file Injector.js 依赖注入类
+ * @file Injector 依赖注入类
  * @author exodia(d_xinxin@163.com)
  */
 
 import u from './util';
 
+const STORE = Symbol('store');
+const GET_INSTANCE = Symbol('getInstance');
+
 export default class Injector {
-    singletons = Object.create(null);
 
     constructor(context) {
         this.context = context;
+        this[STORE] = Object.create(null);
     }
 
     createInstance(component) {
@@ -17,44 +20,36 @@ export default class Injector {
             return Promise.resolve(null);
         }
 
-        let id = component.id;
-        if (component.scope === 'singleton' && id in this.singletons) {
-            return Promise.resolve(this.singletons[id]);
-        }
-
-        if (component.scope === 'static') {
-            return Promise.resolve(component.creator);
-        }
-
-        return this.injectArgs(component).then(
-            args => {
-                let instance = component.creator(...args);
-                if (component.scope === 'singleton') {
-                    this.singletons[id] = instance;
+        switch (component.scope) {
+            case 'singleton':
+                let id = component.id;
+                if (!(id in this[STORE])) {
+                    this[STORE][id] = this[GET_INSTANCE](component).then(instance => this[STORE][id] = instance);
                 }
-                return Promise.resolve(instance);
-            }
-        );
+                return Promise.resolve(this[STORE][id]);
+            case 'transient':
+                return this[GET_INSTANCE](component);
+            case 'static':
+                return Promise.resolve(component.creator);
+        }
     }
 
     injectArgs({args}) {
-        return Promise.all(
-            args.map(
-                arg => new Promise(
-                    resolve => u.hasRef(arg) ? this.context.getComponent(arg.$ref).then(resolve) : resolve(arg)
-                )
-            )
-        );
+        return Promise.all(args.map(arg => u.hasRef(arg) ? this.context.getComponent(arg.$ref) : arg));
     }
 
     dispose() {
-        let singletons = this.singletons;
-        for (let k in singletons) {
-            let instance = singletons[k];
+        let store = this[STORE];
+        for (let k in store) {
+            let instance = store[k];
             instance && typeof instance.dispose === 'function' && instance.dispose();
         }
 
-        this.singletons = null;
+        this[STORE] = null;
+    }
+
+    [GET_INSTANCE](component) {
+        return this.injectArgs(component).then(args => component.creator(...args));
     }
 }
 
