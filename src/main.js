@@ -1,254 +1,326 @@
 /**
- * @file IoC 类
+ * @file IoC 容器类
  * @author exodia (d_xinxin@163.com)
  */
-void function (define, global, undefined) {
-    define(
-        function (require) {
-            var Injector = require('./Injector');
-            var u = require('./util');
-            var Ref = require('./operator/Ref');
-            var Import = require('./operator/Import');
-            var Setter = require('./operator/Setter');
-            var List = require('./operator/List');
-            var Map = require('./operator/Map');
-            var Loader = require('./Loader');
-            var globalLoader = global.require;
 
-            /**
-             * IoC 容器类，根据配置实例化一个 IoC 容器
-             * @class IoC
-             *
-             * @param {Object} [config] IoC 配置
-             * @param {Function} [config.loader=require] 符合 AMD 规范的模块加载器，默认为全局的 require
-             * @param {Object.<string, ComponentConfig>} [config.components]
-             * 批量配置构件, 其中每个key 为构件 id，值为构建配置对象，配置选项见 @link IoC#addComponent
-             *
-             * @returns {IoC}
-             */
-            function IoC(config) {
-                config = config || {};
-                if (!(this instanceof IoC)) {
-                    return new IoC(config);
-                }
+import Injector from './Injector';
+import u from './util';
+import Loader from './Loader';
+import ImportPlugin from './plugins/ImportPlugin';
+import AutoPlugin from './plugins/AutoPlugin';
+import PropertyPlugin from './plugins/PropertyPlugin';
+import ListPlugin from './plugins/ListPlugin';
+import MapPlugin from './plugins/MapPlugin';
 
-                this.loader = new Loader(this);
-                this.setLoaderFunction(config.loader || globalLoader);
-                this.components = {};
-                this.operators = {
-                    opImport: new Import(this),
-                    ref: new Ref(this),
-                    setter: new Setter(this),
-                    list: new List(this),
-                    map: new Map(this)
-                };
-                this.injector = new Injector(this);
+const PLUGIN_COLLECTION = Symbol('collection');
+const COMPONENTS = Symbol('components');
+const CREATE_COMPONENT = Symbol('createComponent');
+const CREATE_INSTANCE = Symbol('createInstance');
+const NULL = {};
 
-                this.addComponent(List.LIST_COMPONENT_ID, List.LIST_COMPONENT_CONFIG);
-                this.addComponent(Map.MAP_COMPONENT_ID, Map.MAP_COMPONENT_CONFIG);
 
-                this.addComponent(config.components || {});
-            }
+export default class IoC {
+    /**
+     * 根据配置实例化一个 IoC 容器
+     *
+     * @param {IoCConfig} [config] ioc 容器配置
+     */
+    constructor(config = {}) {
+        this[COMPONENTS] = Object.create(null);
+        this[PLUGIN_COLLECTION] = new PluginCollection([
+            new ListPlugin(),
+            new MapPlugin(),
+            new ImportPlugin(),
+            new PropertyPlugin(),
+            new AutoPlugin()
+        ]);
+        this[PLUGIN_COLLECTION].addPlugins(config.plugins);
+        this.loader = new Loader(this);
+        this.injector = new Injector(this);
+        config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
+        this.initConfig(config);
+    }
 
-            /**
-             *
-             * 向容器中注册构件
-             *
-             * @method IoC#addComponent
-             * @param {String | ComponentConfig} id
-             * @param {ComponentConfig} [config]
-             * @example
-             * ioc.addComponent('list', {
-             *     // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
-             *     creator: require('./List'),
-             *     scope: 'transient',
-             *     args: [{$ref: 'entityName'}],
-             *
-             *     // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
-             *     properties: {
-             *          model: {$ref: 'listModel'},
-             *          view: {$ref: 'listView'},
-             *          name: 'xxxx' // 未设置$ref/$import操作符，'xxxx' 即为依赖值
-             *     }
-             * });
-             *
-             * ioc.addComponent('listData', {
-             *     creator: 'ListData',
-             *     scope: 'transient',
-             *
-             *     properties: {
-             *          data: {
-             *              $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，
-             *              args:['list', 'list'] // 重写 requestStrategy 的 args 配置
-             *          },
-             *     }
-             * });
-             */
-            IoC.prototype.addComponent = function (id, config) {
-                if (typeof id === 'string') {
-                    var conf = {};
-                    conf[id] = config;
-                    this.addComponent(conf);
-                }
-                else {
-                    for (var k in id) {
-                        if (this.hasComponent(k)) {
-                            u.warn(k + ' has been add! This will be no effect');
-                            continue;
-                        }
-                        this.components[k] = createComponent.call(this, k, id[k]);
-                    }
-                }
-            };
+    /**
+     * 初始化配置
+     * @param {IoCConfig} iocConfig ioc 配置
+     * @protected
+     */
+    initConfig(iocConfig) {
 
-            /**
-             * 获取构件实例成功后的回调函数
-             *
-             * @callback getComponentCallback
-             * @param {...*} component 获取的构件实例，顺序对应传入的 id 顺序
-             */
-            /**
-             * 获取构件实例
-             *
-             * @method IoC#getComponent
-             * @param {string | string[]} ids 构件 id，数组或者字符串
-             * @param {getComponentCallback} cb 获取构件成功后的回调函数，构件将按 id 的顺序依次作为参数传入
-             * @returns {IoC}
-             */
-            IoC.prototype.getComponent = function (ids, cb) {
-                ids = ids instanceof Array ? ids : [ids];
-                var moduleMap = {};
+        iocConfig.loader && this.setLoaderFunction(iocConfig.loader);
 
-                for (var i = 0, len = ids.length; i < len; ++i) {
-                    var id = ids[i];
-                    if (!this.hasComponent(id)) {
-                        u.warn('`%s` has not been added to the Ioc', id);
-                    }
-                    else {
-                        var config = this.getComponentConfig(id);
-                        this.processStaticConfig(id);
-                        moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
-                    }
-                }
+        this.addComponent(iocConfig.components || {});
+    }
 
-                this.loader.loadModuleMap(moduleMap, u.bind(createInstances, this, ids, cb));
-
-                return this;
-            };
-
-            /**
-             * 检测是否注册过某个构件
-             *
-             * @param {string} id 构件id
-             * @returns {boolean}
-             */
-            IoC.prototype.hasComponent = function (id) {
-                return !!this.components[id];
-            };
-
-            /**
-             * 获取构件配置，不传入则返回所有构件配置
-             *
-             * @param {string} [id] 构件id
-             * @returns {*}
-             */
-            IoC.prototype.getComponentConfig = function (id) {
-                return id ? this.components[id] : this.components;
-            };
-
-            /**
-             * @private
-             */
-            IoC.prototype.processStaticConfig = function (id) {
-                var config = this.getComponentConfig(id);
-                this.operators.list.process(config);
-                this.operators.map.process(config);
-                this.operators.opImport.process(config);
-                this.operators.ref.process(config);
-            };
-
-            /**
-             * 设置 IoC 的模块加载器
-             *
-             * @method IoC#setAMDLoader
-             * @param {Function} amdLoader 符合 AMD 规范的模块加载器
-             */
-            IoC.prototype.setLoaderFunction = function (amdLoader) {
-                this.loader.setLoaderFunction(amdLoader);
-            };
-
-            /**
-             * 销毁容器，会遍历容器中的单例，如果有设置dispose，调用他们的 dispose 方法
-             *
-             * @method IoC#dispose
-             */
-            IoC.prototype.dispose = function () {
-                this.injector.dispose();
-                this.components = null;
-            };
-
-            function createComponent(id, config) {
-                var component = {
-                    id: id,
-                    args: config.args || [],
-                    properties: config.properties || {},
-                    anonyDeps: null,
-                    argDeps: null,
-                    propDeps: null,
-                    setterDeps: null,
-                    scope: config.scope || 'transient',
-                    creator: config.creator || null,
-                    module: config.module || undefined,
-                    isFactory: !!config.isFactory,
-                    auto: !!config.auto,
-                    instance: null
-                };
-
-                // creator为函数，那么先包装下
-                typeof component.creator === 'function' && this.loader.wrapCreator(component);
-
-                return component;
-            }
-
-            function createInstances(ids, cb) {
-                var instances = new Array(ids.length);
-                if (ids.length === 0) {
-                    return cb.apply(null, instances);
-                }
-
-                var injector = this.injector;
-                var loader = this.loader;
-                var context = this;
-                var moduleMap = {};
-                var count = ids.length;
-                var done = function () {
-                    --count === 0 && cb.apply(null, instances);
-                };
-
-                var task = function (index, config) {
-                    return function (instance) {
-                        instances[index] = instance;
-                        if (config) {
-                            // 获取 setter 依赖
-                            context.operators.setter.resolveDependencies(config, instance);
-                            moduleMap = loader.resolveDependentModules(config, {}, config.propDeps.concat(config.setterDeps));
-                            loader.loadModuleMap(moduleMap, u.bind(injector.injectDependencies, injector, instance, config, done));
-                        }
-                        else {
-                            done();
-                        }
-                    };
-                };
-
-                for (var i = ids.length - 1; i > -1; --i) {
-                    var component = this.hasComponent(ids[i]) ? this.getComponentConfig(ids[i]) : null;
-                    injector.createInstance(component, task(i, component));
-                }
-            }
-
-            return IoC;
+    /**
+     *
+     * 向容器中注册组件
+     *
+     * @param {string | Object.<string, ComponentConfig>} id 组件 id 或者组件配置集合
+     * @param {ComponentConfig} [config] 组件配置, 第一个参数为组件 id 时有效
+     * @example
+     * ioc.addComponent('list', {
+     *     // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名
+     *     creator: require('./List'),
+     *     scope: 'transient',
+     *     args: [{$ref: 'entityName'}],
+     *
+     *     // 属性注入， 不设置$setter, 则直接instance.xxx = xxx
+     *     properties: {
+     *          model: {$ref: 'listModel'},
+     *          view: {$ref: 'listView'},
+     *          name: 'xxxx' // 未设置$ref/$import操作符，'xxxx' 即为依赖值
+     *     }
+     * });
+     *
+     * ioc.addComponent('listData', {
+     *     creator: 'ListData',
+     *     scope: 'transient',
+     *
+     *     properties: {
+     *          data: {
+     *              $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，
+     *              args:['list', 'list'] // 重写 requestStrategy 的 args 配置
+     *          },
+     *     }
+     * });
+     */
+    addComponent(id, config) {
+        if (typeof id === 'string') {
+            this.addComponent({[id]: config});
         }
-    );
+        else {
+            for (let k in id) {
+                if (this.hasComponent(k)) {
+                    u.warn(`${k} has been add! This will be no effect`);
+                    continue;
+                }
+                this[COMPONENTS][k] = this[CREATE_COMPONENT].call(this, k, id[k]);
+            }
+        }
+    }
 
-}(typeof define === 'function' && define.amd ?
-    define : function (factory) { module.exports = factory(require); }, this);
+    /**
+     * 获取构件实例
+     *
+     * @param {string | string[]} id 组件 id，数组或者字符串
+     * @return {Promise} 返回值为组件实例（传入参数为组件数组时, 值为组件实例数组)的 promise
+     */
+    getComponent(id) {
+        if (id instanceof Array) {
+            return Promise.all(id.map(id => this.getComponent(id)));
+        }
+        let moduleMap = Object.create(null);
+
+        if (!this.hasComponent(id)) {
+            u.warn('`%s` has not been added to the Ioc', id);
+        }
+        else {
+            let config = this.getComponentConfig(id);
+            this.processConfig(id);
+            try {
+                moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
+            }
+            catch (e) {
+                return Promise.reject(e);
+            }
+        }
+
+        return this.loader.loadModuleMap(moduleMap).then(() => this[CREATE_INSTANCE](id));
+    }
+
+    /**
+     * 检测是否注册过某个组件
+     *
+     * @param {string} id 组件 id
+     * @return {boolean}
+     */
+    hasComponent(id) {
+        return !!this[COMPONENTS][id];
+    }
+
+    /**
+     * 获取构件配置，不传入则返回所有组件配置
+     *
+     * @param {string} [id] 组件id
+     * @return {*}
+     */
+    getComponentConfig(id) {
+        return id ? this[COMPONENTS][id] : this[COMPONENTS];
+    }
+
+    /**
+     * 设置 IoC 的模块加载器
+     *
+     * @param {Function} amdLoader 符合 AMD 规范的模块加载器
+     */
+    setLoaderFunction(amdLoader) {
+        this.loader.setLoaderFunction(amdLoader);
+    }
+
+    /**
+     * 销毁容器，会遍历容器中的单例，如果有设置 dispose，调用他们的 dispose 方法
+     */
+    dispose() {
+        this[PLUGIN_COLLECTION].onContainerDispose(this);
+        this.injector.dispose();
+        this[COMPONENTS] = null;
+    }
+
+    /**
+     * 在指定位置添加插件
+     *
+     * @param {ILifeCircleHook} plugins 插件数组
+     * @param {number} [pos] 插入位置, 默认为当前 ioc 容器插件队列末尾
+     */
+    addPlugins(plugins, pos) {
+        return this[PLUGIN_COLLECTION].addPlugins(plugins, pos);
+    }
+
+    /**
+     * 获取当前实例的插件队列
+     *
+     * @return {ILifeCircleHook[]}
+     */
+    getPlugins() {
+        return this[PLUGIN_COLLECTION].getPlugins();
+    }
+
+    /**
+     * 移除指定的插件或指定位置的插件
+     *
+     * @param {number | ILifeCircleHook} pluginOrPos 插件实例或者插件位置
+     * @return {bool} 成功移除返回 true
+     */
+    removePlugin(pluginOrPos) {
+        return this[PLUGIN_COLLECTION].removePlugin(pluginOrPos);
+    }
+
+    processConfig(id) {
+        let config = this.getComponentConfig(id);
+        config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
+        this[COMPONENTS][id] = config;
+        if (!config.argDeps) {
+            let deps = config.argDeps = [];
+            let args = config.args;
+            for (let i = args.length - 1; i > -1; --i) {
+                u.hasRef(args[i]) && deps.push(args[i].$ref);
+            }
+        }
+    }
+
+    [CREATE_COMPONENT](id, config) {
+        config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
+        let component = {
+            id,
+            args: config.args || [],
+            properties: config.properties || {},
+            argDeps: null,
+            propDeps: null,
+            setterDeps: null,
+            scope: config.scope || 'transient',
+            creator: config.creator || null,
+            module: config.module || undefined,
+            isFactory: !!config.isFactory,
+            auto: !!config.auto,
+            instance: null
+        };
+
+        // creator为函数，那么先包装下
+        typeof component.creator === 'function' && this.loader.wrapCreator(component);
+
+        return component;
+    }
+
+    [CREATE_INSTANCE](id) {
+        return this[PLUGIN_COLLECTION].beforeCreateInstance(this, id)
+            .then(
+                instance => {
+                    if (instance === NULL) {
+                        let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
+                        return this.injector.createInstance(component);
+                    }
+
+                    return instance;
+                }
+            )
+            .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));
+    }
+}
+
+
+const PLUGINS = Symbol('plugins');
+
+class PluginCollection {
+    constructor(plugins = []) {
+        this[PLUGINS] = plugins;
+    }
+
+    onContainerInit(ioc, iocConfig) {
+        return this[PLUGINS].reduce(
+            (config, plugin) => plugin.onContainerInit(ioc, config),
+            iocConfig
+        );
+    }
+
+    onAddComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) => plugin.onAddComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    onGetComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) => plugin.onGetComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    beforeCreateInstance(ioc, componentId) {
+        return this[PLUGINS].reduce(
+            (instancePromise, plugin) => instancePromise.then(
+                instance => {
+                    instance = instance === NULL ? undefined : instance;
+                    let result = plugin.beforeCreateInstance(ioc, componentId, instance);
+                    return u.isPromise(result) ? result : Promise.resolve(NULL);
+                }
+            ),
+            Promise.resolve(NULL)
+        );
+    }
+
+    afterCreateInstance(ioc, componentId, instance) {
+        return this[PLUGINS].reduce(
+            (instancePromise, plugin) => instancePromise.then(
+                instance => {
+                    let result = plugin.afterCreateInstance(ioc, componentId, instance);
+                    return u.isPromise(result) ? result : Promise.resolve(instance);
+                }
+            ),
+            Promise.resolve(instance)
+        );
+    }
+
+    onContainerDispose(ioc) {
+        this[PLUGINS].forEach(plugin => plugin.onContainerDispose(ioc));
+    }
+
+    addPlugins(plugins = [], pos = this[PLUGINS].length) {
+        this[PLUGINS].splice(pos, 0, ...plugins);
+    }
+
+    getPlugins() {
+        return this[PLUGINS].slice(0);
+    }
+
+    removePlugin(pluginOrPos) {
+        if (typeof pluginOrPos !== 'number') {
+            pluginOrPos = this[PLUGINS].indexOf(pluginOrPos);
+            pluginOrPos = pluginOrPos === -1 ? this[PLUGINS].length : pluginOrPos;
+        }
+
+        return !!this[PLUGINS].splice(pluginOrPos, 1).length;
+    }
+}
