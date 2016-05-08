@@ -30,7 +30,7 @@ export default class ListPlugin extends BasePlugin {
      * @override
      */
     onContainerInit(ioc, iocConfig) {
-        ioc.addComponent(ListPlugin.LIST_ID, ListPlugin.LIST_COMPONENT_CONFIG);
+        ioc.addComponent(this.constructor.LIST_ID, this.constructor.LIST_COMPONENT_CONFIG);
         return iocConfig;
     }
 
@@ -41,17 +41,19 @@ export default class ListPlugin extends BasePlugin {
         if (this[CACHE][id]) {
             return config;
         }
-
+        
+        const {has, LIST_ID} = this.constructor;
+        
         // {$list: [{}, {}]} => {$import: List.LIST_ID, args: []}
         config.args = config.args.map(
-            argConfig => ListPlugin.has(argConfig) ? {$import: ListPlugin.LIST_ID, args: argConfig.$list} : argConfig
+            argConfig => has(argConfig) ? {$import: LIST_ID, args: argConfig.$list} : argConfig
         );
 
         let properties = config.properties;
         for (let k in properties) {
             let property = properties[k];
             if (ListPlugin.has(property)) {
-                properties[k] = {$import: ListPlugin.LIST_ID, args: property.$list};
+                properties[k] = {$import: LIST_ID, args: property.$list};
             }
         }
 

@@ -11,6 +11,7 @@ import AutoPlugin from './plugins/AutoPlugin';
 import PropertyPlugin from './plugins/PropertyPlugin';
 import ListPlugin from './plugins/ListPlugin';
 import MapPlugin from './plugins/MapPlugin';
+import AopPlugin from './plugins/AopPlugin';
 
 const PLUGIN_COLLECTION = Symbol('collection');
 const COMPONENTS = Symbol('components');
@@ -31,6 +32,7 @@ export default class IoC {
             new ListPlugin(),
             new MapPlugin(),
             new ImportPlugin(),
+            new AopPlugin(),
             new PropertyPlugin(),
             new AutoPlugin()
         ]);
@@ -87,17 +89,18 @@ export default class IoC {
      * });
      */
     addComponent(id, config) {
-        if (typeof id === 'string') {
-            this.addComponent({[id]: config});
+        if (typeof id === 'object') {
+            for (let k in id) {
+                this.addComponent(k, id[k]);
+            }
+            return;
+        }
+
+        if (this.hasComponent(id)) {
+            u.warn(`${id} has been add! This will be no effect`);
         }
         else {
-            for (let k in id) {
-                if (this.hasComponent(k)) {
-                    u.warn(`${k} has been add! This will be no effect`);
-                    continue;
-                }
-                this[COMPONENTS][k] = this[CREATE_COMPONENT].call(this, k, id[k]);
-            }
+            this[COMPONENTS][id] = this[CREATE_COMPONENT].call(this, id, config);
         }
     }
 
@@ -214,17 +217,18 @@ export default class IoC {
         config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
         let component = {
             id,
-            args: config.args || [],
-            properties: config.properties || {},
+            args: [],
+            properties: {},
             argDeps: null,
             propDeps: null,
             setterDeps: null,
-            scope: config.scope || 'transient',
-            creator: config.creator || null,
-            module: config.module || undefined,
-            isFactory: !!config.isFactory,
-            auto: !!config.auto,
-            instance: null
+            scope: 'transient',
+            creator: null,
+            module: undefined,
+            isFactory: false,
+            auto: false,
+            instance: null,
+            ...config
         };
 
         // creator为函数，那么先包装下
