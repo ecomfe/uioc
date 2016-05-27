@@ -52,5 +52,8 @@
     "rollup-plugin-babel": "^2.4.0",
     "rollup-plugin-uglify": "^0.3.1",
     "systemjs-builder": "^0.15.14"
+  },
+  "dependencies": {
+    "uaop": "0.0.1-alpha.2"
   }
 }

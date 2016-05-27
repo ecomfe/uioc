@@ -18,7 +18,10 @@ module.exports = function (config) {
             'test/assets/esl.js',
             'test/test-main.js',
             {pattern: 'src/**/*.js', included: false},
-            {pattern: 'test/**/*.js', included: false}
+            {pattern: 'test/**/*.js', included: false},
+            {pattern: 'node_modules/uaop/dist/bundle.js', included: false},
+            {pattern: 'node_modules/uaop/src/*.js', included: false},
+            {pattern: 'node_modules/uaop/dist/bundle.js.map', included: false}
         ],
 
         // list of files to exclude
@@ -28,7 +31,9 @@ module.exports = function (config) {
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
             'test/spec/**/*.js': ['babel', 'sourcemap'],
-            'src/**/*.js': process.env.TRAVIS ? ['babel', 'sourcemap', 'coverage'] : ['babel', 'sourcemap']
+            'test/assets/aop/*.js': ['babel', 'sourcemap'],
+            'src/**/*.js': process.env.TRAVIS ? ['babel', 'sourcemap', 'coverage'] : ['babel', 'sourcemap'],
+            'node_modules/uaop/src/*.js': ['babel', 'sourcemap']
         },
 
         babelPreprocessor: {

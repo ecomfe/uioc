@@ -28,7 +28,7 @@ export default class MapPlugin extends BasePlugin {
      * @override
      */
     onContainerInit(ioc, iocConfig) {
-        ioc.addComponent(MapPlugin.MAP_ID, MapPlugin.MAP_COMPONENT_CONFIG);
+        ioc.addComponent(this.constructor.MAP_ID, this.constructor.MAP_COMPONENT_CONFIG);
         return iocConfig;
     }
 
@@ -40,16 +40,18 @@ export default class MapPlugin extends BasePlugin {
             return config;
         }
 
+        const {has, MAP_ID} = this.constructor;
+
         // {$map: {}} => {$import: Map.MAP_ID, properties: {}}
         config.args = config.args.map(
-            argConfig => MapPlugin.has(argConfig) ? {$import: MapPlugin.MAP_ID, properties: argConfig.$map} : argConfig
+            argConfig => has(argConfig) ? {$import: MAP_ID, properties: argConfig.$map} : argConfig
         );
 
         let properties = config.properties;
         for (let k in properties) {
             let property = properties[k];
             if (MapPlugin.has(property)) {
-                properties[k] = {$import: MapPlugin.MAP_ID, properties: property.$map};
+                properties[k] = {$import: MAP_ID, properties: property.$map};
             }
         }
 

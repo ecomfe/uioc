@@ -24,6 +24,10 @@ require.config({
         {
             name: 'spec',
             location: '../spec'
+        },
+        {
+            name: 'uaop',
+            location: '../../node_modules/uaop/src'
         }
     ],
     paths: {
