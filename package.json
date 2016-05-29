@@ -2,7 +2,7 @@
   "name": "uioc",
   "version": "0.3.1",
   "description": "an ioc framework",
-  "main": "main.js",
+  "main": "dist/bundle.js",
   "maintainers": {
     "name": "Exodia",
     "email": "d_xinxin@163.com"
