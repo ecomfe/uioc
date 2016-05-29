@@ -95,7 +95,7 @@ function getDefaultLoader() {
         return require;
     }
 
-    if (typeof module === 'object' && typeof module.exports === 'object') {
+    if (typeof module !== 'undefined' && module && 'exports' in module) {
         return (ids, cb) => cb(...(ids.map(id => require(id))));
     }
 }
