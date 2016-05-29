@@ -1,112 +1,55 @@
-void function (define) {
-    define(
-        function (require) {
-            var u = require('./util');
+/**
+ * @file Injector 依赖注入类
+ * @author exodia(d_xinxin@163.com)
+ */
 
-            function Injector(context) {
-                this.context = context;
-                this.singletons = {};
-            }
+import u from './util';
 
-            Injector.prototype.createInstance = function (component, cb) {
-                if (!component) {
-                    return cb(null);
+const STORE = Symbol('store');
+const GET_INSTANCE = Symbol('getInstance');
+
+export default class Injector {
+
+    constructor(context) {
+        this.context = context;
+        this[STORE] = Object.create(null);
+    }
+
+    createInstance(component) {
+        if (!component) {
+            return Promise.resolve(null);
+        }
+
+        switch (component.scope) {
+            case 'singleton':
+                let id = component.id;
+                if (!(id in this[STORE])) {
+                    this[STORE][id] = this[GET_INSTANCE](component).then(instance => this[STORE][id] = instance);
                 }
+                return Promise.resolve(this[STORE][id]);
+            case 'transient':
+                return this[GET_INSTANCE](component);
+            case 'static':
+                return Promise.resolve(component.creator);
+        }
+    }
 
-                var id = component.id;
-                if (component.scope === 'singleton' && u.hasOwn(this.singletons, id)) {
-                    return cb(this.singletons[id]);
-                }
+    injectArgs({args}) {
+        return Promise.all(args.map(arg => u.hasRef(arg) ? this.context.getComponent(arg.$ref) : arg));
+    }
 
-                if (component.scope === 'static') {
-                    return cb(component.creator);
-                }
+    dispose() {
+        let store = this[STORE];
+        for (let k in store) {
+            let instance = store[k];
+            instance && typeof instance.dispose === 'function' && instance.dispose();
+        }
 
-                var me = this;
-                this.injectArgs(component, function (args) {
-                    var instance = component.creator.apply(null, args);
-                    if (component.scope === 'singleton') {
-                        me.singletons[id] = instance;
-                    }
-                    cb(instance);
-                });
-            };
+        this[STORE] = null;
+    }
 
-            Injector.prototype.injectArgs = function (componentConfig, cb) {
-                var argConfigs = componentConfig.args;
-                var count = argConfigs.length;
-                var args = new Array(count);
-                var ref = this.context.operators.ref;
-                if (!count) {
-                    return cb(args);
-                }
+    [GET_INSTANCE](component) {
+        return this.injectArgs(component).then(args => component.creator(...args));
+    }
+}
 
-                var done = function (index) {
-                    return function (instance) {
-                        args[index] = instance;
-                        --count === 0 && cb(args);
-                    };
-                };
-
-                for (var i = argConfigs.length - 1; i > -1; --i) {
-                    var arg = argConfigs[i];
-                    ref.has(arg) ? this.context.getComponent(arg.$ref, done(i)) : done(i)(arg);
-                }
-            };
-
-            Injector.prototype.injectProperties = function injectProperties(instance, componentConfig, cb) {
-                var deps = componentConfig.propDeps;
-                var props = componentConfig.properties;
-                var ref = this.context.operators.ref;
-                var setter = this.context.operators.setter;
-
-                this.context.getComponent(deps, function () {
-                    for (var k in props) {
-                        var property = props[k];
-                        var value = ref.has(property) ? arguments[u.indexOf(deps, property.$ref)] : property;
-                        setter.setProperty(instance, k, value, setter.has(property) && property.$setter);
-                    }
-                    cb();
-                });
-            };
-
-            Injector.prototype.injectSetters = function (instance, componentConfig, cb) {
-                var deps = componentConfig.setterDeps || [];
-                var setter = this.context.operators.setter;
-
-                this.context.getComponent(deps, function () {
-                    for (var i = deps.length - 1; i > -1; --i) {
-                        var dep = deps[i];
-                        setter.setProperty(instance, dep, arguments[i]);
-                    }
-                    cb();
-                });
-            };
-
-            Injector.prototype.injectDependencies = function (instance, componentConfig, cb) {
-                var complete = {
-                    prop: false,
-                    setter: false
-                };
-                var done = function (type) {
-                    complete[type] = true;
-                    complete.prop && complete.setter && cb();
-                };
-                this.injectProperties(instance, componentConfig, u.bind(done, null, 'prop'));
-                this.injectSetters(instance, componentConfig, u.bind(done, null, 'setter'));
-            };
-
-            Injector.prototype.dispose = function () {
-                var singletons = this.singletons;
-                for (var k in singletons) {
-                    var instance = singletons[k];
-                    instance && typeof instance.dispose === 'function' && instance.dispose();
-                }
-
-                this.singletons = null;
-            };
-
-            return Injector;
-        });
-
-}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(require); });
