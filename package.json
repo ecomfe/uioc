@@ -55,5 +55,8 @@
   },
   "dependencies": {
     "uaop": "0.0.1-alpha.2"
+  },
+  "edp": {
+    "main": "main"
   }
 }
