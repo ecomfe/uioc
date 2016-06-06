@@ -1,5 +1,5 @@
 /**
- * @file Import.js 导入操作符类
+ * @file 导入插件
  * @author exodia(d_xinxin@163.com)
  */
 
@@ -9,6 +9,9 @@ import u from '../util';
 const ANONY_PREFIX = '^uioc-';
 const CACHE = Symbol('cache');
 
+/**
+ * @private
+ */
 export default class ImportPlugin extends BasePlugin {
 
     static has(obj) {

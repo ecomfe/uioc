@@ -1,3 +1,7 @@
+/**
+ * @file 自动注入插件
+ * @author exodia(d_xinxin@163.com)
+ */
 import u from '../util';
 import BasePlugin from './BasePlugin';
 
@@ -5,6 +9,9 @@ const SETTER_REGEX = /^set[A-Z]/;
 const SET_LENGTH = 'set'.length;
 const CACHE = Symbol('cache');
 
+/**
+ * @private
+ */
 export default class AutoPlugin extends BasePlugin {
     get name() {
         return 'auto';

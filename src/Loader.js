@@ -1,11 +1,14 @@
 /**
- * @file Loader.js 组件模块加载类
+ * @file 组件模块加载类
  * @author exodia(d_xinxin@163.com)
  */
 
 import DependencyTree from './DependencyTree';
 import CircularError from './CircularError';
 
+/**
+ * @private
+ */
 export default class Loader {
     amdLoader = getDefaultLoader();
 

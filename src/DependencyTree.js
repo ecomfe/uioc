@@ -3,6 +3,9 @@
  * @author exodia(d_xinxin@163.com)
  */
 
+/**
+ * @private
+ */
 export default class DependencyNode {
     data = [];
     children = [];

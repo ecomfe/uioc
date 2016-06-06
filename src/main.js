@@ -17,6 +17,8 @@ const PLUGIN_COLLECTION = Symbol('collection');
 const COMPONENTS = Symbol('components');
 const CREATE_COMPONENT = Symbol('createComponent');
 const CREATE_INSTANCE = Symbol('createInstance');
+const LOADER = Symbol('loader');
+const INJECTOR = Symbol('injector');
 const NULL = {};
 
 
@@ -37,8 +39,8 @@ export default class IoC {
             new AutoPlugin()
         ]);
         this[PLUGIN_COLLECTION].addPlugins(config.plugins);
-        this.loader = new Loader(this);
-        this.injector = new Injector(this);
+        this[LOADER] = new Loader(this);
+        this[INJECTOR] = new Injector(this);
         config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
         this.initConfig(config);
     }
@@ -76,16 +78,17 @@ export default class IoC {
      *     }
      * });
      *
-     * ioc.addComponent('listData', {
-     *     creator: 'ListData',
-     *     scope: 'transient',
-     *
-     *     properties: {
-     *          data: {
-     *              $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，
-     *              args:['list', 'list'] // 重写 requestStrategy 的 args 配置
-     *          },
-     *     }
+     * ioc.addComponent({
+     *     listData: {
+     *         creator: 'ListData',
+     *         scope: 'transient',
+     *         properties: {
+     *             data: {
+     *                 $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，
+     *                 args: ['list', 'list'] // 重写 requestStrategy 的 args 配置
+     *             }
+     *         }
+     *      }
      * });
      */
     addComponent(id, config) {
@@ -105,10 +108,10 @@ export default class IoC {
     }
 
     /**
-     * 获取构件实例
+     * 获取组件实例
      *
-     * @param {string | string[]} id 组件 id，数组或者字符串
-     * @return {Promise} 返回值为组件实例（传入参数为组件数组时, 值为组件实例数组)的 promise
+     * @param {string | string[]} id 单个组件 id 字符串或者一系列组件 id 数组
+     * @return {Promise<*> | Promise<*[]>} 值为组件实例(传入参数为组件数组时, 值为组件实例数组)的 promise
      */
     getComponent(id) {
         if (id instanceof Array) {
@@ -123,28 +126,28 @@ export default class IoC {
             let config = this.getComponentConfig(id);
             this.processConfig(id);
             try {
-                moduleMap = this.loader.resolveDependentModules(config, moduleMap, config.argDeps);
+                moduleMap = this[LOADER].resolveDependentModules(config, moduleMap, config.argDeps);
             }
             catch (e) {
                 return Promise.reject(e);
             }
         }
 
-        return this.loader.loadModuleMap(moduleMap).then(() => this[CREATE_INSTANCE](id));
+        return this[LOADER].loadModuleMap(moduleMap).then(() => this[CREATE_INSTANCE](id));
     }
 
     /**
      * 检测是否注册过某个组件
      *
      * @param {string} id 组件 id
-     * @return {boolean}
+     * @return {bool}
      */
     hasComponent(id) {
         return !!this[COMPONENTS][id];
     }
 
     /**
-     * 获取构件配置，不传入则返回所有组件配置
+     * 获取组件配置，不传入则返回所有组件配置
      *
      * @param {string} [id] 组件id
      * @return {*}
@@ -159,7 +162,7 @@ export default class IoC {
      * @param {Function} amdLoader 符合 AMD 规范的模块加载器
      */
     setLoaderFunction(amdLoader) {
-        this.loader.setLoaderFunction(amdLoader);
+        this[LOADER].setLoaderFunction(amdLoader);
     }
 
     /**
@@ -167,18 +170,18 @@ export default class IoC {
      */
     dispose() {
         this[PLUGIN_COLLECTION].onContainerDispose(this);
-        this.injector.dispose();
+        this[INJECTOR].dispose();
         this[COMPONENTS] = null;
     }
 
     /**
      * 在指定位置添加插件
      *
-     * @param {ILifeCircleHook} plugins 插件数组
+     * @param {ILifeCircleHook[]} plugins 插件数组
      * @param {number} [pos] 插入位置, 默认为当前 ioc 容器插件队列末尾
      */
     addPlugins(plugins, pos) {
-        return this[PLUGIN_COLLECTION].addPlugins(plugins, pos);
+        this[PLUGIN_COLLECTION].addPlugins(plugins, pos);
     }
 
     /**
@@ -200,6 +203,10 @@ export default class IoC {
         return this[PLUGIN_COLLECTION].removePlugin(pluginOrPos);
     }
 
+    // todo: to be private
+    /**
+     * @ignore
+     */
     processConfig(id) {
         let config = this.getComponentConfig(id);
         config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
@@ -213,6 +220,9 @@ export default class IoC {
         }
     }
 
+    /**
+     * @private
+     */
     [CREATE_COMPONENT](id, config) {
         config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
         let component = {
@@ -232,18 +242,21 @@ export default class IoC {
         };
 
         // creator为函数，那么先包装下
-        typeof component.creator === 'function' && this.loader.wrapCreator(component);
+        typeof component.creator === 'function' && this[LOADER].wrapCreator(component);
 
         return component;
     }
 
+    /**
+     * @private
+     */
     [CREATE_INSTANCE](id) {
         return this[PLUGIN_COLLECTION].beforeCreateInstance(this, id)
             .then(
                 instance => {
                     if (instance === NULL) {
                         let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
-                        return this.injector.createInstance(component);
+                        return this[INJECTOR].createInstance(component);
                     }
 
                     return instance;
