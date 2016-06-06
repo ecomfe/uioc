@@ -5,6 +5,10 @@
 
 import BasePlugin from './BasePlugin';
 
+/**
+ * @private
+ * @ignore
+ */
 export default class AopPlugin extends BasePlugin {
     static AOP_COMPONENT_CONFIG = {
         module: 'uaop',

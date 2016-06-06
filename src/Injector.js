@@ -8,6 +8,9 @@ import u from './util';
 const STORE = Symbol('store');
 const GET_INSTANCE = Symbol('getInstance');
 
+/**
+ * @private
+ */
 export default class Injector {
 
     constructor(context) {

@@ -1,8 +1,16 @@
+/**
+ * @file 字典集合插件
+ * @author exodia(d_xinxin@163.com)
+ */
+
 import u from '../util';
 import BasePlugin from './BasePlugin';
 
 const CACHE = Symbol('cache');
 
+/**
+ * @private
+ */
 export default class MapPlugin extends BasePlugin {
     static MAP_COMPONENT_CONFIG = {
         creator: Object,

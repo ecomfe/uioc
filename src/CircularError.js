@@ -1,7 +1,7 @@
 /**
  * @file 循环依赖错误
- * @internal
  * @author exodia(d_xinxin@163.com)
+ * @private
  */
 
 export default class CircularError extends Error {

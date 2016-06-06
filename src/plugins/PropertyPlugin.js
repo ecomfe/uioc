@@ -1,8 +1,16 @@
+/**
+ * @file 属性插件
+ * @author exodia(d_xinxin@163.com)
+ */
+
 import u from '../util';
 import BasePlugin from './BasePlugin';
 
 const CACHE = Symbol('cache');
 
+/**
+ * @private
+ */
 export default class PropertyPlugin extends BasePlugin {
     static getSetter(obj) {
         if (u.isObject(obj) && typeof obj.$setter === 'string') {
