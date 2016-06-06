@@ -110,6 +110,6 @@ ioc.getComponent('list').then(list => list.enter());
 
 # [插件机制](https://github.com/ecomfe/uioc/wiki/%E6%8F%92%E4%BB%B6%E6%9C%BA%E5%88%B6)
 
-# [API](http://ecomfe.github.io/uioc/doc/IoC.html)
+# [API](https://doc.esdoc.org/github.com/ecomfe/uioc/)
 
 # [0.3.x版本文档](https://github.com/ecomfe/uioc/wiki/0.3.x-readme)
