@@ -1,4 +1,4 @@
-uioc ![building status](https://travis-ci.org/ecomfe/uioc.svg?branch=master)
+uioc ![building status](https://travis-ci.org/ecomfe/uioc.svg?branch=master) ![doc status](https://doc.esdoc.org/github.com/ecomfe/uioc/badge.svg)
 ===
 
 # 关于
