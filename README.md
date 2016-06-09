@@ -106,7 +106,7 @@ ioc.getComponent('list').then(list => list.enter());
 ```
 上述代码中通过ioc容器实例获取了list组件，ioc容器将根据配置创建好list的相关依赖并注入给list，最终组装成完整的list实例传递给promise的resolve回调。
 
-# [特性](https://github.com/ecomfe/uioc/wiki/%E7%89%B9%E6%80%A7)
+# [特性](https://github.com/ecomfe/uioc/wiki/Feature)
 
 # [插件机制](https://github.com/ecomfe/uioc/wiki/%E6%8F%92%E4%BB%B6%E6%9C%BA%E5%88%B6)
 
