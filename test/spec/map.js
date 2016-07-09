@@ -1,4 +1,4 @@
-import IoC from 'ioc';
+import {IoC} from 'ioc';
 import A from 'A';
 import B from 'B';
 import MyUtil from 'MyUtil';

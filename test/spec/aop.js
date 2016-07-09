@@ -1,4 +1,4 @@
-import IoC from 'ioc';
+import {IoC} from 'ioc';
 import FixtureAspect from 'aop/FixtureAspect';
 
 function getIoCWithAopConfig(aopConfig) {
