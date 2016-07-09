@@ -17,6 +17,7 @@ module.exports = function (config) {
             'node_modules/babel-polyfill/dist/polyfill.js',
             'test/assets/esl.js',
             'test/test-main.js',
+            {pattern: 'dist/**/*.js', included: false},
             {pattern: 'src/**/*.js', included: false},
             {pattern: 'test/**/*.js', included: false},
             {pattern: 'node_modules/uaop/dist/bundle.js', included: false},
@@ -76,7 +77,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: process.env.TRAVIS ? ['Chrome_travis_ci', 'PhantomJS'] : ['Chrome'],
+        browsers: process.env.TRAVIS ? ['Chrome_travis_ci'] : ['Chrome'],
 
         customLaunchers: {
             Edge: {

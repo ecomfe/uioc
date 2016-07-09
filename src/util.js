@@ -1,3 +1,7 @@
+/**
+ * @file 工具集合
+ * @author exodia(d_xinxin@163.com)
+ */
 const OBJECT = Object.prototype.toString.call({});
 
 function hasOwn(object, key) {

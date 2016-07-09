@@ -15,6 +15,7 @@ define(function (require) {
         var listConfig = require('./list/config')();
         var mapConfig = require('./map/config')();
         var importConfig = require('./import/config')();
+        var MyUtil = require('./MyUtil');
         var config = {
             components: {
                 a: {
@@ -155,8 +156,7 @@ define(function (require) {
                     module: 'MyUtil'
                 },
                 utilCreator: {
-                    module: 'MyUtil',
-                    creator: 'creator',
+                    creator: MyUtil.creator,
                     args: [
                         {$ref: 'a'},
                         {$ref: 'b'}
@@ -166,9 +166,7 @@ define(function (require) {
                     }
                 },
                 utilFactoryCreator: {
-                    module: 'MyUtil',
-                    creator: 'factoryCreator',
-                    isFactory: true,
+                    creator: MyUtil.factoryCreator,
                     args: [
                         {$ref: 'a'},
                         {$ref: 'b'}

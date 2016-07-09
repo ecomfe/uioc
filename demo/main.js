@@ -3,7 +3,8 @@ define(function (require) {
         init: function () {
             // 配置化
             var config = require('./config');
-            var ioc = require('ioc')(config);
+            var IoC = require('ioc').IoC;
+            ioc = new IoC(config);
             ioc.getComponent('List', function (list) {
                 list.enter();
             });
