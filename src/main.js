@@ -100,7 +100,7 @@ export default class IoC {
         }
 
         if (this.hasComponent(id)) {
-            u.warn(`${id} has been add! This will be no effect`);
+            throw new Error(`${String(id)} has been added!`);
         }
         else {
             this[COMPONENTS][id] = this[CREATE_COMPONENT].call(this, id, config);
@@ -120,7 +120,8 @@ export default class IoC {
         let moduleMap = Object.create(null);
 
         if (!this.hasComponent(id)) {
-            u.warn('`%s` has not been added to the Ioc', id);
+            id = String(id);
+            return Promise.reject(new Error(`\`${id}\` has not been added to the Ioc`));
         }
         else {
             let config = this.getComponentConfig(id);
@@ -149,6 +150,7 @@ export default class IoC {
     /**
      * 获取组件配置，不传入则返回所有组件配置
      *
+     * @ignore
      * @param {string} [id] 组件id
      * @return {*}
      */
@@ -226,7 +228,7 @@ export default class IoC {
     [CREATE_COMPONENT](id, config) {
         config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
         let component = {
-            id,
+            id: id,
             args: [],
             properties: {},
             argDeps: null,

@@ -1,7 +1,7 @@
-var rollup = require('rollup');
-var fs = require('fs');
-var uglify = require('rollup-plugin-uglify');
-var babel = require('rollup-plugin-babel');
+const rollup = require('rollup');
+const fs = require('fs');
+const uglify = require('rollup-plugin-uglify');
+const babel = require('rollup-plugin-babel');
 
 rollup.rollup({
     entry: 'src/main.js',
@@ -9,13 +9,11 @@ rollup.rollup({
         babel({presets: ['es2015-rollup', 'stage-0']}),
         uglify()
     ]
-}).then(function (bundle) {
-    bundle.write({
+}).then(
+    bundle => bundle.write({
         sourceMap: true,
         format: 'umd',
         moduleName: 'uioc',
         dest: 'dist/bundle.js'
-    });
-}).catch(function (err) {
-    console.log('build fail: ', err);
-});
+    })
+).catch(err => console.log('build fail: ', err));
