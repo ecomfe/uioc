@@ -47,16 +47,6 @@ export default class Loader {
     wrapCreator(config, factory) {
         let creator = config.creator = config.creator || factory;
 
-        if (typeof creator === 'string') {
-            let method = factory[creator];
-            let moduleFactory = function () {
-                return method.apply(factory, arguments);
-            };
-
-            creator = (!config.isFactory || config.scope === 'static') ? method : moduleFactory;
-            config.creator = creator;
-        }
-
         // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator
         if (!config.isFactory && config.scope !== 'static') {
             config.creator = function (...args) {
@@ -102,4 +92,3 @@ function getDefaultLoader() {
         return (ids, cb) => cb(...(ids.map(id => require(id))));
     }
 }
-

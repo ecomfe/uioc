@@ -57,7 +57,7 @@ export default class MyListView {
 
 ```javascript
 // ioc.js
-import IoC from 'uioc';
+import {IoC} from 'uioc';
 import List from './List';
 import MyListModel from './MyListModel';
 import MyListView from './MyListView';
