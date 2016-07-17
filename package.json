@@ -1,8 +1,9 @@
 {
     "name": "uioc",
-    "version": "1.0.0-beta.1",
-    "description": "an ioc framework",
+    "version": "1.0.0-beta.2",
+    "description": "An IoC framework",
     "main": "dist/bundle.js",
+    "jsnext:main": "src/main.js",
     "maintainers": {
         "name": "Exodia",
         "email": "d_xinxin@163.com"
@@ -21,6 +22,12 @@
         "build": "node scripts/build.js",
         "doc": "esdoc -c esdoc.json"
     },
+    "files": [
+        "dist",
+        "src",
+        "esdoc.json",
+        "README.md"
+    ],
     "author": {
         "name": "Exodia",
         "email": "d_xinxin@163.com"

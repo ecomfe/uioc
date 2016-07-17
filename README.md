@@ -115,4 +115,6 @@ ioc.getComponent('list').then(list => list.enter());
 
 # [API](https://doc.esdoc.org/github.com/ecomfe/uioc/)
 
+# [Changelog](https://github.com/ecomfe/uioc/wiki/Changelog)
+
 # [0.3.x版本文档](https://github.com/ecomfe/uioc/wiki/0.3.x-readme)

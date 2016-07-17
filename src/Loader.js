@@ -83,8 +83,10 @@ function getDependentModules(component, context, result, depTree, deps) {
     return result;
 }
 
+const global = Function('return this')();
+
 function getDefaultLoader() {
-    if (typeof define === 'function' && define.amd) {
+    if (typeof define === 'function' && define.amd && typeof global.require === 'function') {
         return require;
     }
 
