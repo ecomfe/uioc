@@ -1,0 +1,15 @@
+{
+    "name": "simple-mvc",
+    "version": "1.0.0",
+    "description": "simple amd mvc",
+    "main": "main.js",
+    "scripts": {
+        "start": "open index.html",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "exodia",
+    "license": "MIT",
+    "dependencies": {
+        "uioc": "^1.0.0-beta.1"
+    }
+}

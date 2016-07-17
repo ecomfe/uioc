@@ -4,8 +4,8 @@
 define(
     {
         components: {
-            // 构件名
-            List: {
+            // 组件名
+            list: {
                 // 构件的模块路径
                 module: 'List',
                 // 默认为 transient，每次获取构件，都将调用一次 creator
@@ -25,14 +25,14 @@ define(
                 ],
                 // 属性依赖配置
                 properties: {
-                    model: { $ref: 'ListModel' },
-                    view: { $ref: 'ListView' }
+                    model: { $ref: 'listModel' },
+                    view: { $ref: 'listView' }
                 }
             },
-            ListModel: {
+            listModel: {
                 module: 'ListModel'
             },
-            ListView: {
+            listView: {
                 module: 'ListView',
                 properties: { template: '<li>${name}</li>' }
             },
