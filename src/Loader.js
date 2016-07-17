@@ -84,11 +84,11 @@ function getDependentModules(component, context, result, depTree, deps) {
 }
 
 function getDefaultLoader() {
-    if (typeof define === 'function' && define.amd) {
-        return require;
-    }
-
     if (typeof module !== 'undefined' && module && 'exports' in module) {
         return (ids, cb) => cb(...(ids.map(id => require(id))));
+    }
+
+    if (typeof define === 'function' && define.amd) {
+        return require;
     }
 }
