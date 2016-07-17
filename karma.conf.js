@@ -41,7 +41,7 @@ module.exports = function (config) {
             options: {
                 presets: ['es2015', 'stage-0'],
                 sourceMap: 'inline',
-                plugins: ["transform-es2015-modules-umd"]
+                plugins: ['transform-es2015-modules-umd']
             },
             sourceFileName: function (file) {
                 return file.originalPath;

@@ -83,12 +83,14 @@ function getDependentModules(component, context, result, depTree, deps) {
     return result;
 }
 
+const global = Function('return this')();
+
 function getDefaultLoader() {
-    if (typeof module !== 'undefined' && module && 'exports' in module) {
-        return (ids, cb) => cb(...(ids.map(id => require(id))));
+    if (typeof define === 'function' && define.amd && typeof global.require === 'function') {
+        return require;
     }
 
-    if (typeof define === 'function' && define.amd) {
-        return require;
+    if (typeof module !== 'undefined' && module && 'exports' in module) {
+        return (ids, cb) => cb(...(ids.map(id => require(id))));
     }
 }
