@@ -77,7 +77,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: process.env.TRAVIS ? ['Chrome_travis_ci'] : ['Chrome'],
+        browsers: process.env.TRAVIS ? ['PureHeadlessChrome'] : ['Chrome'],
 
         customLaunchers: {
             Edge: {
@@ -92,9 +92,9 @@ module.exports = function (config) {
                 base: 'IE',
                 'x-ua-compatible': 'IE=EmulateIE9'
             },
-            Chrome_travis_ci: {
-                base: 'Chrome',
-                flags: ['--no-sandbox']
+            PureHeadlessChrome: {
+                base: 'ChromeHeadless',
+                flags: ['--disable-translate', '--disable-extensions']
             }
         },
 

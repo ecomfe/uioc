@@ -12,8 +12,9 @@ import CircularError from './CircularError';
 export default class Loader {
     amdLoader = getDefaultLoader();
 
-    constructor(context) {
+    constructor(context, skipCheckingCircularDep) {
         this.context = context;
+        this.skipCheckingCircularDep = skipCheckingCircularDep;
     }
 
     setLoaderFunction(amdGlobalLoader) {
@@ -21,11 +22,16 @@ export default class Loader {
     }
 
     resolveDependentModules(componentConfig, result = {}, deps) {
-        return getDependentModules(componentConfig, this.context, result, new DependencyTree(), deps);
+        let depTree = this.skipCheckingCircularDep ? null : new DependencyTree();
+        return getDependentModules(componentConfig, this.context, result, depTree, deps);
     }
 
     loadModuleMap(moduleMap) {
         let moduleIds = Object.keys(moduleMap);
+        if(!moduleIds.length) {
+            return Promise.resolve();
+        }
+
         return new Promise(resolve => {
             this.amdLoader(
                 moduleIds,
@@ -64,14 +70,19 @@ function getDependentModules(component, context, result, depTree, deps) {
     }
     context.processConfig(component.id);
 
-    let circular = depTree.checkForCircular(component.id);
-    if (circular) {
-        let msg = `${component.id} has circular dependencies `;
-        throw new CircularError(msg, component);
+    let child = null;
+    // depTree 为 null 表示跳过循环检测
+    if (depTree) {
+        let circular = depTree.checkForCircular(component.id);
+        if (circular) {
+            let msg = `${component.id} has circular dependencies `;
+            throw new CircularError(msg, component);
+        }
+
+        depTree.addData(component);
+        child = depTree.appendChild(new DependencyTree());
     }
 
-    depTree.addData(component);
-    let child = depTree.appendChild(new DependencyTree());
 
     deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);
     for (let i = deps.length - 1; i > -1; --i) {
@@ -93,4 +104,6 @@ function getDefaultLoader() {
     if (typeof module !== 'undefined' && module && 'exports' in module) {
         return (ids, cb) => cb(...(ids.map(id => require(id))));
     }
+
+    return (ids, cb) => cb(...(ids.map(id => global[id])));
 }
