@@ -172,16 +172,6 @@ describe('Ioc Integration Test: ', () => {
         done();
     });
 
-    it('circularError', async done => {
-        try {
-            await iocInstance.getComponent('circular1');
-        }
-        catch (e) {
-            expect(e.message).toBe('circular3 has circular dependencies ');
-            done();
-        }
-    });
-
     it('should throw error when add an existing component', done => {
         let id = Symbol('id');
         iocInstance.addComponent(id, {creator: Object});
@@ -203,13 +193,4 @@ describe('Ioc Integration Test: ', () => {
             done();
         }
     });
-
-    /* it('circularAllowed', 1, function (done) {
-
-     iocInstance.allowCircular = true;
-     iocInstance.getComponent('circular1', function (circular1) {
-     assertTrue(true);
-     done();
-     });
-     });*/
 });

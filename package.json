@@ -44,7 +44,6 @@
         "babel-preset-es2015-rollup": "^3.0.0",
         "babel-preset-stage-0": "^6.5.0",
         "esdoc": "^0.5.2",
-        "esdoc-es7-plugin": "0.0.3",
         "jasmine-core": "^2.6.4",
         "karma": "^1.7.0",
         "karma-babel-preprocessor": "^6.0.1",

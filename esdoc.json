@@ -1,9 +1,12 @@
 {
     "source": "./src",
     "destination": "./doc",
-    "plugins": [
-        {
-            "name": "esdoc-es7-plugin"
-        }
-    ]
+    "experimentalProposal": {
+        "classProperties": true,
+        "objectRestSpread": true,
+        "doExpressions": true,
+        "functionBind": true,
+        "exportExtensions": true,
+        "dynamicImport": true
+    }
 }
