@@ -96,6 +96,7 @@ class ILifeCircleHook {
  * 批量组件配置, 其中每个key 为组件 id，值为构建配置对象。
  *
  * @property {ILifeCircleHook[]} [config.plugins] ioc 插件
+ * @property {boolean} [config.skipCheckingCircularDep=false] 是否跳过循环依赖检测
  */
 
 /**

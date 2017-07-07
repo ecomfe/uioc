@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title>IoC Skip Checking Circular Dependency Benchmark</title>
+</head>
+<body>
+<label>
+    component count: <input id="count" type="number" value="1000"/>
+</label>
+<button id="start">start</button>
+<button id="clear">clear</button>
+<script src="../dist/bundle.js"></script>
+<script>
+    function Empty() {}
+    function getConfig(skipCheckingCircularDep) {
+        return {
+            components: {
+                list: {
+                    creator: Empty,
+                    args: [
+                        {$ref: 'entityName'}
+                    ],
+                    properties: {
+                        model: {$ref: 'listModel'},
+                        view: {
+                            $import: 'listView'
+                        }
+                    }
+                },
+                listModel: {
+                    creator: Empty,
+                    args: [
+                        {$ref: 'entityName'}
+                    ],
+                    properties: {
+                        entityName: {$ref: 'entityName'},
+                    }
+                },
+                listView: {
+                    creator: Empty,
+                    args: [
+                        {$list: [{$ref: 'entityName'}, {$ref: 'entityName'}, {$ref: 'entityName'}]}
+                    ],
+                    properties: {
+                        model: {$ref: 'listModel'},
+                    }
+                },
+                entityName: {
+                    isFactory: true,
+                    creator: function () {
+                        return 'creative';
+                    }
+                }
+            },
+            skipCheckingCircularDep: skipCheckingCircularDep
+        };
+    }
+
+    var ioc = new uioc.IoC(getConfig());
+    var skipCheckIoC = new uioc.IoC(getConfig(true));
+
+    function log(msg) {
+        var node = document.createElement('div');
+        node.appendChild(document.createTextNode(msg));
+        document.getElementById('result').appendChild(node);
+    }
+
+    function fillArray(count) {
+        if (typeof Array.prototype.fill === 'function') {
+            return new Array(count).fill('list');
+        }
+
+        var ret = [];
+        for (var i = 0; i < count; ++i) {
+            ret[i] = 'list';
+        }
+
+        return ret;
+    }
+
+    function task(count) {
+        var components = fillArray(count);
+        var start = new Date();
+        skipCheckIoC.getComponent(components).then(function (v) {
+            log('get ' + count + ' components and skip checking circular:' + (new Date() - start));
+            start = new Date();
+            ioc.getComponent(components).then(function () {
+                log('get ' + count + ' components and check circular:' + (new Date() - start));
+            });
+        })
+    }
+    document.getElementById('start').onclick = function () {
+        task(+document.getElementById('count').value);
+    };
+
+    document.getElementById('clear').onclick = function () {
+        document.getElementById('result').innerHTML = '';
+    };
+</script>
+
+<div id="result"></div>
+</body>
+</html>

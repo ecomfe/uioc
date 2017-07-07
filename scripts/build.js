@@ -8,7 +8,7 @@ const external = Object.keys(pkg.dependencies);
 rollup.rollup({
     entry: 'src/main.js',
     plugins: [
-        babel({presets: ['es2015-rollup', 'stage-0']}),
+        babel({presets: ['es2015-rollup', 'stage-1']}),
         uglify()
     ],
     external: external

@@ -11,7 +11,8 @@ define(function (require) {
         return ret;
     }
 
-    return function () {
+    return function (overrides) {
+        overrides = overrides || {};
         var listConfig = require('./list/config')();
         var mapConfig = require('./map/config')();
         var importConfig = require('./import/config')();
@@ -214,7 +215,7 @@ define(function (require) {
             }
         };
         config.components = merge(config.components, listConfig, mapConfig, importConfig);
-
+        config.skipCheckingCircularDep = overrides.skipCheckingCircularDep;
         return config;
     };
 });

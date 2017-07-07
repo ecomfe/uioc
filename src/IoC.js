@@ -31,7 +31,14 @@ export default class IoC {
      * @param {IoCConfig} [config] ioc 容器配置
      */
     constructor(config = {}) {
+        /**
+         * @private
+         */
         this[COMPONENTS] = Object.create(null);
+
+        /**
+         * @private
+         */
         this[PLUGIN_COLLECTION] = new PluginCollection([
             new ListPlugin(),
             new MapPlugin(),
@@ -41,8 +48,17 @@ export default class IoC {
             new AutoPlugin()
         ]);
         this[PLUGIN_COLLECTION].addPlugins(config.plugins);
-        this[LOADER] = new Loader(this);
+
+        /**
+         * @private
+         */
+        this[LOADER] = new Loader(this, !!config.skipCheckingCircularDep);
+
+        /**
+         * @private
+         */
         this[INJECTOR] = new Injector(this);
+
         config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
         this.initConfig(config);
     }
@@ -54,7 +70,9 @@ export default class IoC {
      */
     initConfig(iocConfig) {
 
-        iocConfig.loader && this.setLoaderFunction(iocConfig.loader);
+        if (iocConfig.loader) {
+            this.setLoaderFunction(iocConfig.loader);
+        }
 
         this.addComponent(iocConfig.components || {});
     }
