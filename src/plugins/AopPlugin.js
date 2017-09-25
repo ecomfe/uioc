@@ -30,19 +30,70 @@ export default class AopPlugin extends BasePlugin {
     }
 
     /**
+     * 是否需要代理
+     *
+     * @param {Object} config 配置
+     * @param {string} type 代理类型[class|object]
+     * @return {boolean}
+     */
+    canProxy(config, type) {
+        if (!('aopConfig' in config)) {
+            return false;
+        }
+
+        // 默认代理对象为类
+        let {proxyTarget = 'class'} = config.aopConfig;
+        return proxyTarget === type;
+    }
+
+    /**
+     * 类或对象代理过程
+     *
+     * @param {IoC} ioc ioc 实例
+     * @param {string} type 代理类型[class|object]
+     * @param {Function} initial 待拦截的类或对象
+     * @param {Array.<Object>} [advisors=[]] 切面
+     * @return {Promise.<Object | Class>}
+     */
+    proxyAop(ioc, type, initial, advisors = []) {
+        const METHOD = type === 'class' ? 'createClassProxy' : 'createObjectProxy';
+        const AOP_ID = this.constructor.AOP_ID;
+
+        return ioc.getComponent(AOP_ID).then(
+            aop => advisors.reduce(
+                (target, {matcher, advices}) => aop[METHOD](target, matcher, advices),
+                initial
+            )
+        );
+    }
+
+    /**
+     * @override
+     */
+    beforeCreateInstance(ioc, componentId, instance) {
+        let config = ioc.getComponentConfig(componentId) || {};
+
+        let proxyTarget = 'class';
+        let promise = Promise.resolve();
+
+        if (this.canProxy(config, proxyTarget)) {
+            promise = this
+                .proxyAop(ioc, proxyTarget, config.creator, config.aopConfig.advisors)
+                .then(ProxyClass => config.creator = ProxyClass);
+        }
+
+        return promise.then(() => instance);
+    }
+
+    /**
      * @override
      */
     afterCreateInstance(ioc, componentId, instance) {
         let config = ioc.getComponentConfig(componentId) || {};
-        if ('aopConfig' in config) {
-            return ioc.getComponent(this.constructor.AOP_ID).then(
-                aop => (config.aopConfig.advisors || []).reduce(
-                    (instance, {matcher, advices}) => {
-                        return aop.createObjectProxy(instance, matcher, advices)
-                    },
-                    instance
-                )
-            );
+        let proxyTarget = 'object';
+
+        if (this.canProxy(config, proxyTarget)) {
+            return this.proxyAop(ioc, proxyTarget, instance, config.aopConfig.advisors);
         }
 
         return Promise.resolve(instance);

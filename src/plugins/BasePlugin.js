@@ -35,7 +35,9 @@ export default class BasePlugin {
     /**
      * @see {@link ILifeCircleHook#beforeCreateInstance}
      */
-    beforeCreateInstance(ioc, componentId, instance) {}
+    beforeCreateInstance(ioc, componentId, instance) {
+        return Promise.resolve(instance);
+    }
 
     /**
      * @see {@link ILifeCircleHook#afterCreateInstance}
