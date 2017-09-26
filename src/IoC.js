@@ -247,7 +247,7 @@ export default class IoC {
      */
     [CREATE_COMPONENT](id, config) {
         config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
-        let component = {
+        return {
             id: id,
             args: [],
             properties: {},
@@ -262,11 +262,6 @@ export default class IoC {
             instance: null,
             ...config
         };
-
-        // creator为函数，那么先包装下
-        typeof component.creator === 'function' && this[LOADER].wrapCreator(component);
-
-        return component;
     }
 
     /**
@@ -278,7 +273,9 @@ export default class IoC {
                 instance => {
                     if (instance === NULL) {
                         let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
-                        return this[INJECTOR].createInstance(component);
+                        return this[LOADER]
+                            .wrapCreator(component)
+                            .then(component => this[INJECTOR].createInstance(component));
                     }
 
                     return instance;
@@ -319,11 +316,7 @@ class PluginCollection {
     beforeCreateInstance(ioc, componentId) {
         return this[PLUGINS].reduce(
             (instancePromise, plugin) => instancePromise.then(
-                instance => {
-                    instance = instance === NULL ? undefined : instance;
-                    let result = plugin.beforeCreateInstance(ioc, componentId, instance);
-                    return u.isPromise(result) ? result : Promise.resolve(NULL);
-                }
+                instance => Promise.resolve(plugin.beforeCreateInstance(ioc, componentId, instance))
             ),
             Promise.resolve(NULL)
         );

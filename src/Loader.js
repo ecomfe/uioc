@@ -40,7 +40,11 @@ export default class Loader {
                         (factory, index) => {
                             let moduleId = moduleIds[index];
                             moduleMap[moduleId].forEach(
-                                config => typeof config.creator !== 'function' && this.wrapCreator(config, factory)
+                                config => {
+                                    if (typeof config.creator !== 'function') {
+                                        config.creator = config.creator || factory;
+                                    }
+                                }
                             );
                         }
                     );
@@ -51,7 +55,7 @@ export default class Loader {
     }
 
     wrapCreator(config, factory) {
-        let creator = config.creator = config.creator || factory;
+        let creator = config.creator;
 
         // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator
         if (!config.isFactory && config.scope !== 'static') {
@@ -59,6 +63,8 @@ export default class Loader {
                 return new creator(...args);
             };
         }
+
+        return Promise.resolve(config);
     }
 }
 

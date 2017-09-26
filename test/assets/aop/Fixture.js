@@ -33,7 +33,8 @@ export default class Fixture extends BaseFixture {
             count3: 0,
             fooCount: 0,
             method3Result: {},
-            fooResult: {}
+            fooResult: {},
+            print: () => this.x
         });
     }
 
