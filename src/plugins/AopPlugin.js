@@ -41,8 +41,8 @@ export default class AopPlugin extends BasePlugin {
             return false;
         }
 
-        // 默认代理对象为类
-        let {proxyTarget = 'class'} = config.aopConfig;
+        // 默认代理对象为 object
+        let {proxyTarget = 'object'} = config.aopConfig;
         return proxyTarget === type;
     }
 
@@ -92,10 +92,8 @@ export default class AopPlugin extends BasePlugin {
         let config = ioc.getComponentConfig(componentId) || {};
         let proxyTarget = 'object';
 
-        if (this.canProxy(config, proxyTarget)) {
-            return this.proxyAop(ioc, proxyTarget, instance, config.aopConfig.advisors);
-        }
-
-        return Promise.resolve(instance);
+        return this.canProxy(config, proxyTarget)
+            ? this.proxyAop(ioc, proxyTarget, instance, config.aopConfig.advisors)
+            : Promise.resolve(instance);
     }
 }
