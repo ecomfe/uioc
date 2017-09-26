@@ -72,17 +72,16 @@ export default class AopPlugin extends BasePlugin {
      */
     beforeCreateInstance(ioc, componentId, instance) {
         let config = ioc.getComponentConfig(componentId) || {};
-
         let proxyTarget = 'class';
-        let promise = Promise.resolve();
 
         if (this.canProxy(config, proxyTarget)) {
-            promise = this
+            return this
                 .proxyAop(ioc, proxyTarget, config.creator, config.aopConfig.advisors)
-                .then(ProxyClass => config.creator = ProxyClass);
+                .then(ProxyClass => config.creator = ProxyClass)
+                .then(() => instance);
         }
 
-        return promise.then(() => instance);
+        return Promise.resolve(instance);
     }
 
     /**
