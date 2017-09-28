@@ -1,6 +1,6 @@
 {
     "name": "uioc",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "An IoC Framework",
     "main": "dist/bundle.js",
     "jsnext:main": "src/main.js",
@@ -30,8 +30,15 @@
     ],
     "author": {
         "name": "Exodia",
-        "email": "d_xinxin@163.com"
+        "email": "d_xinxin@163.com",
+        "url": "github.com/Exodia"
     },
+    "contributors": [
+        "otakustay<otakustay@gmail.com>(http://otakustay.com)",
+        "ycycwx(https://github.com/ycycwx)",
+        "strwind(https://github.com/strwind)",
+        "srhb18(https://github.com/srhb18)"
+    ],
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/ecomfe/uioc/issues"

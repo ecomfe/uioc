@@ -54,14 +54,13 @@ class ILifeCircleHook {
 
     /**
      * 创建组件实例前调用，传入 ioc 容器，当前组件 id，和当前已经创建的实例(可能没有)，
-     * 返回一个值为实例的 promise 给 ioc 使用，若返回值不为 promise，
-     * 则不会覆盖现有实例， 若最终无实例，ioc 内部将根据组件配置创建实例，ioc 将基于此做后续操作。
+     * 返回一个值为实例的 promise 给 ioc 使用，若不想覆盖现有实例，则直接返回一个 Promise<instance>。
      *
      * @param {IoC} ioc ioc 实例
      * @param {string} componentId  当前组件 id
-     * @param {*} [instance] 当前已创建的实例, 若还未创建则为 undefined
+     * @param {*} [instance] 当前已创建的实例
      *
-     * @return {Promise<*>|undefined}
+     * @return {Promise<*>}
      */
     beforeCreateInstance(ioc, componentId, instance) {}
 
@@ -114,6 +113,7 @@ class ILifeCircleHook {
  * 获取组件时，IoC 会根据 properties 的配置，自动创建其依赖， 作为属性注入组件实例。
  * **note:** 若组件实例存在 ```set + 属性名首字母大些的方法```，则会调用此方法，并将依赖传入，
  * 否则简单的调用 ```this.{propertyName} = {property}```
+ * @property {AopConfig} [aopConfig] aop 配置对象，内置aop机制会读取该配置进行相关的拦截。
  */
 
 /**
@@ -126,4 +126,35 @@ class ILifeCircleHook {
  * @property {DependencyConfig[]} $list 声明数组形式的依赖，获取组件时，会创建一个数组，数组元素根据其对应$list中所声明的配置进行创建
  * @property {Object<string, DependencyConfig>} $map 声明对象（映射表）形式的依赖，获取组件时，会创建一个对象，
  * 对象的属性根据其对应$map中所声明的配置进行创建
+ */
+
+/**
+ * @typedef {Object} AopConfig
+ *
+ * @property {Advisor} advisors 切面配置数组，每个元素都是一个切面，
+ * 切面是通知和切点的结合, 通知和切点共同定义了切面的全部内容 - 是什么, 在何时和何处完成功能.
+ *
+ * @property {('object'|'class')} [proxyTarget='object'] 拦截目标，默认为 'object'，
+ * 设置为 'object' 会基于对象实例进行拦截，设置为'class'则基于类拦截，两者区别见：https://github.com/ecomfe/uioc/issues/69
+ */
+
+/**
+ * @typedef {Object} Advisor
+ *
+ * @property {string | Function | RegExp} matcher 切点（连接点筛选）功能, 为 string, RegExp, Function 三个类型之一,
+ * 指定符合匹配条件的方法才应用特定的拦截/通知逻辑
+ * @property {Object} advices 通知对象, 拥有 before, afterReturning, afterThrowing, after, around 中一个或多个方法；
+ *
+ * 详见：https://github.com/ecomfe/aop/blob/develop/README.md#切面aspectadvisor
+ *
+ * before: 在函数/方法执行前调用指定逻辑
+ *
+ * after: 在函数/方法执行后调用指定逻辑, 无论函数/方法是否执行成功
+ *
+ * afterReturning: 在函数/方法执行成功后调用指定逻辑
+ *
+ * afterThrowing: 在方法抛出异常后调用指定逻辑
+ *
+ * around: 在函数/方法调用之前和调用之后执行自定义的指定逻辑
+ *
  */
