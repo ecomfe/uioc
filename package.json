@@ -1,6 +1,6 @@
 {
     "name": "uioc",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "An IoC Framework",
     "main": "dist/bundle.js",
     "jsnext:main": "src/main.js",
