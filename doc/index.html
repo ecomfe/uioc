@@ -1,165 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
 </head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Home</h1>
-
-    
-
-
-
-    
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-<section>
+<body class="layout-container" data-ice="rootContainer">
 
 <header>
-    
-        <h2>
-        main.js
-        </h2>
-        
-    
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
 </header>
 
-<article>
-    <div class="container-overview">
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
     
-        
-            <div class="description">IoC 类</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-author">Author:</dt>
-    <dd class="tag-author">
-        <ul>
-            <li>exodia (d_xinxin@163.com)</li>
-        </ul>
-    </dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="IoC.html">IoC</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
-<br class="clear">
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="uioc-building-status-https-travis-ci-org-ecomfe-uioc-svg-branch-master-doc-status-https-doc-esdoc-org-github-com-ecomfe-uioc-badge-svg-">uioc <img src="https://travis-ci.org/ecomfe/uioc.svg?branch=master" alt="building status"> <img src="https://doc.esdoc.org/github.com/ecomfe/uioc/badge.svg" alt="doc status"></h1>
+<h1 id="-">&#x5173;&#x4E8E;</h1>
+<p>uioc&#x662F;&#x7528;JavaScript&#x5199;&#x7684;&#x4E00;&#x4E2A;&#x8F7B;&#x91CF;&#x7EA7;IoC&#x5BB9;&#x5668;&#xFF0C;&#x4E3A;JavaScript&#x5E94;&#x7528;&#x63D0;&#x4F9B;&#x4E86;IoC&#x529F;&#x80FD;&#x3002;&#x901A;&#x8FC7;&#x4F7F;&#x7528;&#x914D;&#x7F6E;&#x7684;&#x65B9;&#x5F0F;&#x7BA1;&#x7406;&#x6A21;&#x5757;&#x4F9D;&#x8D56;&#xFF0C;&#x6700;&#x5927;&#x7A0B;&#x5EA6;&#x7684;&#x63D0;&#x9AD8;&#x4E86;&#x6A21;&#x5757;&#x7684;&#x590D;&#x7528;&#x6027;&#x3002;</p>
+<p>&#x5728;1.0&#x7248;&#x672C;&#x4E2D;&#xFF0C;&#x589E;&#x52A0;&#x4E86;aop&#x7684;&#x652F;&#x6301;&#xFF0C;&#x5BF9;&#x5E94;&#x7528;&#x4ECE;&#x6A2A;&#x5411;&#x5173;&#x6CE8;&#x70B9;&#x4E0A;&#x63D0;&#x4F9B;&#x4E86;&#x590D;&#x7528;&#x652F;&#x6301;&#x3002;</p>
+<h1 id="-">&#x5B89;&#x88C5;</h1>
+<pre><code class="lang-shell"><code class="source-code prettyprint">npm install uioc &#x2014;save</code>
+</code></pre>
+<h1 id="-">&#x57FA;&#x672C;&#x4F7F;&#x7528;</h1>
+<h2 id="step-1-">Step 1&#xFF1A;&#x5B9A;&#x4E49;&#x6A21;&#x5757;</h2>
+<p>IoC&#x6700;&#x5927;&#x7684;&#x8981;&#x6C42;&#x4E4B;&#x4E00;&#x5C31;&#x662F;&#x4E0D;&#x8981;&#x5728;&#x6A21;&#x5757;&#x4E2D;&#x5F15;&#x5165;&#x5177;&#x4F53;&#x4F9D;&#x8D56;&#x7684;&#x5B9E;&#x73B0;&#xFF0C;&#x5BF9;&#x5E94;&#x5728;JavaScript&#x4E2D;&#x5219;&#x662F;&#x4E0D;&#x8981;&#x663E;&#x793A;&#x7684;&#x5F15;&#x5165;&#x4F9D;&#x8D56;&#x6A21;&#x5757;&#xFF0C;&#x4EC5;&#x5728;&#x6CE8;&#x5165;&#x70B9;&#x9762;&#x5411;&#x4F9D;&#x8D56;&#x63A5;&#x53E3;&#x7F16;&#x7A0B;&#x3002;</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// List.js
+export default class List {
+    // &#x6784;&#x9020;&#x51FD;&#x6570;&#x6CE8;&#x5165;&#x5B9E;&#x73B0;&#x4E86;ListModel&#x63A5;&#x53E3;&#x7684;&#x4F9D;&#x8D56;
+    constructor(listModel) {
+        this.model = listModel;
+    }
 
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Fri May 15 2015 17:03:39 GMT+0800 (CST)
+    // &#x5C5E;&#x6027;/&#x63A5;&#x53E3;&#x6CE8;&#x5165;&#x5B9E;&#x73B0;&#x4E86;ListView&#x63A5;&#x53E3;&#x7684;&#x4F9D;&#x8D56;
+    setView(listView) {
+        this.view = listView;
+    }
+
+    enter() {
+        let data = this.model.load();
+        this.view.render(data);
+    }
+}
+
+// MyListModel.js
+export default class MyListModel {
+    load() {
+        return {data: &apos;data&apos;};
+    }
+}
+
+// MyListView.js
+export default class MyListView {
+    render(data) {
+        console.log(data);
+    }
+}</code>
+</code></pre>
+<p>&#x4E0A;&#x8FF0;&#x4EE3;&#x7801;&#x4E2D;&#x5728;List&#x7C7B;&#x6709;&#x4E24;&#x4E2A;&#x4F9D;&#x8D56;view&#x548C;model&#xFF0C;&#x5206;&#x522B;&#x5B9E;&#x73B0;&#x4E86;ListModel&#x548C;ListView&#xFF08;&#x9690;&#x5F0F;&#xFF09;&#x63A5;&#x53E3;&#xFF0C;
+&#x800C;MyListModel&#x548C;MyListView&#x7C7B;&#x5219;&#x662F;ListModel&#x4E0E;ListView&#x63A5;&#x53E3;&#x7684;&#x5177;&#x4F53;&#x5B9E;&#x73B0;&#x3002;</p>
+<h2 id="step-2-ioc-ioc-">Step 2&#xFF1A;&#x5B9A;&#x4E49;IoC&#x914D;&#x7F6E;&#xFF0C;&#x5B9E;&#x4F8B;&#x5316;IoC&#x5BB9;&#x5668;</h2>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// ioc.js
+import {IoC} from &apos;uioc&apos;;
+import List from &apos;./List&apos;;
+import MyListModel from &apos;./MyListModel&apos;;
+import MyListView from &apos;./MyListView&apos;;
+
+let config = {
+    components: {
+        list: {
+            creator: List,
+            args: [
+                {$ref: &apos;listModel&apos;}
+            ],
+            properties: {
+                view: {
+                    $ref: {&apos;listView&apos;}
+                }
+            },
+
+            listModel: {
+                creator: MyListModel
+            },
+
+            listView: {
+                creator: MyListView
+            }
+        }
+    }
+};
+
+let ioc = new IoC(config);
+
+export default ioc;</code>
+</code></pre>
+<p>&#x4E0A;&#x8FF0;&#x4EE3;&#x7801;&#x4E2D;&#xFF0C;&#x58F0;&#x660E;&#x4E86;list, listModel, listView&#x4E09;&#x4E2A;&#x7EC4;&#x4EF6;&#xFF0C;
+&#x5176;&#x4E2D;list&#x901A;&#x8FC7;$ref&#x5173;&#x952E;&#x5B57;&#x58F0;&#x660E;&#x4E86;2&#x4E2A;&#x4F9D;&#x8D56;&#xFF1A;listModel&#x662F;list&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4F9D;&#x8D56;&#xFF0C;
+&#x4F1A;&#x5728;&#x5B9E;&#x4F8B;&#x5316;list&#x7684;&#x65F6;&#x5019;&#xFF0C;&#x5C06;&#x521B;&#x5EFA;&#x597D;&#x7684;listModel&#x4F9D;&#x8D56;&#x4F20;&#x5165;&#x6784;&#x9020;&#x51FD;&#x6570;&#xFF1B;
+listView&#x662F;list&#x7684;&#x5C5E;&#x6027;&#x4F9D;&#x8D56;&#xFF0C;&#x4F1A;&#x5728;&#x5B9E;&#x4F8B;&#x5316;list&#x5B8C;&#x6210;&#x540E;&#xFF0C;&#x5C06;&#x521B;&#x5EFA;&#x597D;&#x7684;listView&#x8D4B;&#x503C;&#x7ED9;list&#xFF0C;&#x8D4B;&#x503C;&#x65B9;&#x5F0F;&#x4E3A;&#x6709;setter&#x5219;&#x8C03;&#x7528;setter&#xFF0C;&#x65E0;setter&#x5219;&#x76F4;&#x63A5;&#x5BF9;&#x8C61;&#x8D4B;&#x503C;&#x3002;</p>
+<h2 id="step-3-ioc-">Step 3:  &#x5B9A;&#x4E49;&#x5165;&#x53E3;&#x6587;&#x4EF6;&#xFF0C;&#x4ECE;ioc&#x5B9E;&#x4F8B;&#x83B7;&#x53D6;&#x5165;&#x53E3;&#x7EC4;&#x4EF6;&#x542F;&#x52A8;&#x6574;&#x4E2A;&#x5E94;&#x7528;</h2>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// main.js
+import ioc from &apos;ioc&apos;;
+
+ioc.getComponent(&apos;list&apos;).then(list =&gt; list.enter());</code>
+</code></pre>
+<p>&#x4E0A;&#x8FF0;&#x4EE3;&#x7801;&#x4E2D;&#x901A;&#x8FC7;ioc&#x5BB9;&#x5668;&#x5B9E;&#x4F8B;&#x83B7;&#x53D6;&#x4E86;list&#x7EC4;&#x4EF6;&#xFF0C;ioc&#x5BB9;&#x5668;&#x5C06;&#x6839;&#x636E;&#x914D;&#x7F6E;&#x521B;&#x5EFA;&#x597D;list&#x7684;&#x76F8;&#x5173;&#x4F9D;&#x8D56;&#x5E76;&#x6CE8;&#x5165;&#x7ED9;list&#xFF0C;&#x6700;&#x7EC8;&#x7EC4;&#x88C5;&#x6210;&#x5B8C;&#x6574;&#x7684;list&#x5B9E;&#x4F8B;&#x4F20;&#x9012;&#x7ED9;promise&#x7684;resolve&#x56DE;&#x8C03;&#x3002;</p>
+<h1 id="-https-github-com-ecomfe-uioc-wiki-base-feature-"><a href="https://github.com/ecomfe/uioc/wiki/Base-Feature">&#x57FA;&#x7840;&#x7279;&#x6027;</a></h1>
+<h1 id="-">&#x9AD8;&#x7EA7;&#x7279;&#x6027;</h1>
+<ul>
+<li><a href="https://github.com/ecomfe/uioc/wiki/plugins">&#x63D2;&#x4EF6;&#x673A;&#x5236;</a></li>
+<li><a href="https://github.com/ecomfe/uioc/wiki/aop">aop</a></li>
+</ul>
+<h1 id="-api-https-doc-esdoc-org-github-com-ecomfe-uioc-"><a href="https://doc.esdoc.org/github.com/ecomfe/uioc/">API</a></h1>
+<h1 id="-changelog-https-github-com-ecomfe-uioc-wiki-changelog-"><a href="https://github.com/ecomfe/uioc/wiki/Changelog">Changelog</a></h1>
+<h1 id="-0-3-x-https-github-com-ecomfe-uioc-wiki-0-3-x-readme-"><a href="https://github.com/ecomfe/uioc/wiki/0.3.x-readme">0.3.x&#x7248;&#x672C;&#x6587;&#x6863;</a></h1>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
 </body>
 </html>

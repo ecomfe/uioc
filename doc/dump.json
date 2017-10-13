@@ -1,0 +1,5807 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "name": "src/CircularError.js",
+    "content": "/**\n * @file 循环依赖错误\n * @author exodia(d_xinxin@163.com)\n */\n\n/**\n * @private\n */\nexport default class CircularError extends Error {\n    constructor(message, component) {\n        super(message);\n        this.component = component;\n    }\n\n    print(...args) {\n        if (typeof console !== 'undefined') {\n            console.warn(...args);\n        }\n    }\n}\n",
+    "static": true,
+    "longname": "src/CircularError.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 1,
+    "kind": "class",
+    "name": "CircularError",
+    "memberof": "src/CircularError.js",
+    "static": true,
+    "longname": "src/CircularError.js~CircularError",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/CircularError.js",
+    "importStyle": "CircularError",
+    "description": "",
+    "lineNumber": 9,
+    "interface": false,
+    "extends": [
+      "Error"
+    ]
+  },
+  {
+    "__docId__": 2,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/CircularError.js~CircularError",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/CircularError.js~CircularError#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "message",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "component",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 3,
+    "kind": "member",
+    "name": "component",
+    "memberof": "src/CircularError.js~CircularError",
+    "static": false,
+    "longname": "src/CircularError.js~CircularError#component",
+    "access": null,
+    "description": null,
+    "lineNumber": 12,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "method",
+    "name": "print",
+    "memberof": "src/CircularError.js~CircularError",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/CircularError.js~CircularError#print",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "args",
+        "types": [
+          "...*"
+        ],
+        "spread": true
+      }
+    ]
+  },
+  {
+    "__docId__": 5,
+    "kind": "file",
+    "name": "src/Container.js",
+    "content": "void function (define) {\n    define(\n        function (require) {\n            var u = require('./util');\n\n            function Container(context) {\n                this.context = context;\n                this.singletons = {};\n            }\n\n            Container.prototype.createInstance = function (component, cb) {\n                if (!component) {\n                    return cb(null);\n                }\n\n                var id = component.id;\n                if (component.scope === 'singleton' && this.singletons.hasOwnProperty(id)) {\n                    return cb(this.singletons[id]);\n                }\n\n                if (component.scope === 'static') {\n                    return cb(component.creator);\n                }\n\n                var me = this;\n                createArgs(this, component, function (args) {\n                    var instance = component.creator.apply(null, args);\n                    if (component.scope === 'singleton') {\n                        me.singletons[id] = instance;\n                    }\n                    cb(instance);\n                });\n            };\n\n            Container.prototype.dispose = function () {\n                var singletons = this.singletons;\n                for (var k in singletons) {\n                    var instance = singletons[k];\n                    instance && typeof instance.dispose === 'function' && instance.dispose();\n                }\n\n                this.singletons = null;\n            };\n\n            function createArgs(container, component, cb) {\n                var argConfigs = component.args;\n                var count = argConfigs.length;\n                var args = Array(count);\n                if (!count) {\n                    return cb(args);\n                }\n\n                var done = function (index) {\n                    return function (instance) {\n                        args[index] = instance;\n                        --count === 0 && cb(args);\n                    };\n                };\n\n                for (var i = argConfigs.length - 1; i > -1; --i) {\n                    var arg = argConfigs[i];\n                    u.hasReference(arg) ? container.context.getComponent(arg.$ref, done(i)) : done(i)(arg);\n                }\n            }\n\n            return Container;\n\n        });\n\n}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; });",
+    "static": true,
+    "longname": "src/Container.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 6,
+    "kind": "file",
+    "name": "src/DependencyParser.js",
+    "content": "void function (define) {\n\n    define(\n        function (require) {\n            var u = require('./util');\n            var DependencyTree = require('./DependencyTree');\n            var SETTER_REGEX = /^set([A-Z].*)$/;\n\n            function DependencyParser(context) {\n                this.context = context;\n            }\n\n            DependencyParser.prototype.getPropertyFromSetter = function (name) {\n                var prop = null;\n                var matches = name.match(SETTER_REGEX);\n                if (matches) {\n                    prop = matches[1];\n                    prop = prop.charAt(0).toLowerCase() + prop.slice(1);\n                }\n\n                return prop;\n            };\n\n            DependencyParser.prototype.getDepsFromArgs = function (args) {\n                var deps = [];\n                for (var i = args.length - 1; i > -1; --i) {\n                    u.hasReference(args[i]) && u.addToSet(deps, args[i].$ref);\n                }\n                return deps;\n            };\n\n            DependencyParser.prototype.getDepsFromProperties = function (properties) {\n                var deps = [];\n                for (var k in properties) {\n                    if (u.hasOwn(properties, k)) {\n                        var prop = properties[k];\n                        u.hasReference(prop) && u.addToSet(deps, prop.$ref);\n                    }\n                }\n                return deps;\n            };\n\n            DependencyParser.prototype.getDepsFromSetters = function (instance, exclude) {\n                exclude = exclude || {};\n                var deps = [];\n                var prop = null;\n                for (var k in instance) {\n                    if (typeof instance[k] === 'function') {\n                        prop = this.getPropertyFromSetter(k);\n                        prop && !exclude.hasOwnProperty(prop) && deps.push(prop);\n                    }\n                }\n                return deps;\n            };\n\n            DependencyParser.prototype.getDepsFromInterfaces = function () {\n\n            };\n\n            DependencyParser.prototype.getDependentModules = function (component, result, deps) {\n                return getDependentModules(component, this.context, result || {}, new DependencyTree(), deps);\n            };\n\n            function getDependentModules(component, context, result, depTree, deps) {\n                if (component) {\n                    var module = component.module;\n                    if (typeof component.creator !== 'function' && module) {\n                        result[module] = result[module] || [];\n                        result[module].push(component);\n                    }\n\n                    var circular = depTree.checkForCircular(component.id);\n                    if (circular) {\n                        var msg = component.id + ' has circular dependencies ';\n                        throw new u.CircularError(msg, component);\n                    }\n\n                    depTree.addData(component);\n                    var child = depTree.appendChild(new DependencyTree());\n\n                    deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);\n                    for (var i = deps.length - 1; i > -1; --i) {\n                        getDependentModules(context.getComponentConfig(deps[i]), context, result, child);\n                    }\n                }\n\n                return result;\n            }\n\n            return DependencyParser;\n        }\n    );\n\n}(typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory; });",
+    "static": true,
+    "longname": "src/DependencyParser.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 7,
+    "kind": "file",
+    "name": "src/DependencyTree.js",
+    "content": "/**\n * @file DependencyNode 依赖树\n * @author exodia(d_xinxin@163.com)\n */\n\n/**\n * @private\n */\nexport default class DependencyNode {\n    data = [];\n    children = [];\n    parent = null;\n    \n    appendChild(node) {\n        node.parent = this;\n        this.children.push(node);\n        return node;\n    }\n\n    checkForCircular(id) {\n        let node = this.parent;\n        if (node !== null) {\n            let data = node.data;\n            for (let i = data.length - 1; i > -1; --i) {\n                if (node.data[i].id && node.data[i].id === id) {\n                    return node.data[i];\n                }\n\n                return node.checkForCircular(id);\n            }\n        }\n        \n        return null;\n    }\n\n    addData(data, checkForCircular) {\n        if (checkForCircular && this.checkForCircular(data.id)) {\n            return false;\n        }\n\n        this.data.push(data);\n        return true;\n    }\n}\n\n    \n",
+    "static": true,
+    "longname": "src/DependencyTree.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 8,
+    "kind": "class",
+    "name": "DependencyNode",
+    "memberof": "src/DependencyTree.js",
+    "static": true,
+    "longname": "src/DependencyTree.js~DependencyNode",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/DependencyTree.js",
+    "importStyle": "DependencyNode",
+    "description": "",
+    "lineNumber": 9,
+    "interface": false
+  },
+  {
+    "__docId__": 9,
+    "kind": "member",
+    "name": "data",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#data",
+    "access": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "member",
+    "name": "children",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#children",
+    "access": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "member",
+    "name": "parent",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#parent",
+    "access": null,
+    "description": null,
+    "lineNumber": 12,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 12,
+    "kind": "method",
+    "name": "appendChild",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#appendChild",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "node",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 13,
+    "kind": "method",
+    "name": "checkForCircular",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#checkForCircular",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "method",
+    "name": "addData",
+    "memberof": "src/DependencyTree.js~DependencyNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/DependencyTree.js~DependencyNode#addData",
+    "access": null,
+    "description": null,
+    "lineNumber": 36,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "checkForCircular",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "file",
+    "name": "src/Injector.js",
+    "content": "/**\n * @file Injector 依赖注入类\n * @author exodia(d_xinxin@163.com)\n */\n\nimport u from './util';\n\nconst STORE = Symbol('store');\nconst GET_INSTANCE = Symbol('getInstance');\n\n/**\n * @private\n */\nexport default class Injector {\n\n    constructor(context) {\n        this.context = context;\n        this[STORE] = Object.create(null);\n    }\n\n    createInstance(component) {\n        if (!component) {\n            return Promise.resolve(null);\n        }\n\n        switch (component.scope) {\n            case 'singleton':\n                let id = component.id;\n                if (!(id in this[STORE])) {\n                    this[STORE][id] = this[GET_INSTANCE](component).then(instance => this[STORE][id] = instance);\n                }\n                return Promise.resolve(this[STORE][id]);\n            case 'transient':\n                return this[GET_INSTANCE](component);\n            case 'static':\n                return Promise.resolve(component.creator);\n        }\n    }\n\n    injectArgs({args}) {\n        return Promise.all(args.map(arg => u.hasRef(arg) ? this.context.getComponent(arg.$ref) : arg));\n    }\n\n    dispose() {\n        let store = this[STORE];\n        for (let k in store) {\n            let instance = store[k];\n            instance && typeof instance.dispose === 'function' && instance.dispose();\n        }\n\n        this[STORE] = null;\n    }\n\n    [GET_INSTANCE](component) {\n        return this.injectArgs(component).then(args => component.creator(...args));\n    }\n}\n\n",
+    "static": true,
+    "longname": "src/Injector.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 16,
+    "kind": "variable",
+    "name": "STORE",
+    "memberof": "src/Injector.js",
+    "static": true,
+    "longname": "src/Injector.js~STORE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/Injector.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "variable",
+    "name": "GET_INSTANCE",
+    "memberof": "src/Injector.js",
+    "static": true,
+    "longname": "src/Injector.js~GET_INSTANCE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/Injector.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "class",
+    "name": "Injector",
+    "memberof": "src/Injector.js",
+    "static": true,
+    "longname": "src/Injector.js~Injector",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/Injector.js",
+    "importStyle": "Injector",
+    "description": "",
+    "lineNumber": 14,
+    "interface": false
+  },
+  {
+    "__docId__": 19,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/Injector.js~Injector",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Injector.js~Injector#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "context",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 20,
+    "kind": "member",
+    "name": "context",
+    "memberof": "src/Injector.js~Injector",
+    "static": false,
+    "longname": "src/Injector.js~Injector#context",
+    "access": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "member",
+    "name": "[STORE]",
+    "memberof": "src/Injector.js~Injector",
+    "static": false,
+    "longname": "src/Injector.js~Injector#[STORE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 22,
+    "kind": "method",
+    "name": "createInstance",
+    "memberof": "src/Injector.js~Injector",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Injector.js~Injector#createInstance",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "component",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "method",
+    "name": "injectArgs",
+    "memberof": "src/Injector.js~Injector",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Injector.js~Injector#injectArgs",
+    "access": null,
+    "description": null,
+    "lineNumber": 40,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "objectPattern",
+        "types": [
+          "{\"args\": *}"
+        ],
+        "defaultRaw": {
+          "args": null
+        },
+        "defaultValue": "{\"args\":null}"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "method",
+    "name": "dispose",
+    "memberof": "src/Injector.js~Injector",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Injector.js~Injector#dispose",
+    "access": null,
+    "description": null,
+    "lineNumber": 44,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 25,
+    "kind": "member",
+    "name": "[STORE]",
+    "memberof": "src/Injector.js~Injector",
+    "static": false,
+    "longname": "src/Injector.js~Injector#[STORE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 51,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 26,
+    "kind": "method",
+    "name": "[GET_INSTANCE]",
+    "memberof": "src/Injector.js~Injector",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Injector.js~Injector#[GET_INSTANCE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 54,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "component",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 27,
+    "kind": "file",
+    "name": "src/IoC.js",
+    "content": "/**\n * @file IoC 容器类\n * @author exodia (d_xinxin@163.com)\n */\n\nimport Injector from './Injector';\nimport u from './util';\nimport Loader from './Loader';\nimport ImportPlugin from './plugins/ImportPlugin';\nimport AutoPlugin from './plugins/AutoPlugin';\nimport PropertyPlugin from './plugins/PropertyPlugin';\nimport ListPlugin from './plugins/ListPlugin';\nimport MapPlugin from './plugins/MapPlugin';\nimport AopPlugin from './plugins/AopPlugin';\n\nconst PLUGIN_COLLECTION = Symbol('collection');\nconst COMPONENTS = Symbol('components');\nconst CREATE_COMPONENT = Symbol('createComponent');\nconst CREATE_INSTANCE = Symbol('createInstance');\nconst LOADER = Symbol('loader');\nconst INJECTOR = Symbol('injector');\nconst NULL = {};\n\n/**\n * IoC 容器类\n */\nexport default class IoC {\n    /**\n     * 根据配置实例化一个 IoC 容器\n     *\n     * @param {IoCConfig} [config] ioc 容器配置\n     */\n    constructor(config = {}) {\n        /**\n         * @private\n         */\n        this[COMPONENTS] = Object.create(null);\n\n        /**\n         * @private\n         */\n        this[PLUGIN_COLLECTION] = new PluginCollection([\n            new ListPlugin(),\n            new MapPlugin(),\n            new ImportPlugin(),\n            new AopPlugin(),\n            new PropertyPlugin(),\n            new AutoPlugin()\n        ]);\n        this[PLUGIN_COLLECTION].addPlugins(config.plugins);\n\n        /**\n         * @private\n         */\n        this[LOADER] = new Loader(this, !!config.skipCheckingCircularDep);\n\n        /**\n         * @private\n         */\n        this[INJECTOR] = new Injector(this);\n\n        config = this[PLUGIN_COLLECTION].onContainerInit(this, config);\n        this.initConfig(config);\n    }\n\n    /**\n     * 初始化配置\n     * @param {IoCConfig} iocConfig ioc 配置\n     * @protected\n     */\n    initConfig(iocConfig) {\n\n        if (iocConfig.loader) {\n            this.setLoaderFunction(iocConfig.loader);\n        }\n\n        this.addComponent(iocConfig.components || {});\n    }\n\n    /**\n     *\n     * 向容器中注册组件\n     *\n     * @param {string | Object.<string, ComponentConfig>} id 组件 id 或者组件配置集合\n     * @param {ComponentConfig} [config] 组件配置, 第一个参数为组件 id 时有效\n     * @example\n     * ioc.addComponent('list', {\n     *     // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名\n     *     creator: require('./List'),\n     *     scope: 'transient',\n     *     args: [{$ref: 'entityName'}],\n     *\n     *     // 属性注入， 不设置$setter, 则直接instance.xxx = xxx\n     *     properties: {\n     *          model: {$ref: 'listModel'},\n     *          view: {$ref: 'listView'},\n     *          name: 'xxxx' // 未设置$ref/$import操作符，'xxxx' 即为依赖值\n     *     }\n     * });\n     *\n     * ioc.addComponent({\n     *     listData: {\n     *         creator: 'ListData',\n     *         scope: 'transient',\n     *         properties: {\n     *             data: {\n     *                 $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，\n     *                 args: ['list', 'list'] // 重写 requestStrategy 的 args 配置\n     *             }\n     *         }\n     *      }\n     * });\n     */\n    addComponent(id, config) {\n        if (typeof id === 'object') {\n            for (let k in id) {\n                this.addComponent(k, id[k]);\n            }\n            return;\n        }\n\n        if (this.hasComponent(id)) {\n            throw new Error(`${String(id)} has been added!`);\n        }\n        else {\n            this[COMPONENTS][id] = this[CREATE_COMPONENT].call(this, id, config);\n        }\n    }\n\n    /**\n     * 获取组件实例\n     *\n     * @param {string | string[]} id 单个组件 id 字符串或者一系列组件 id 数组\n     * @return {Promise<*> | Promise<*[]>} 值为组件实例(传入参数为组件数组时, 值为组件实例数组)的 promise\n     */\n    getComponent(id) {\n        if (id instanceof Array) {\n            return Promise.all(id.map(id => this.getComponent(id)));\n        }\n        let moduleMap = Object.create(null);\n\n        if (!this.hasComponent(id)) {\n            id = String(id);\n            return Promise.reject(new Error(`\\`${id}\\` has not been added to the Ioc`));\n        }\n        else {\n            let config = this.getComponentConfig(id);\n            this.processConfig(id);\n            try {\n                moduleMap = this[LOADER].resolveDependentModules(config, moduleMap, config.argDeps);\n            }\n            catch (e) {\n                return Promise.reject(e);\n            }\n        }\n\n        return this[LOADER].loadModuleMap(moduleMap).then(() => this[CREATE_INSTANCE](id));\n    }\n\n    /**\n     * 检测是否注册过某个组件\n     *\n     * @param {string} id 组件 id\n     * @return {bool}\n     */\n    hasComponent(id) {\n        return !!this[COMPONENTS][id];\n    }\n\n    /**\n     * 获取组件配置，不传入则返回所有组件配置\n     *\n     * @ignore\n     * @param {string} [id] 组件id\n     * @return {*}\n     */\n    getComponentConfig(id) {\n        return id ? this[COMPONENTS][id] : this[COMPONENTS];\n    }\n\n    /**\n     * 设置 IoC 的模块加载器\n     *\n     * @param {Function} amdLoader 符合 AMD 规范的模块加载器\n     */\n    setLoaderFunction(amdLoader) {\n        this[LOADER].setLoaderFunction(amdLoader);\n    }\n\n    /**\n     * 销毁容器，会遍历容器中的单例，如果有设置 dispose，调用他们的 dispose 方法\n     */\n    dispose() {\n        this[PLUGIN_COLLECTION].onContainerDispose(this);\n        this[INJECTOR].dispose();\n        this[COMPONENTS] = null;\n    }\n\n    /**\n     * 在指定位置添加插件\n     *\n     * @param {ILifeCircleHook[]} plugins 插件数组\n     * @param {number} [pos] 插入位置, 默认为当前 ioc 容器插件队列末尾\n     */\n    addPlugins(plugins, pos) {\n        this[PLUGIN_COLLECTION].addPlugins(plugins, pos);\n    }\n\n    /**\n     * 获取当前实例的插件队列\n     *\n     * @return {ILifeCircleHook[]}\n     */\n    getPlugins() {\n        return this[PLUGIN_COLLECTION].getPlugins();\n    }\n\n    /**\n     * 移除指定的插件或指定位置的插件\n     *\n     * @param {number | ILifeCircleHook} pluginOrPos 插件实例或者插件位置\n     * @return {bool} 成功移除返回 true\n     */\n    removePlugin(pluginOrPos) {\n        return this[PLUGIN_COLLECTION].removePlugin(pluginOrPos);\n    }\n\n    // todo: to be private\n    /**\n     * @ignore\n     */\n    processConfig(id) {\n        let config = this.getComponentConfig(id);\n        config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);\n        this[COMPONENTS][id] = config;\n        if (!config.argDeps) {\n            let deps = config.argDeps = [];\n            let args = config.args;\n            for (let i = args.length - 1; i > -1; --i) {\n                u.hasRef(args[i]) && deps.push(args[i].$ref);\n            }\n        }\n    }\n\n    /**\n     * @private\n     */\n    [CREATE_COMPONENT](id, config) {\n        config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);\n        return {\n            id: id,\n            args: [],\n            properties: {},\n            argDeps: null,\n            propDeps: null,\n            setterDeps: null,\n            scope: 'transient',\n            creator: null,\n            module: undefined,\n            isFactory: false,\n            auto: false,\n            instance: null,\n            ...config\n        };\n    }\n\n    /**\n     * @private\n     */\n    [CREATE_INSTANCE](id) {\n        return this[PLUGIN_COLLECTION].beforeCreateInstance(this, id)\n            .then(\n                instance => {\n                    if (instance === NULL) {\n                        let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;\n                        return this[LOADER]\n                            .wrapCreator(component)\n                            .then(component => this[INJECTOR].createInstance(component));\n                    }\n\n                    return instance;\n                }\n            )\n            .then(instance => this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));\n    }\n}\n\nconst PLUGINS = Symbol('plugins');\n\nclass PluginCollection {\n    constructor(plugins = []) {\n        this[PLUGINS] = plugins;\n    }\n\n    onContainerInit(ioc, iocConfig) {\n        return this[PLUGINS].reduce(\n            (config, plugin) => plugin.onContainerInit(ioc, config),\n            iocConfig\n        );\n    }\n\n    onAddComponent(ioc, componentId, initialComponentConfig) {\n        return this[PLUGINS].reduce(\n            (componentConfig, plugin) => plugin.onAddComponent(ioc, componentId, componentConfig),\n            initialComponentConfig\n        );\n    }\n\n    onGetComponent(ioc, componentId, initialComponentConfig) {\n        return this[PLUGINS].reduce(\n            (componentConfig, plugin) => plugin.onGetComponent(ioc, componentId, componentConfig),\n            initialComponentConfig\n        );\n    }\n\n    beforeCreateInstance(ioc, componentId) {\n        return this[PLUGINS].reduce(\n            (instancePromise, plugin) => instancePromise.then(\n                instance => Promise.resolve(plugin.beforeCreateInstance(ioc, componentId, instance))\n            ),\n            Promise.resolve(NULL)\n        );\n    }\n\n    afterCreateInstance(ioc, componentId, instance) {\n        return this[PLUGINS].reduce(\n            (instancePromise, plugin) => instancePromise.then(\n                instance => {\n                    let result = plugin.afterCreateInstance(ioc, componentId, instance);\n                    return u.isPromise(result) ? result : Promise.resolve(instance);\n                }\n            ),\n            Promise.resolve(instance)\n        );\n    }\n\n    onContainerDispose(ioc) {\n        this[PLUGINS].forEach(plugin => plugin.onContainerDispose(ioc));\n    }\n\n    addPlugins(plugins = [], pos = this[PLUGINS].length) {\n        this[PLUGINS].splice(pos, 0, ...plugins);\n    }\n\n    getPlugins() {\n        return this[PLUGINS].slice(0);\n    }\n\n    removePlugin(pluginOrPos) {\n        if (typeof pluginOrPos !== 'number') {\n            pluginOrPos = this[PLUGINS].indexOf(pluginOrPos);\n            pluginOrPos = pluginOrPos === -1 ? this[PLUGINS].length : pluginOrPos;\n        }\n\n        return !!this[PLUGINS].splice(pluginOrPos, 1).length;\n    }\n}\n",
+    "static": true,
+    "longname": "src/IoC.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 28,
+    "kind": "variable",
+    "name": "PLUGIN_COLLECTION",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~PLUGIN_COLLECTION",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 29,
+    "kind": "variable",
+    "name": "COMPONENTS",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~COMPONENTS",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 30,
+    "kind": "variable",
+    "name": "CREATE_COMPONENT",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~CREATE_COMPONENT",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 31,
+    "kind": "variable",
+    "name": "CREATE_INSTANCE",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~CREATE_INSTANCE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 19,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "variable",
+    "name": "LOADER",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~LOADER",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 33,
+    "kind": "variable",
+    "name": "INJECTOR",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~INJECTOR",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 34,
+    "kind": "variable",
+    "name": "NULL",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~NULL",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{}"
+      ]
+    }
+  },
+  {
+    "__docId__": 35,
+    "kind": "class",
+    "name": "IoC",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~IoC",
+    "access": null,
+    "export": true,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": "IoC",
+    "description": "IoC 容器类",
+    "lineNumber": 27,
+    "interface": false
+  },
+  {
+    "__docId__": 36,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#constructor",
+    "access": null,
+    "description": "根据配置实例化一个 IoC 容器",
+    "lineNumber": 33,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoCConfig"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "config",
+        "description": "ioc 容器配置"
+      }
+    ]
+  },
+  {
+    "__docId__": 37,
+    "kind": "member",
+    "name": "[COMPONENTS]",
+    "memberof": "src/IoC.js~IoC",
+    "static": false,
+    "longname": "src/IoC.js~IoC#[COMPONENTS]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 37,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 38,
+    "kind": "member",
+    "name": "[PLUGIN_COLLECTION]",
+    "memberof": "src/IoC.js~IoC",
+    "static": false,
+    "longname": "src/IoC.js~IoC#[PLUGIN_COLLECTION]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 42,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 39,
+    "kind": "member",
+    "name": "[LOADER]",
+    "memberof": "src/IoC.js~IoC",
+    "static": false,
+    "longname": "src/IoC.js~IoC#[LOADER]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 55,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 40,
+    "kind": "member",
+    "name": "[INJECTOR]",
+    "memberof": "src/IoC.js~IoC",
+    "static": false,
+    "longname": "src/IoC.js~IoC#[INJECTOR]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 60,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "method",
+    "name": "initConfig",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#initConfig",
+    "access": "protected",
+    "description": "初始化配置",
+    "lineNumber": 71,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoCConfig"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "iocConfig",
+        "description": "ioc 配置"
+      }
+    ]
+  },
+  {
+    "__docId__": 42,
+    "kind": "method",
+    "name": "addComponent",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#addComponent",
+    "access": null,
+    "description": "\n向容器中注册组件",
+    "examples": [
+      "ioc.addComponent('list', {\n    // 构造函数创建构件 new creator, 或者字符串，字符串则为 amd 模块名\n    creator: require('./List'),\n    scope: 'transient',\n    args: [{$ref: 'entityName'}],\n\n    // 属性注入， 不设置$setter, 则直接instance.xxx = xxx\n    properties: {\n         model: {$ref: 'listModel'},\n         view: {$ref: 'listView'},\n         name: 'xxxx' // 未设置$ref/$import操作符，'xxxx' 即为依赖值\n    }\n});\n\nioc.addComponent({\n    listData: {\n        creator: 'ListData',\n        scope: 'transient',\n        properties: {\n            data: {\n                $import: 'requestStrategy', // 创建匿名组件，默认继承 requestStrategy 的配置，\n                args: ['list', 'list'] // 重写 requestStrategy 的 args 配置\n            }\n        }\n     }\n});"
+    ],
+    "lineNumber": 114,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string ",
+          " Object.<string, ComponentConfig>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "id",
+        "description": "组件 id 或者组件配置集合"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "ComponentConfig"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "config",
+        "description": "组件配置, 第一个参数为组件 id 时有效"
+      }
+    ]
+  },
+  {
+    "__docId__": 43,
+    "kind": "method",
+    "name": "getComponent",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#getComponent",
+    "access": null,
+    "description": "获取组件实例",
+    "lineNumber": 136,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string ",
+          " string[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "id",
+        "description": "单个组件 id 字符串或者一系列组件 id 数组"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<*> | Promise<*[]>"
+      ],
+      "spread": false,
+      "description": "值为组件实例(传入参数为组件数组时, 值为组件实例数组)的 promise"
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "method",
+    "name": "hasComponent",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#hasComponent",
+    "access": null,
+    "description": "检测是否注册过某个组件",
+    "lineNumber": 166,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "id",
+        "description": "组件 id"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "bool"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "method",
+    "name": "getComponentConfig",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#getComponentConfig",
+    "access": null,
+    "description": "获取组件配置，不传入则返回所有组件配置",
+    "lineNumber": 177,
+    "ignore": true,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "id",
+        "description": "组件id"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "*"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "method",
+    "name": "setLoaderFunction",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#setLoaderFunction",
+    "access": null,
+    "description": "设置 IoC 的模块加载器",
+    "lineNumber": 186,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "amdLoader",
+        "description": "符合 AMD 规范的模块加载器"
+      }
+    ]
+  },
+  {
+    "__docId__": 47,
+    "kind": "method",
+    "name": "dispose",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#dispose",
+    "access": null,
+    "description": "销毁容器，会遍历容器中的单例，如果有设置 dispose，调用他们的 dispose 方法",
+    "lineNumber": 193,
+    "params": []
+  },
+  {
+    "__docId__": 48,
+    "kind": "member",
+    "name": "[COMPONENTS]",
+    "memberof": "src/IoC.js~IoC",
+    "static": false,
+    "longname": "src/IoC.js~IoC#[COMPONENTS]",
+    "access": null,
+    "description": null,
+    "lineNumber": 196,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 49,
+    "kind": "method",
+    "name": "addPlugins",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#addPlugins",
+    "access": null,
+    "description": "在指定位置添加插件",
+    "lineNumber": 205,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ILifeCircleHook[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugins",
+        "description": "插件数组"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "pos",
+        "description": "插入位置, 默认为当前 ioc 容器插件队列末尾"
+      }
+    ]
+  },
+  {
+    "__docId__": 50,
+    "kind": "method",
+    "name": "getPlugins",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#getPlugins",
+    "access": null,
+    "description": "获取当前实例的插件队列",
+    "lineNumber": 214,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ILifeCircleHook[]"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 51,
+    "kind": "method",
+    "name": "removePlugin",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#removePlugin",
+    "access": null,
+    "description": "移除指定的插件或指定位置的插件",
+    "lineNumber": 224,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number ",
+          " ILifeCircleHook"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pluginOrPos",
+        "description": "插件实例或者插件位置"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "bool"
+      ],
+      "spread": false,
+      "description": "成功移除返回 true"
+    }
+  },
+  {
+    "__docId__": 52,
+    "kind": "method",
+    "name": "processConfig",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#processConfig",
+    "access": null,
+    "description": "",
+    "lineNumber": 232,
+    "ignore": true,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 53,
+    "kind": "method",
+    "name": "[CREATE_COMPONENT]",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#[CREATE_COMPONENT]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 248,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "{\"id\": *, \"args\": *, \"properties\": *, \"argDeps\": *, \"propDeps\": *, \"setterDeps\": *, \"scope\": string, \"creator\": *, \"module\": *, \"isFactory\": *, \"auto\": *, \"instance\": *, ...config: Object}"
+      ]
+    }
+  },
+  {
+    "__docId__": 54,
+    "kind": "method",
+    "name": "[CREATE_INSTANCE]",
+    "memberof": "src/IoC.js~IoC",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~IoC#[CREATE_INSTANCE]",
+    "access": "private",
+    "description": "",
+    "lineNumber": 270,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 55,
+    "kind": "variable",
+    "name": "PLUGINS",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~PLUGINS",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 288,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 56,
+    "kind": "class",
+    "name": "PluginCollection",
+    "memberof": "src/IoC.js",
+    "static": true,
+    "longname": "src/IoC.js~PluginCollection",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/IoC.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 290,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 57,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 291,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "plugins",
+        "optional": true,
+        "types": [
+          "*[]"
+        ],
+        "defaultRaw": [],
+        "defaultValue": "[]"
+      }
+    ]
+  },
+  {
+    "__docId__": 58,
+    "kind": "member",
+    "name": "[PLUGINS]",
+    "memberof": "src/IoC.js~PluginCollection",
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#[PLUGINS]",
+    "access": null,
+    "description": null,
+    "lineNumber": 292,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 59,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#onContainerInit",
+    "access": null,
+    "description": null,
+    "lineNumber": 295,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "iocConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 60,
+    "kind": "method",
+    "name": "onAddComponent",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#onAddComponent",
+    "access": null,
+    "description": null,
+    "lineNumber": 302,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "initialComponentConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 61,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#onGetComponent",
+    "access": null,
+    "description": null,
+    "lineNumber": 309,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "initialComponentConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 62,
+    "kind": "method",
+    "name": "beforeCreateInstance",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#beforeCreateInstance",
+    "access": null,
+    "description": null,
+    "lineNumber": 316,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 63,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#afterCreateInstance",
+    "access": null,
+    "description": null,
+    "lineNumber": 325,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 64,
+    "kind": "method",
+    "name": "onContainerDispose",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#onContainerDispose",
+    "access": null,
+    "description": null,
+    "lineNumber": 337,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 65,
+    "kind": "method",
+    "name": "addPlugins",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#addPlugins",
+    "access": null,
+    "description": null,
+    "lineNumber": 341,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "plugins",
+        "optional": true,
+        "types": [
+          "*[]"
+        ],
+        "defaultRaw": [],
+        "defaultValue": "[]"
+      },
+      {
+        "name": "pos",
+        "optional": true,
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 66,
+    "kind": "method",
+    "name": "getPlugins",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#getPlugins",
+    "access": null,
+    "description": null,
+    "lineNumber": 345,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 67,
+    "kind": "method",
+    "name": "removePlugin",
+    "memberof": "src/IoC.js~PluginCollection",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/IoC.js~PluginCollection#removePlugin",
+    "access": null,
+    "description": null,
+    "lineNumber": 349,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "pluginOrPos",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 68,
+    "kind": "file",
+    "name": "src/Loader.js",
+    "content": "/**\n * @file 组件模块加载类\n * @author exodia(d_xinxin@163.com)\n */\n\nimport DependencyTree from './DependencyTree';\nimport CircularError from './CircularError';\n\n/**\n * @private\n */\nexport default class Loader {\n    amdLoader = getDefaultLoader();\n\n    constructor(context, skipCheckingCircularDep) {\n        this.context = context;\n        this.skipCheckingCircularDep = skipCheckingCircularDep;\n    }\n\n    setLoaderFunction(amdGlobalLoader) {\n        this.amdLoader = amdGlobalLoader;\n    }\n\n    resolveDependentModules(componentConfig, result = {}, deps) {\n        let depTree = this.skipCheckingCircularDep ? null : new DependencyTree();\n        return getDependentModules(componentConfig, this.context, result, depTree, deps);\n    }\n\n    loadModuleMap(moduleMap) {\n        let moduleIds = Object.keys(moduleMap);\n        if(!moduleIds.length) {\n            return Promise.resolve();\n        }\n\n        return new Promise(resolve => {\n            this.amdLoader(\n                moduleIds,\n                (...modules) => {\n                    modules.forEach(\n                        (factory, index) => {\n                            let moduleId = moduleIds[index];\n                            moduleMap[moduleId].forEach(\n                                config => {\n                                    if (typeof config.creator !== 'function') {\n                                        config.creator = config.creator || factory;\n                                    }\n                                }\n                            );\n                        }\n                    );\n                    resolve();\n                }\n            );\n        });\n    }\n\n    wrapCreator(config, factory) {\n        let creator = config.creator;\n\n        // 给字面量组件和非工厂组件套一层 creator，后面构造实例就可以无需分支判断，直接调用 component.creator\n        if (!config.isFactory && config.scope !== 'static') {\n            config.creator = function (...args) {\n                return new creator(...args);\n            };\n        }\n\n        return Promise.resolve(config);\n    }\n}\n\nfunction getDependentModules(component, context, result, depTree, deps) {\n    let module = component.module;\n    if (typeof component.creator !== 'function' && module) {\n        result[module] = result[module] || [];\n        result[module].push(component);\n    }\n    context.processConfig(component.id);\n\n    let child = null;\n    // depTree 为 null 表示跳过循环检测\n    if (depTree) {\n        let circular = depTree.checkForCircular(component.id);\n        if (circular) {\n            let msg = `${component.id} has circular dependencies `;\n            throw new CircularError(msg, component);\n        }\n\n        depTree.addData(component);\n        child = depTree.appendChild(new DependencyTree());\n    }\n\n\n    deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);\n    for (let i = deps.length - 1; i > -1; --i) {\n        if (context.hasComponent(deps[i])) {\n            getDependentModules(context.getComponentConfig(deps[i]), context, result, child);\n        }\n    }\n\n    return result;\n}\n\nconst global = Function('return this')();\n\nfunction getDefaultLoader() {\n    if (typeof define === 'function' && define.amd && typeof global.require === 'function') {\n        return require;\n    }\n\n    if (typeof module !== 'undefined' && module && 'exports' in module) {\n        return (ids, cb) => cb(...(ids.map(id => require(id))));\n    }\n\n    return (ids, cb) => cb(...(ids.map(id => global[id])));\n}\n",
+    "static": true,
+    "longname": "src/Loader.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 69,
+    "kind": "class",
+    "name": "Loader",
+    "memberof": "src/Loader.js",
+    "static": true,
+    "longname": "src/Loader.js~Loader",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/Loader.js",
+    "importStyle": "Loader",
+    "description": "",
+    "lineNumber": 12,
+    "interface": false
+  },
+  {
+    "__docId__": 70,
+    "kind": "member",
+    "name": "amdLoader",
+    "memberof": "src/Loader.js~Loader",
+    "static": false,
+    "longname": "src/Loader.js~Loader#amdLoader",
+    "access": null,
+    "description": null,
+    "lineNumber": 13,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 71,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/Loader.js~Loader",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Loader.js~Loader#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "context",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "skipCheckingCircularDep",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 72,
+    "kind": "member",
+    "name": "context",
+    "memberof": "src/Loader.js~Loader",
+    "static": false,
+    "longname": "src/Loader.js~Loader#context",
+    "access": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 73,
+    "kind": "member",
+    "name": "skipCheckingCircularDep",
+    "memberof": "src/Loader.js~Loader",
+    "static": false,
+    "longname": "src/Loader.js~Loader#skipCheckingCircularDep",
+    "access": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 74,
+    "kind": "method",
+    "name": "setLoaderFunction",
+    "memberof": "src/Loader.js~Loader",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Loader.js~Loader#setLoaderFunction",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "amdGlobalLoader",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 75,
+    "kind": "member",
+    "name": "amdLoader",
+    "memberof": "src/Loader.js~Loader",
+    "static": false,
+    "longname": "src/Loader.js~Loader#amdLoader",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 76,
+    "kind": "method",
+    "name": "resolveDependentModules",
+    "memberof": "src/Loader.js~Loader",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Loader.js~Loader#resolveDependentModules",
+    "access": null,
+    "description": null,
+    "lineNumber": 24,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "componentConfig",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "result",
+        "optional": true,
+        "types": [
+          "{}"
+        ],
+        "defaultRaw": {},
+        "defaultValue": "{}"
+      },
+      {
+        "name": "deps",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 77,
+    "kind": "method",
+    "name": "loadModuleMap",
+    "memberof": "src/Loader.js~Loader",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Loader.js~Loader#loadModuleMap",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "moduleMap",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 78,
+    "kind": "method",
+    "name": "wrapCreator",
+    "memberof": "src/Loader.js~Loader",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Loader.js~Loader#wrapCreator",
+    "access": null,
+    "description": null,
+    "lineNumber": 57,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "factory",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 79,
+    "kind": "function",
+    "name": "getDependentModules",
+    "memberof": "src/Loader.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/Loader.js~getDependentModules",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/Loader.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 71,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "component",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "context",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "result",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "depTree",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "deps",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 80,
+    "kind": "variable",
+    "name": "global",
+    "memberof": "src/Loader.js",
+    "static": true,
+    "longname": "src/Loader.js~global",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/Loader.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 103,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 81,
+    "kind": "function",
+    "name": "getDefaultLoader",
+    "memberof": "src/Loader.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/Loader.js~getDefaultLoader",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/Loader.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 105,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 82,
+    "kind": "file",
+    "name": "src/main.js",
+    "content": "/**\n * @file main IoC 入口\n * @author exodia (d_xinxin@163.com)\n */\n\nexport IoC from './IoC';\nexport BasePlugin from './plugins/BasePlugin';",
+    "static": true,
+    "longname": "src/main.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 83,
+    "kind": "file",
+    "name": "src/meta.js",
+    "content": "/**\n * 元数据定义\n */\n\n/**\n * ioc 生命周期接口\n *\n * @interface\n */\nclass ILifeCircleHook {\n    /**\n     * 插件名称\n     *\n     * @type {string}\n     */\n    get name() {\n        throw new Error('need to be implement');\n    }\n\n    /**\n     * 容器实例化时调用，传入 ioc 容器和当前配置作为参数, 可以在此拦截容器级的配置，\n     * 返回一个新的容器级配置提供给 ioc 使用, ioc将基于新的配置做后续操作。\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {IoCConfig} iocConfig 容器配置\n     *\n     * @return {IoCConfig} 扩展后的 ioc 容器配置\n     */\n    onContainerInit(ioc, iocConfig) {}\n\n    /**\n     * 注册组件时调用，传入 ioc 容器，当前组件 id ，可以在此拦截组件级的配置，\n     * 返回一个新的组件配置提供给 ioc 使用，ioc 将基于此配置做后续操作。\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {string} componentId  当前待添加的组件 id\n     * @param {ComponentConfig} componentConfig 当前待添加的组件配置\n     *\n     * @return {ComponentConfig} 扩展后的组件配置\n     */\n    onAddComponent(ioc, componentId, componentConfig) {}\n\n    /**\n     * 获取组件时调用，传入 ioc 容器，当前组件 id，可以在此拦截组件级的配置，\n     * 返回一个新的组件配置提供给 ioc 使用，ioc 将基于此配置做后续操作。\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {string} componentId  当前要获取的组件 id\n     * @param {ComponentConfig} componentConfig 当前要获取的组件配置\n     *\n     * @return {ComponentConfig} 扩展后的组件配置\n     */\n    onGetComponent(ioc, componentId, componentConfig) {}\n\n    /**\n     * 创建组件实例前调用，传入 ioc 容器，当前组件 id，和当前已经创建的实例(可能没有)，\n     * 返回一个值为实例的 promise 给 ioc 使用，若不想覆盖现有实例，则直接返回一个 Promise<instance>。\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {string} componentId  当前组件 id\n     * @param {*} [instance] 当前已创建的实例\n     *\n     * @return {Promise<*>}\n     */\n    beforeCreateInstance(ioc, componentId, instance) {}\n\n    /**\n     * 创建组件实例后调用，传入 ioc 容器，当前组件 id，和当前已经创建的实例，\n     * 返回一个值为实例的 promise 给 ioc 使用。\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {string} componentId  当前组件 id\n     * @param {*} instance 当前已创建的实例\n     *\n     * @return {Promise<*>}\n     */\n    afterCreateInstance(ioc, componentId, instance) {}\n\n    /**\n     * ioc 容器销毁时调用\n     *\n     * @param {IoC} ioc ioc 实例\n     */\n    onContainerDispose(ioc) {}\n}\n\n\n/**\n * ioc 容器配置\n *\n * @typedef {Object} IoCConfig\n *\n * @property {Function} [config.loader=require] 符合 AMD 规范的模块加载器，默认为全局的 require\n * @property {Object.<string, ComponentConfig>} [config.components]\n * 批量组件配置, 其中每个key 为组件 id，值为构建配置对象。\n *\n * @property {ILifeCircleHook[]} [config.plugins] ioc 插件\n * @property {boolean} [config.skipCheckingCircularDep=false] 是否跳过循环依赖检测\n */\n\n/**\n * 组件配置对象\n *\n * @typedef {Object} ComponentConfig\n *\n * @property {Function|string} creator 创建组件的函数或模块名称\n * @property {boolean} [isFactory=false] 是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用\n * @property {('transient'|'singleton'|'static')} [scope='transient']\n * 组件作用域，默认为 transient，每次获取组件，都会新建一个实例返回，若为 singleton，则会返回同一个实例，若为 static，则直接返回creator\n * @property {DependencyConfig[]} args 传递给组件构造函数的参数，\n * 获取组件时，根据 args 的配置，自动创建其依赖，作为构造函数参数传入\n * @property {Object.<string, DependencyConfig>} [properties] 附加给组件实例的属性，\n * 获取组件时，IoC 会根据 properties 的配置，自动创建其依赖， 作为属性注入组件实例。\n * **note:** 若组件实例存在 ```set + 属性名首字母大些的方法```，则会调用此方法，并将依赖传入，\n * 否则简单的调用 ```this.{propertyName} = {property}```\n * @property {AopConfig} [aopConfig] aop 配置对象，内置aop机制会读取该配置进行相关的拦截。\n */\n\n/**\n * 组件依赖配置对象，用于配置组件的依赖，若未配置$ref与$import，则本身作为依赖值，否则将根据$ref/$import的声明查找依赖。\n *\n * @typedef {* | Object} DependencyConfig\n *\n * @property {string} $ref 声明依赖的组件，获取组件时，会自动创建其声明的依赖组件并注入\n * @property {string} $import 导入指定组件的配置，将创建一个匿名组件配置，其余的配置将覆盖掉导入的配置\n * @property {DependencyConfig[]} $list 声明数组形式的依赖，获取组件时，会创建一个数组，数组元素根据其对应$list中所声明的配置进行创建\n * @property {Object<string, DependencyConfig>} $map 声明对象（映射表）形式的依赖，获取组件时，会创建一个对象，\n * 对象的属性根据其对应$map中所声明的配置进行创建\n */\n\n/**\n * @typedef {Object} AopConfig\n *\n * @property {Advisor} advisors 切面配置数组，每个元素都是一个切面，\n * 切面是通知和切点的结合, 通知和切点共同定义了切面的全部内容 - 是什么, 在何时和何处完成功能.\n *\n * @property {('object'|'class')} [proxyTarget='object'] 拦截目标，默认为 'object'，\n * 设置为 'object' 会基于对象实例进行拦截，设置为'class'则基于类拦截，两者区别见：https://github.com/ecomfe/uioc/issues/69\n */\n\n/**\n * @typedef {Object} Advisor\n *\n * @property {string | Function | RegExp} matcher 切点（连接点筛选）功能, 为 string, RegExp, Function 三个类型之一,\n * 指定符合匹配条件的方法才应用特定的拦截/通知逻辑\n * @property {Object} advices 通知对象, 拥有 before, afterReturning, afterThrowing, after, around 中一个或多个方法；\n *\n * 详见：https://github.com/ecomfe/aop/blob/develop/README.md#切面aspectadvisor\n *\n * before: 在函数/方法执行前调用指定逻辑\n *\n * after: 在函数/方法执行后调用指定逻辑, 无论函数/方法是否执行成功\n *\n * afterReturning: 在函数/方法执行成功后调用指定逻辑\n *\n * afterThrowing: 在方法抛出异常后调用指定逻辑\n *\n * around: 在函数/方法调用之前和调用之后执行自定义的指定逻辑\n *\n */\n",
+    "static": true,
+    "longname": "src/meta.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 84,
+    "kind": "class",
+    "name": "ILifeCircleHook",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~ILifeCircleHook",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/meta.js",
+    "importStyle": null,
+    "description": "ioc 生命周期接口",
+    "lineNumber": 10,
+    "interface": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "typedef",
+    "name": "IoCConfig",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~IoCConfig",
+    "access": null,
+    "description": "ioc 容器配置",
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "require",
+        "defaultRaw": "require",
+        "name": "config.loader",
+        "description": "符合 AMD 规范的模块加载器，默认为全局的 require"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object.<string, ComponentConfig>"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "config.components",
+        "description": "批量组件配置, 其中每个key 为组件 id，值为构建配置对象。"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "ILifeCircleHook[]"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "config.plugins",
+        "description": "ioc 插件"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "false",
+        "defaultRaw": false,
+        "name": "config.skipCheckingCircularDep",
+        "description": "是否跳过循环依赖检测"
+      }
+    ],
+    "type": {
+      "types": [
+        "Object"
+      ],
+      "optional": false,
+      "name": "IoCConfig"
+    }
+  },
+  {
+    "__docId__": 86,
+    "kind": "typedef",
+    "name": "ComponentConfig",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~ComponentConfig",
+    "access": null,
+    "description": "组件配置对象",
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "Function",
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "creator",
+        "description": "创建组件的函数或模块名称"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "false",
+        "defaultRaw": false,
+        "name": "isFactory",
+        "description": "是否为工厂函数，默认false，会通过 new 方式调用，true 时直接调用"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "'transient'",
+          "'singleton'",
+          "'static'"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "'transient'",
+        "defaultRaw": "'transient'",
+        "name": "scope",
+        "description": "组件作用域，默认为 transient，每次获取组件，都会新建一个实例返回，若为 singleton，则会返回同一个实例，若为 static，则直接返回creator"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "DependencyConfig[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "args",
+        "description": "传递给组件构造函数的参数，\n获取组件时，根据 args 的配置，自动创建其依赖，作为构造函数参数传入"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object.<string, DependencyConfig>"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "properties",
+        "description": "附加给组件实例的属性，\n获取组件时，IoC 会根据 properties 的配置，自动创建其依赖， 作为属性注入组件实例。\n**note:** 若组件实例存在 ```set + 属性名首字母大些的方法```，则会调用此方法，并将依赖传入，\n否则简单的调用 ```this.{propertyName} = {property}```"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "AopConfig"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "aopConfig",
+        "description": "aop 配置对象，内置aop机制会读取该配置进行相关的拦截。"
+      }
+    ],
+    "type": {
+      "types": [
+        "Object"
+      ],
+      "optional": false,
+      "name": "ComponentConfig"
+    }
+  },
+  {
+    "__docId__": 87,
+    "kind": "typedef",
+    "name": "DependencyConfig",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~DependencyConfig",
+    "access": null,
+    "description": "组件依赖配置对象，用于配置组件的依赖，若未配置$ref与$import，则本身作为依赖值，否则将根据$ref/$import的声明查找依赖。",
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "$ref",
+        "description": "声明依赖的组件，获取组件时，会自动创建其声明的依赖组件并注入"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "$import",
+        "description": "导入指定组件的配置，将创建一个匿名组件配置，其余的配置将覆盖掉导入的配置"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "DependencyConfig[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "$list",
+        "description": "声明数组形式的依赖，获取组件时，会创建一个数组，数组元素根据其对应$list中所声明的配置进行创建"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object<string, DependencyConfig>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "$map",
+        "description": "声明对象（映射表）形式的依赖，获取组件时，会创建一个对象，\n对象的属性根据其对应$map中所声明的配置进行创建"
+      }
+    ],
+    "type": {
+      "types": [
+        "* ",
+        " Object"
+      ],
+      "optional": false,
+      "name": "DependencyConfig"
+    }
+  },
+  {
+    "__docId__": 88,
+    "kind": "typedef",
+    "name": "AopConfig",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~AopConfig",
+    "access": null,
+    "description": "",
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "Advisor"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "advisors",
+        "description": "切面配置数组，每个元素都是一个切面，\n切面是通知和切点的结合, 通知和切点共同定义了切面的全部内容 - 是什么, 在何时和何处完成功能."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "'object'",
+          "'class'"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "'object'",
+        "defaultRaw": "'object'",
+        "name": "proxyTarget",
+        "description": "拦截目标，默认为 'object'，\n设置为 'object' 会基于对象实例进行拦截，设置为'class'则基于类拦截，两者区别见：https://github.com/ecomfe/uioc/issues/69"
+      }
+    ],
+    "type": {
+      "types": [
+        "Object"
+      ],
+      "optional": false,
+      "name": "AopConfig"
+    }
+  },
+  {
+    "__docId__": 89,
+    "kind": "typedef",
+    "name": "Advisor",
+    "memberof": "src/meta.js",
+    "static": true,
+    "longname": "src/meta.js~Advisor",
+    "access": null,
+    "description": "",
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "string ",
+          " Function ",
+          " RegExp"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "matcher",
+        "description": "切点（连接点筛选）功能, 为 string, RegExp, Function 三个类型之一,\n指定符合匹配条件的方法才应用特定的拦截/通知逻辑"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "advices",
+        "description": "通知对象, 拥有 before, afterReturning, afterThrowing, after, around 中一个或多个方法；\n\n详见：https://github.com/ecomfe/aop/blob/develop/README.md#切面aspectadvisor\n\nbefore: 在函数/方法执行前调用指定逻辑\n\nafter: 在函数/方法执行后调用指定逻辑, 无论函数/方法是否执行成功\n\nafterReturning: 在函数/方法执行成功后调用指定逻辑\n\nafterThrowing: 在方法抛出异常后调用指定逻辑\n\naround: 在函数/方法调用之前和调用之后执行自定义的指定逻辑"
+      }
+    ],
+    "type": {
+      "types": [
+        "Object"
+      ],
+      "optional": false,
+      "name": "Advisor"
+    }
+  },
+  {
+    "__docId__": 90,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#name",
+    "access": null,
+    "description": "插件名称",
+    "lineNumber": 16,
+    "type": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 91,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#onContainerInit",
+    "access": null,
+    "description": "容器实例化时调用，传入 ioc 容器和当前配置作为参数, 可以在此拦截容器级的配置，\n返回一个新的容器级配置提供给 ioc 使用, ioc将基于新的配置做后续操作。",
+    "lineNumber": 29,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "IoCConfig"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "iocConfig",
+        "description": "容器配置"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "IoCConfig"
+      ],
+      "spread": false,
+      "description": "扩展后的 ioc 容器配置"
+    }
+  },
+  {
+    "__docId__": 92,
+    "kind": "method",
+    "name": "onAddComponent",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#onAddComponent",
+    "access": null,
+    "description": "注册组件时调用，传入 ioc 容器，当前组件 id ，可以在此拦截组件级的配置，\n返回一个新的组件配置提供给 ioc 使用，ioc 将基于此配置做后续操作。",
+    "lineNumber": 41,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentId",
+        "description": "当前待添加的组件 id"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "ComponentConfig"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentConfig",
+        "description": "当前待添加的组件配置"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ComponentConfig"
+      ],
+      "spread": false,
+      "description": "扩展后的组件配置"
+    }
+  },
+  {
+    "__docId__": 93,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#onGetComponent",
+    "access": null,
+    "description": "获取组件时调用，传入 ioc 容器，当前组件 id，可以在此拦截组件级的配置，\n返回一个新的组件配置提供给 ioc 使用，ioc 将基于此配置做后续操作。",
+    "lineNumber": 53,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentId",
+        "description": "当前要获取的组件 id"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "ComponentConfig"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentConfig",
+        "description": "当前要获取的组件配置"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ComponentConfig"
+      ],
+      "spread": false,
+      "description": "扩展后的组件配置"
+    }
+  },
+  {
+    "__docId__": 94,
+    "kind": "method",
+    "name": "beforeCreateInstance",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#beforeCreateInstance",
+    "access": null,
+    "description": "创建组件实例前调用，传入 ioc 容器，当前组件 id，和当前已经创建的实例(可能没有)，\n返回一个值为实例的 promise 给 ioc 使用，若不想覆盖现有实例，则直接返回一个 Promise<instance>。",
+    "lineNumber": 65,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentId",
+        "description": "当前组件 id"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "instance",
+        "description": "当前已创建的实例"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<*>"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 95,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#afterCreateInstance",
+    "access": null,
+    "description": "创建组件实例后调用，传入 ioc 容器，当前组件 id，和当前已经创建的实例，\n返回一个值为实例的 promise 给 ioc 使用。",
+    "lineNumber": 77,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "componentId",
+        "description": "当前组件 id"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "instance",
+        "description": "当前已创建的实例"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise<*>"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 96,
+    "kind": "method",
+    "name": "onContainerDispose",
+    "memberof": "src/meta.js~ILifeCircleHook",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/meta.js~ILifeCircleHook#onContainerDispose",
+    "access": null,
+    "description": "ioc 容器销毁时调用",
+    "lineNumber": 84,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      }
+    ]
+  },
+  {
+    "__docId__": 97,
+    "kind": "file",
+    "name": "src/plugins/AopPlugin.js",
+    "content": "/**\n * @file aop插件\n * @author exodia(d_xinxin@163.com)\n */\n\nimport BasePlugin from './BasePlugin';\n\n/**\n * @private\n * @ignore\n */\nexport default class AopPlugin extends BasePlugin {\n    static AOP_COMPONENT_CONFIG = {\n        module: 'uaop',\n        scope: 'static'\n    };\n\n    static AOP_ID = Symbol('internalAop');\n\n    get name() {\n        return 'aop';\n    }\n\n    /**\n     * @override\n     */\n    onContainerInit(ioc, iocConfig) {\n        ioc.addComponent(this.constructor.AOP_ID, this.constructor.AOP_COMPONENT_CONFIG);\n        return iocConfig;\n    }\n\n    /**\n     * 是否需要代理\n     *\n     * @param {Object} config 配置\n     * @param {string} type 代理类型[class|object]\n     * @return {boolean}\n     */\n    canProxy(config, type) {\n        if (!('aopConfig' in config)) {\n            return false;\n        }\n\n        // 默认代理对象为 object\n        let {proxyTarget = 'object'} = config.aopConfig;\n        return proxyTarget === type;\n    }\n\n    /**\n     * 类或对象代理过程\n     *\n     * @param {IoC} ioc ioc 实例\n     * @param {string} type 代理类型[class|object]\n     * @param {Function} initial 待拦截的类或对象\n     * @param {Array.<Object>} [advisors=[]] 切面\n     * @return {Promise.<Object | Class>}\n     */\n    proxyAop(ioc, type, initial, advisors = []) {\n        const METHOD = type === 'class' ? 'createClassProxy' : 'createObjectProxy';\n        const AOP_ID = this.constructor.AOP_ID;\n\n        return ioc.getComponent(AOP_ID).then(\n            aop => advisors.reduce(\n                (target, {matcher, advices}) => aop[METHOD](target, matcher, advices),\n                initial\n            )\n        );\n    }\n\n    /**\n     * @override\n     */\n    beforeCreateInstance(ioc, componentId, instance) {\n        let config = ioc.getComponentConfig(componentId) || {};\n        let proxyTarget = 'class';\n\n        if (this.canProxy(config, proxyTarget)) {\n            return this\n                .proxyAop(ioc, proxyTarget, config.creator, config.aopConfig.advisors)\n                .then(ProxyClass => config.creator = ProxyClass)\n                .then(() => instance);\n        }\n\n        return Promise.resolve(instance);\n    }\n\n    /**\n     * @override\n     */\n    afterCreateInstance(ioc, componentId, instance) {\n        let config = ioc.getComponentConfig(componentId) || {};\n        let proxyTarget = 'object';\n\n        return this.canProxy(config, proxyTarget)\n            ? this.proxyAop(ioc, proxyTarget, instance, config.aopConfig.advisors)\n            : Promise.resolve(instance);\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/AopPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 98,
+    "kind": "class",
+    "name": "AopPlugin",
+    "memberof": "src/plugins/AopPlugin.js",
+    "static": true,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/AopPlugin.js",
+    "importStyle": "AopPlugin",
+    "description": "",
+    "lineNumber": 12,
+    "ignore": true,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 99,
+    "kind": "member",
+    "name": "AOP_COMPONENT_CONFIG",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "static": true,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin.AOP_COMPONENT_CONFIG",
+    "access": null,
+    "description": null,
+    "lineNumber": 13,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{\"module\": string, \"scope\": string}"
+      ]
+    }
+  },
+  {
+    "__docId__": 100,
+    "kind": "member",
+    "name": "AOP_ID",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "static": true,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin.AOP_ID",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 101,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 102,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#onContainerInit",
+    "access": null,
+    "description": "",
+    "lineNumber": 27,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "iocConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "method",
+    "name": "canProxy",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#canProxy",
+    "access": null,
+    "description": "是否需要代理",
+    "lineNumber": 39,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config",
+        "description": "配置"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "type",
+        "description": "代理类型[class|object]"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 104,
+    "kind": "method",
+    "name": "proxyAop",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#proxyAop",
+    "access": null,
+    "description": "类或对象代理过程",
+    "lineNumber": 58,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "IoC"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ioc",
+        "description": "ioc 实例"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "type",
+        "description": "代理类型[class|object]"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "initial",
+        "description": "待拦截的类或对象"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array.<Object>"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "[]",
+        "defaultRaw": [],
+        "name": "advisors",
+        "description": "切面"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Promise.<Object | Class>"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 105,
+    "kind": "method",
+    "name": "beforeCreateInstance",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#beforeCreateInstance",
+    "access": null,
+    "description": "",
+    "lineNumber": 73,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/plugins/AopPlugin.js~AopPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AopPlugin.js~AopPlugin#afterCreateInstance",
+    "access": null,
+    "description": "",
+    "lineNumber": 90,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "file",
+    "name": "src/plugins/AutoPlugin.js",
+    "content": "/**\n * @file 自动注入插件\n * @author exodia(d_xinxin@163.com)\n */\nimport u from '../util';\nimport BasePlugin from './BasePlugin';\n\nconst SETTER_REGEX = /^set[A-Z]/;\nconst SET_LENGTH = 'set'.length;\nconst CACHE = Symbol('cache');\n\n/**\n * @private\n */\nexport default class AutoPlugin extends BasePlugin {\n    get name() {\n        return 'auto';\n    }\n\n    static getPropertyFromSetter(name, descriptor) {\n        let prop = null;\n        if (SETTER_REGEX.test(name) && typeof descriptor.value === 'function') {\n            prop = name.charAt(SET_LENGTH).toLowerCase() + name.slice(SET_LENGTH + 1);\n        }\n\n        return prop;\n    }\n\n    static setProperty(instance, propertyName, value) {\n        let method = 'set' + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);\n        instance[method](value);\n    }\n\n    constructor() {\n        super();\n        this[CACHE] = Object.create(null);\n    }\n\n    afterCreateInstance(ioc, id, instance) {\n        let deps = this.resolveDependencies(ioc, id, instance);\n        if (!deps.length) {\n            return Promise.resolve(instance);\n        }\n\n        return ioc.getComponent(deps).then(\n            components => {\n                components.forEach(\n                    (component, index) => AutoPlugin.setProperty(instance, deps[index], component)\n                );\n                return instance;\n            }\n        );\n    }\n\n    resolveDependencies(ioc, id, instance) {\n        if (this[CACHE][id]) {\n            return this[CACHE][id];\n        }\n\n        let config = ioc.getComponentConfig(id) || {};\n        if (!config.auto) {\n            this[CACHE][id] = [];\n            return [];\n        }\n\n        let exclude = config.properties || {};\n        let deps = [];\n        let resultSet = Object.create(null);\n        for (let proto = instance; proto; proto = Object.getPrototypeOf(proto)) {\n            let properties = Object.getOwnPropertyNames(proto);\n            properties.forEach(\n                prop => {\n                    if (!resultSet[prop]) {\n                        resultSet[prop] = true;\n                        let descriptor = Object.getOwnPropertyDescriptor(proto, prop);\n                        prop = AutoPlugin.getPropertyFromSetter(prop, descriptor);\n                        // 有属性，未和属性配置冲突，且组件已注册\n                        prop && !u.hasOwn(exclude, prop) && ioc.hasComponent(prop) && deps.push(prop);\n                    }\n                }\n            );\n        }\n\n        this[CACHE][id] = deps;\n        config.setterDeps = deps;\n        return deps;\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 108,
+    "kind": "variable",
+    "name": "SETTER_REGEX",
+    "memberof": "src/plugins/AutoPlugin.js",
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~SETTER_REGEX",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/AutoPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "undefined"
+      ]
+    }
+  },
+  {
+    "__docId__": 109,
+    "kind": "variable",
+    "name": "SET_LENGTH",
+    "memberof": "src/plugins/AutoPlugin.js",
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~SET_LENGTH",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/AutoPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 110,
+    "kind": "variable",
+    "name": "CACHE",
+    "memberof": "src/plugins/AutoPlugin.js",
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~CACHE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/AutoPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 111,
+    "kind": "class",
+    "name": "AutoPlugin",
+    "memberof": "src/plugins/AutoPlugin.js",
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/AutoPlugin.js",
+    "importStyle": "AutoPlugin",
+    "description": "",
+    "lineNumber": 15,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 112,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 113,
+    "kind": "method",
+    "name": "getPropertyFromSetter",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin.getPropertyFromSetter",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "name",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "descriptor",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 114,
+    "kind": "method",
+    "name": "setProperty",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin.setProperty",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "propertyName",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "value",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 115,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 34,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 116,
+    "kind": "member",
+    "name": "[CACHE]",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "static": false,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin#[CACHE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 36,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 117,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin#afterCreateInstance",
+    "access": null,
+    "description": null,
+    "lineNumber": 39,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 118,
+    "kind": "method",
+    "name": "resolveDependencies",
+    "memberof": "src/plugins/AutoPlugin.js~AutoPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/AutoPlugin.js~AutoPlugin#resolveDependencies",
+    "access": null,
+    "description": null,
+    "lineNumber": 55,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 119,
+    "kind": "file",
+    "name": "src/plugins/BasePlugin.js",
+    "content": "/**\n * 基础插件类, 实现了默认的钩子接口, 继承此类实现自定义的生命周期钩子\n *\n * @implements {ILifeCircleHook}\n */\nexport default class BasePlugin {\n    /**\n     * @abstract\n     */\n    get name() {\n        throw new Error('need to be implement');\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#onContainerInit}\n     */\n    onContainerInit(ioc, iocConfig) {\n        return iocConfig;\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#onAddComponent}\n     */\n    onAddComponent(ioc, componentId, componentConfig) {\n        return componentConfig;\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#onGetComponent}\n     */\n    onGetComponent(ioc, componentId, componentConfig) {\n        return componentConfig;\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#beforeCreateInstance}\n     */\n    beforeCreateInstance(ioc, componentId, instance) {\n        return Promise.resolve(instance);\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#afterCreateInstance}\n     */\n    afterCreateInstance(ioc, componentId, instance) {\n        return Promise.resolve(instance);\n    }\n\n    /**\n     * @see {@link ILifeCircleHook#onContainerDispose}\n     */\n    onContainerDispose(ioc) {}\n}\n",
+    "static": true,
+    "longname": "src/plugins/BasePlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 120,
+    "kind": "class",
+    "name": "BasePlugin",
+    "memberof": "src/plugins/BasePlugin.js",
+    "static": true,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin",
+    "access": null,
+    "export": true,
+    "importPath": "uioc/src/plugins/BasePlugin.js",
+    "importStyle": "BasePlugin",
+    "description": "基础插件类, 实现了默认的钩子接口, 继承此类实现自定义的生命周期钩子",
+    "lineNumber": 6,
+    "interface": false,
+    "implements": [
+      "ILifeCircleHook"
+    ]
+  },
+  {
+    "__docId__": 121,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#name",
+    "access": null,
+    "description": "",
+    "lineNumber": 10,
+    "abstract": true
+  },
+  {
+    "__docId__": 122,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#onContainerInit",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#onContainerInit}"
+    ],
+    "lineNumber": 17,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "iocConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 123,
+    "kind": "method",
+    "name": "onAddComponent",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#onAddComponent",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#onAddComponent}"
+    ],
+    "lineNumber": 24,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 124,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#onGetComponent",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#onGetComponent}"
+    ],
+    "lineNumber": 31,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 125,
+    "kind": "method",
+    "name": "beforeCreateInstance",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#beforeCreateInstance",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#beforeCreateInstance}"
+    ],
+    "lineNumber": 38,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 126,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#afterCreateInstance",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#afterCreateInstance}"
+    ],
+    "lineNumber": 45,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 127,
+    "kind": "method",
+    "name": "onContainerDispose",
+    "memberof": "src/plugins/BasePlugin.js~BasePlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/BasePlugin.js~BasePlugin#onContainerDispose",
+    "access": null,
+    "description": "",
+    "see": [
+      "{@link ILifeCircleHook#onContainerDispose}"
+    ],
+    "lineNumber": 52,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 128,
+    "kind": "file",
+    "name": "src/plugins/ImportPlugin.js",
+    "content": "/**\n * @file 导入插件\n * @author exodia(d_xinxin@163.com)\n */\n\nimport BasePlugin from './BasePlugin';\nimport u from '../util';\n\nconst ANONY_PREFIX = '^uioc-';\nconst CACHE = Symbol('cache');\n\n/**\n * @private\n */\nexport default class ImportPlugin extends BasePlugin {\n\n    static has(obj) {\n        return u.isObject(obj) && typeof obj.$import === 'string';\n    }\n\n    static transformConfig(ioc, config) {\n        // 解析构造函数参数\n        let argConfigs = config.args;\n        let id = null;\n        let deps = argConfigs.reduce(\n            (result, argConfig, index) => {\n                if (ImportPlugin.has(argConfig)) {\n                    // 给匿名组件配置生成一个 ioc 构件id\n                    id = ImportPlugin.createAnonymousConfig(ioc, argConfig, `${config.id}-$arg.${index}.`);\n                    argConfigs[index] = {$ref: id};\n                    result.push(id);\n                }\n                return result;\n            },\n            []\n        );\n\n        // 解析属性\n        let props = config.properties;\n        for (let k in props) {\n            if (ImportPlugin.has(props[k])) {\n                id = ImportPlugin.createAnonymousConfig(ioc, props[k], `${config.id}-$prop.${k}.`);\n                props[k] = {$ref: id};\n                deps.push(id);\n            }\n        }\n\n        return deps\n    }\n\n    static createAnonymousConfig(ioc, config = {}, idPrefix) {\n        let importId = config.$import;\n        if (!ioc.hasComponent(importId)) {\n            throw new Error(`$import ${importId} component, but it is not exist, please check!!`);\n        }\n\n        let refConfig = ioc.getComponentConfig(importId);\n        config.id = (idPrefix.indexOf(ANONY_PREFIX) !== -1 ? '' : ANONY_PREFIX) + idPrefix;\n        config.$import = undefined;\n        ioc.addComponent(config.id, {...refConfig, ...config});\n\n        return config.id;\n    }\n\n    get name() {\n        return 'import';\n    }\n\n    constructor() {\n        super();\n        this[CACHE] = Object.create(null);\n    }\n\n    /**\n     * @override\n     */\n    onGetComponent(ioc, id, config) {\n        if (this[CACHE][id]) {\n            return config;\n        }\n\n        this[CACHE][id] = ImportPlugin.transformConfig(ioc, config);\n\n        return config;\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 129,
+    "kind": "variable",
+    "name": "ANONY_PREFIX",
+    "memberof": "src/plugins/ImportPlugin.js",
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~ANONY_PREFIX",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/ImportPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 130,
+    "kind": "variable",
+    "name": "CACHE",
+    "memberof": "src/plugins/ImportPlugin.js",
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~CACHE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/ImportPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 131,
+    "kind": "class",
+    "name": "ImportPlugin",
+    "memberof": "src/plugins/ImportPlugin.js",
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/ImportPlugin.js",
+    "importStyle": "ImportPlugin",
+    "description": "",
+    "lineNumber": 15,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 132,
+    "kind": "method",
+    "name": "has",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin.has",
+    "access": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 133,
+    "kind": "method",
+    "name": "transformConfig",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin.transformConfig",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 134,
+    "kind": "method",
+    "name": "createAnonymousConfig",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin.createAnonymousConfig",
+    "access": null,
+    "description": null,
+    "lineNumber": 51,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "optional": true,
+        "types": [
+          "{}"
+        ],
+        "defaultRaw": {},
+        "defaultValue": "{}"
+      },
+      {
+        "name": "idPrefix",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 135,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 65,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 136,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 69,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 137,
+    "kind": "member",
+    "name": "[CACHE]",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "static": false,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin#[CACHE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 71,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 138,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/plugins/ImportPlugin.js~ImportPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ImportPlugin.js~ImportPlugin#onGetComponent",
+    "access": null,
+    "description": "",
+    "lineNumber": 77,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 139,
+    "kind": "file",
+    "name": "src/plugins/ListPlugin.js",
+    "content": "/**\n * @file 数组集合插件\n * @author exodia(d_xinxin@163.com)\n */\n\nimport u from '../util';\nimport BasePlugin from './BasePlugin';\n\nconst CACHE = Symbol('cache');\n\n/**\n * @private\n */\nexport default class ListPlugin extends BasePlugin {\n    static LIST_COMPONENT_CONFIG = {\n        creator(...args) {\n            return args;\n        },\n        isFactory: true\n    };\n\n    static LIST_ID = `${Date.now()}_list`;\n\n    static has(obj) {\n        return u.isObject(obj) && obj.$list instanceof Array;\n    }\n\n    get name() {\n        return 'list';\n    }\n\n    constructor() {\n        super();\n        this[CACHE] = Object.create(null);\n    }\n\n    /**\n     * @override\n     */\n    onContainerInit(ioc, iocConfig) {\n        ioc.addComponent(this.constructor.LIST_ID, this.constructor.LIST_COMPONENT_CONFIG);\n        return iocConfig;\n    }\n\n    /**\n     * @override\n     */\n    onGetComponent(ioc, id, config) {\n        if (this[CACHE][id]) {\n            return config;\n        }\n        \n        const {has, LIST_ID} = this.constructor;\n        \n        // {$list: [{}, {}]} => {$import: List.LIST_ID, args: []}\n        config.args = config.args.map(\n            argConfig => has(argConfig) ? {$import: LIST_ID, args: argConfig.$list} : argConfig\n        );\n\n        let properties = config.properties;\n        for (let k in properties) {\n            let property = properties[k];\n            if (ListPlugin.has(property)) {\n                properties[k] = {$import: LIST_ID, args: property.$list};\n            }\n        }\n\n        this[CACHE][id] = true;\n        return config;\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 140,
+    "kind": "variable",
+    "name": "CACHE",
+    "memberof": "src/plugins/ListPlugin.js",
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js~CACHE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/ListPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 141,
+    "kind": "class",
+    "name": "ListPlugin",
+    "memberof": "src/plugins/ListPlugin.js",
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/ListPlugin.js",
+    "importStyle": "ListPlugin",
+    "description": "",
+    "lineNumber": 14,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 142,
+    "kind": "member",
+    "name": "LIST_COMPONENT_CONFIG",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin.LIST_COMPONENT_CONFIG",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{\"creator\": function, \"isFactory\": boolean}"
+      ]
+    }
+  },
+  {
+    "__docId__": 143,
+    "kind": "member",
+    "name": "LIST_ID",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin.LIST_ID",
+    "access": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 144,
+    "kind": "method",
+    "name": "has",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin.has",
+    "access": null,
+    "description": null,
+    "lineNumber": 24,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 145,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 146,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 32,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 147,
+    "kind": "member",
+    "name": "[CACHE]",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "static": false,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin#[CACHE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 34,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 148,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin#onContainerInit",
+    "access": null,
+    "description": "",
+    "lineNumber": 40,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "iocConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 149,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/plugins/ListPlugin.js~ListPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/ListPlugin.js~ListPlugin#onGetComponent",
+    "access": null,
+    "description": "",
+    "lineNumber": 48,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 150,
+    "kind": "file",
+    "name": "src/plugins/MapPlugin.js",
+    "content": "/**\n * @file 字典集合插件\n * @author exodia(d_xinxin@163.com)\n */\n\nimport u from '../util';\nimport BasePlugin from './BasePlugin';\n\nconst CACHE = Symbol('cache');\n\n/**\n * @private\n */\nexport default class MapPlugin extends BasePlugin {\n    static MAP_COMPONENT_CONFIG = {\n        creator: Object,\n        isFactory: true\n    };\n\n    static MAP_ID = `${(new Date()).getTime()}_map`;\n\n    static has(obj) {\n        return u.isObject(obj) && u.isObject(obj.$map);\n    }\n\n    get name() {\n        return 'map';\n    }\n\n    constructor() {\n        super();\n        this[CACHE] = Object.create(null);\n    }\n\n    /**\n     * @override\n     */\n    onContainerInit(ioc, iocConfig) {\n        ioc.addComponent(this.constructor.MAP_ID, this.constructor.MAP_COMPONENT_CONFIG);\n        return iocConfig;\n    }\n\n    /**\n     * @override\n     */\n    onGetComponent(ioc, id, config) {\n        if (this[CACHE][id]) {\n            return config;\n        }\n\n        const {has, MAP_ID} = this.constructor;\n\n        // {$map: {}} => {$import: Map.MAP_ID, properties: {}}\n        config.args = config.args.map(\n            argConfig => has(argConfig) ? {$import: MAP_ID, properties: argConfig.$map} : argConfig\n        );\n\n        let properties = config.properties;\n        for (let k in properties) {\n            let property = properties[k];\n            if (MapPlugin.has(property)) {\n                properties[k] = {$import: MAP_ID, properties: property.$map};\n            }\n        }\n\n        return config;\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 151,
+    "kind": "variable",
+    "name": "CACHE",
+    "memberof": "src/plugins/MapPlugin.js",
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js~CACHE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/MapPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 152,
+    "kind": "class",
+    "name": "MapPlugin",
+    "memberof": "src/plugins/MapPlugin.js",
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/MapPlugin.js",
+    "importStyle": "MapPlugin",
+    "description": "",
+    "lineNumber": 14,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 153,
+    "kind": "member",
+    "name": "MAP_COMPONENT_CONFIG",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin.MAP_COMPONENT_CONFIG",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{\"creator\": *, \"isFactory\": boolean}"
+      ]
+    }
+  },
+  {
+    "__docId__": 154,
+    "kind": "member",
+    "name": "MAP_ID",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin.MAP_ID",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 155,
+    "kind": "method",
+    "name": "has",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin.has",
+    "access": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 156,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 26,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 157,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 158,
+    "kind": "member",
+    "name": "[CACHE]",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "static": false,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin#[CACHE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 32,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 159,
+    "kind": "method",
+    "name": "onContainerInit",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin#onContainerInit",
+    "access": null,
+    "description": "",
+    "lineNumber": 38,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "iocConfig",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 160,
+    "kind": "method",
+    "name": "onGetComponent",
+    "memberof": "src/plugins/MapPlugin.js~MapPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/MapPlugin.js~MapPlugin#onGetComponent",
+    "access": null,
+    "description": "",
+    "lineNumber": 46,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 161,
+    "kind": "file",
+    "name": "src/plugins/PropertyPlugin.js",
+    "content": "/**\n * @file 属性插件\n * @author exodia(d_xinxin@163.com)\n */\n\nimport u from '../util';\nimport BasePlugin from './BasePlugin';\n\nconst CACHE = Symbol('cache');\n\n/**\n * @private\n */\nexport default class PropertyPlugin extends BasePlugin {\n    static getSetter(obj) {\n        if (u.isObject(obj) && typeof obj.$setter === 'string') {\n            return obj.$setter;\n        }\n    }\n\n    static setProperty(instance, propertyName, value, setterName) {\n        if (setterName) {\n            return instance[setterName](value);\n        }\n\n        let method = 'set' + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);\n        typeof instance[method] === 'function' ? instance[method](value) : (instance[propertyName] = value);\n    }\n\n    get name() {\n        return 'property';\n    }\n\n    constructor() {\n        super();\n        this[CACHE] = Object.create(null);\n    }\n\n    /**\n     * @override\n     */\n    afterCreateInstance(ioc, componentId, instance) {\n        if (!ioc.hasComponent(componentId)) {\n            return Promise.resolve(instance);\n        }\n\n        let config = ioc.getComponentConfig(componentId);\n        let deps = this.resolveDependencies(ioc, componentId);\n        let props = config.properties;\n        return ioc.getComponent(deps).then(\n            components => {\n                for (let k in props) {\n                    let property = props[k];\n                    let value = u.hasRef(property) ? components[deps.indexOf(property.$ref)] : property;\n                    PropertyPlugin.setProperty(instance, k, value, PropertyPlugin.getSetter(property));\n                }\n                return instance;\n            }\n        );\n    }\n\n    resolveDependencies(ioc, id) {\n        if (this[CACHE][id]) {\n            return this[CACHE][id];\n        }\n\n        let deps = this[CACHE][id] = [];\n        let config = ioc.getComponentConfig(id);\n        let properties = config.properties;\n        for (let k in properties) {\n            let property = properties[k];\n            u.hasRef(property) && deps.push(property.$ref);\n        }\n\n        config.propDeps = deps;\n\n        return deps;\n    }\n}\n",
+    "static": true,
+    "longname": "src/plugins/PropertyPlugin.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 162,
+    "kind": "variable",
+    "name": "CACHE",
+    "memberof": "src/plugins/PropertyPlugin.js",
+    "static": true,
+    "longname": "src/plugins/PropertyPlugin.js~CACHE",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/plugins/PropertyPlugin.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 163,
+    "kind": "class",
+    "name": "PropertyPlugin",
+    "memberof": "src/plugins/PropertyPlugin.js",
+    "static": true,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "access": "private",
+    "export": true,
+    "importPath": "uioc/src/plugins/PropertyPlugin.js",
+    "importStyle": "PropertyPlugin",
+    "description": "",
+    "lineNumber": 14,
+    "interface": false,
+    "extends": [
+      "src/plugins/BasePlugin.js~BasePlugin"
+    ]
+  },
+  {
+    "__docId__": 164,
+    "kind": "method",
+    "name": "getSetter",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin.getSetter",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 165,
+    "kind": "method",
+    "name": "setProperty",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin.setProperty",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "propertyName",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "value",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "setterName",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 166,
+    "kind": "get",
+    "name": "name",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 167,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 34,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 168,
+    "kind": "member",
+    "name": "[CACHE]",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "static": false,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin#[CACHE]",
+    "access": null,
+    "description": null,
+    "lineNumber": 36,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 169,
+    "kind": "method",
+    "name": "afterCreateInstance",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin#afterCreateInstance",
+    "access": null,
+    "description": "",
+    "lineNumber": 42,
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "componentId",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "override": true
+  },
+  {
+    "__docId__": 170,
+    "kind": "method",
+    "name": "resolveDependencies",
+    "memberof": "src/plugins/PropertyPlugin.js~PropertyPlugin",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/plugins/PropertyPlugin.js~PropertyPlugin#resolveDependencies",
+    "access": null,
+    "description": null,
+    "lineNumber": 62,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "ioc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 171,
+    "kind": "file",
+    "name": "src/util.js",
+    "content": "/**\n * @file 工具集合\n * @author exodia(d_xinxin@163.com)\n */\nconst OBJECT = Object.prototype.toString.call({});\n\nfunction hasOwn(object, key) {\n    return Object.prototype.hasOwnProperty.call(object, key);\n}\n\nfunction addToSet(arr, el) {\n    arr.indexOf(el) === -1 && arr.push(el);\n}\n\nfunction isObject(obj) {\n    return Object.prototype.toString.call(obj) === OBJECT;\n}\n\nfunction isPromise(obj) {\n    return obj && typeof obj === 'object' && typeof obj.then === 'function';\n}\n\nfunction warn() {\n    if (typeof console !== 'undefined') {\n        Function.prototype.apply.call(console.warn, console, arguments);\n    }\n}\n\nfunction hasRef(obj) {\n    return isObject(obj) && typeof obj.$ref === 'string';\n}\n\nexport default {\n    hasOwn,\n    addToSet,\n    isObject,\n    isPromise,\n    hasRef: hasRef,\n    warn\n}\n",
+    "static": true,
+    "longname": "src/util.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 172,
+    "kind": "variable",
+    "name": "OBJECT",
+    "memberof": "src/util.js",
+    "static": true,
+    "longname": "src/util.js~OBJECT",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": "",
+    "lineNumber": 5,
+    "unknown": [
+      {
+        "tagName": "@file",
+        "tagValue": "工具集合"
+      },
+      {
+        "tagName": "@author",
+        "tagValue": "exodia(d_xinxin@163.com)"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 173,
+    "kind": "function",
+    "name": "hasOwn",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~hasOwn",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 7,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "object",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "key",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 174,
+    "kind": "function",
+    "name": "addToSet",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~addToSet",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "arr",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "el",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 175,
+    "kind": "function",
+    "name": "isObject",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~isObject",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 176,
+    "kind": "function",
+    "name": "isPromise",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~isPromise",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 19,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 177,
+    "kind": "function",
+    "name": "warn",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~warn",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": []
+  },
+  {
+    "__docId__": 178,
+    "kind": "function",
+    "name": "hasRef",
+    "memberof": "src/util.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/util.js~hasRef",
+    "access": null,
+    "export": false,
+    "importPath": "uioc/src/util.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "obj",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 180,
+    "kind": "external",
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 181,
+    "kind": "external",
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 182,
+    "kind": "external",
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 183,
+    "kind": "external",
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 184,
+    "kind": "external",
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 185,
+    "kind": "external",
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 186,
+    "kind": "external",
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 187,
+    "kind": "external",
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 188,
+    "kind": "external",
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 189,
+    "kind": "external",
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 190,
+    "kind": "external",
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 191,
+    "kind": "external",
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 192,
+    "kind": "external",
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 193,
+    "kind": "external",
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 194,
+    "kind": "external",
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 195,
+    "kind": "external",
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 196,
+    "kind": "external",
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 197,
+    "kind": "external",
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 198,
+    "kind": "external",
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 199,
+    "kind": "external",
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 200,
+    "kind": "external",
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 201,
+    "kind": "external",
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 202,
+    "kind": "external",
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 203,
+    "kind": "external",
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 204,
+    "kind": "external",
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 205,
+    "kind": "external",
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 206,
+    "kind": "external",
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 207,
+    "kind": "external",
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 208,
+    "kind": "external",
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 209,
+    "kind": "external",
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 210,
+    "kind": "external",
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 211,
+    "kind": "external",
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 212,
+    "kind": "external",
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 213,
+    "kind": "external",
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 214,
+    "kind": "external",
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 215,
+    "kind": "external",
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 216,
+    "kind": "external",
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 217,
+    "kind": "external",
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 218,
+    "kind": "external",
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 219,
+    "kind": "external",
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 220,
+    "kind": "external",
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 221,
+    "kind": "external",
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 222,
+    "kind": "external",
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 223,
+    "kind": "external",
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 224,
+    "kind": "external",
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 225,
+    "kind": "external",
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 226,
+    "kind": "external",
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "lineNumber": 193,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 228,
+    "kind": "external",
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 229,
+    "kind": "external",
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 230,
+    "kind": "external",
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 231,
+    "kind": "external",
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 232,
+    "kind": "external",
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 233,
+    "kind": "external",
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 234,
+    "kind": "external",
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 235,
+    "kind": "external",
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "lineNumber": 34,
+    "builtinExternal": true
+  }
+]

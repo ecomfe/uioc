@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/IoC.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/IoC.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * @file IoC &#x5BB9;&#x5668;&#x7C7B;
+ * @author exodia (d_xinxin@163.com)
+ */
+
+import Injector from &apos;./Injector&apos;;
+import u from &apos;./util&apos;;
+import Loader from &apos;./Loader&apos;;
+import ImportPlugin from &apos;./plugins/ImportPlugin&apos;;
+import AutoPlugin from &apos;./plugins/AutoPlugin&apos;;
+import PropertyPlugin from &apos;./plugins/PropertyPlugin&apos;;
+import ListPlugin from &apos;./plugins/ListPlugin&apos;;
+import MapPlugin from &apos;./plugins/MapPlugin&apos;;
+import AopPlugin from &apos;./plugins/AopPlugin&apos;;
+
+const PLUGIN_COLLECTION = Symbol(&apos;collection&apos;);
+const COMPONENTS = Symbol(&apos;components&apos;);
+const CREATE_COMPONENT = Symbol(&apos;createComponent&apos;);
+const CREATE_INSTANCE = Symbol(&apos;createInstance&apos;);
+const LOADER = Symbol(&apos;loader&apos;);
+const INJECTOR = Symbol(&apos;injector&apos;);
+const NULL = {};
+
+/**
+ * IoC &#x5BB9;&#x5668;&#x7C7B;
+ */
+export default class IoC {
+    /**
+     * &#x6839;&#x636E;&#x914D;&#x7F6E;&#x5B9E;&#x4F8B;&#x5316;&#x4E00;&#x4E2A; IoC &#x5BB9;&#x5668;
+     *
+     * @param {IoCConfig} [config] ioc &#x5BB9;&#x5668;&#x914D;&#x7F6E;
+     */
+    constructor(config = {}) {
+        /**
+         * @private
+         */
+        this[COMPONENTS] = Object.create(null);
+
+        /**
+         * @private
+         */
+        this[PLUGIN_COLLECTION] = new PluginCollection([
+            new ListPlugin(),
+            new MapPlugin(),
+            new ImportPlugin(),
+            new AopPlugin(),
+            new PropertyPlugin(),
+            new AutoPlugin()
+        ]);
+        this[PLUGIN_COLLECTION].addPlugins(config.plugins);
+
+        /**
+         * @private
+         */
+        this[LOADER] = new Loader(this, !!config.skipCheckingCircularDep);
+
+        /**
+         * @private
+         */
+        this[INJECTOR] = new Injector(this);
+
+        config = this[PLUGIN_COLLECTION].onContainerInit(this, config);
+        this.initConfig(config);
+    }
+
+    /**
+     * &#x521D;&#x59CB;&#x5316;&#x914D;&#x7F6E;
+     * @param {IoCConfig} iocConfig ioc &#x914D;&#x7F6E;
+     * @protected
+     */
+    initConfig(iocConfig) {
+
+        if (iocConfig.loader) {
+            this.setLoaderFunction(iocConfig.loader);
+        }
+
+        this.addComponent(iocConfig.components || {});
+    }
+
+    /**
+     *
+     * &#x5411;&#x5BB9;&#x5668;&#x4E2D;&#x6CE8;&#x518C;&#x7EC4;&#x4EF6;
+     *
+     * @param {string | Object.&lt;string, ComponentConfig&gt;} id &#x7EC4;&#x4EF6; id &#x6216;&#x8005;&#x7EC4;&#x4EF6;&#x914D;&#x7F6E;&#x96C6;&#x5408;
+     * @param {ComponentConfig} [config] &#x7EC4;&#x4EF6;&#x914D;&#x7F6E;, &#x7B2C;&#x4E00;&#x4E2A;&#x53C2;&#x6570;&#x4E3A;&#x7EC4;&#x4EF6; id &#x65F6;&#x6709;&#x6548;
+     * @example
+     * ioc.addComponent(&apos;list&apos;, {
+     *     // &#x6784;&#x9020;&#x51FD;&#x6570;&#x521B;&#x5EFA;&#x6784;&#x4EF6; new creator, &#x6216;&#x8005;&#x5B57;&#x7B26;&#x4E32;&#xFF0C;&#x5B57;&#x7B26;&#x4E32;&#x5219;&#x4E3A; amd &#x6A21;&#x5757;&#x540D;
+     *     creator: require(&apos;./List&apos;),
+     *     scope: &apos;transient&apos;,
+     *     args: [{$ref: &apos;entityName&apos;}],
+     *
+     *     // &#x5C5E;&#x6027;&#x6CE8;&#x5165;&#xFF0C; &#x4E0D;&#x8BBE;&#x7F6E;$setter, &#x5219;&#x76F4;&#x63A5;instance.xxx = xxx
+     *     properties: {
+     *          model: {$ref: &apos;listModel&apos;},
+     *          view: {$ref: &apos;listView&apos;},
+     *          name: &apos;xxxx&apos; // &#x672A;&#x8BBE;&#x7F6E;$ref/$import&#x64CD;&#x4F5C;&#x7B26;&#xFF0C;&apos;xxxx&apos; &#x5373;&#x4E3A;&#x4F9D;&#x8D56;&#x503C;
+     *     }
+     * });
+     *
+     * ioc.addComponent({
+     *     listData: {
+     *         creator: &apos;ListData&apos;,
+     *         scope: &apos;transient&apos;,
+     *         properties: {
+     *             data: {
+     *                 $import: &apos;requestStrategy&apos;, // &#x521B;&#x5EFA;&#x533F;&#x540D;&#x7EC4;&#x4EF6;&#xFF0C;&#x9ED8;&#x8BA4;&#x7EE7;&#x627F; requestStrategy &#x7684;&#x914D;&#x7F6E;&#xFF0C;
+     *                 args: [&apos;list&apos;, &apos;list&apos;] // &#x91CD;&#x5199; requestStrategy &#x7684; args &#x914D;&#x7F6E;
+     *             }
+     *         }
+     *      }
+     * });
+     */
+    addComponent(id, config) {
+        if (typeof id === &apos;object&apos;) {
+            for (let k in id) {
+                this.addComponent(k, id[k]);
+            }
+            return;
+        }
+
+        if (this.hasComponent(id)) {
+            throw new Error(`${String(id)} has been added!`);
+        }
+        else {
+            this[COMPONENTS][id] = this[CREATE_COMPONENT].call(this, id, config);
+        }
+    }
+
+    /**
+     * &#x83B7;&#x53D6;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;
+     *
+     * @param {string | string[]} id &#x5355;&#x4E2A;&#x7EC4;&#x4EF6; id &#x5B57;&#x7B26;&#x4E32;&#x6216;&#x8005;&#x4E00;&#x7CFB;&#x5217;&#x7EC4;&#x4EF6; id &#x6570;&#x7EC4;
+     * @return {Promise&lt;*&gt; | Promise&lt;*[]&gt;} &#x503C;&#x4E3A;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;(&#x4F20;&#x5165;&#x53C2;&#x6570;&#x4E3A;&#x7EC4;&#x4EF6;&#x6570;&#x7EC4;&#x65F6;, &#x503C;&#x4E3A;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;&#x6570;&#x7EC4;)&#x7684; promise
+     */
+    getComponent(id) {
+        if (id instanceof Array) {
+            return Promise.all(id.map(id =&gt; this.getComponent(id)));
+        }
+        let moduleMap = Object.create(null);
+
+        if (!this.hasComponent(id)) {
+            id = String(id);
+            return Promise.reject(new Error(`\`${id}\` has not been added to the Ioc`));
+        }
+        else {
+            let config = this.getComponentConfig(id);
+            this.processConfig(id);
+            try {
+                moduleMap = this[LOADER].resolveDependentModules(config, moduleMap, config.argDeps);
+            }
+            catch (e) {
+                return Promise.reject(e);
+            }
+        }
+
+        return this[LOADER].loadModuleMap(moduleMap).then(() =&gt; this[CREATE_INSTANCE](id));
+    }
+
+    /**
+     * &#x68C0;&#x6D4B;&#x662F;&#x5426;&#x6CE8;&#x518C;&#x8FC7;&#x67D0;&#x4E2A;&#x7EC4;&#x4EF6;
+     *
+     * @param {string} id &#x7EC4;&#x4EF6; id
+     * @return {bool}
+     */
+    hasComponent(id) {
+        return !!this[COMPONENTS][id];
+    }
+
+    /**
+     * &#x83B7;&#x53D6;&#x7EC4;&#x4EF6;&#x914D;&#x7F6E;&#xFF0C;&#x4E0D;&#x4F20;&#x5165;&#x5219;&#x8FD4;&#x56DE;&#x6240;&#x6709;&#x7EC4;&#x4EF6;&#x914D;&#x7F6E;
+     *
+     * @ignore
+     * @param {string} [id] &#x7EC4;&#x4EF6;id
+     * @return {*}
+     */
+    getComponentConfig(id) {
+        return id ? this[COMPONENTS][id] : this[COMPONENTS];
+    }
+
+    /**
+     * &#x8BBE;&#x7F6E; IoC &#x7684;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x5668;
+     *
+     * @param {Function} amdLoader &#x7B26;&#x5408; AMD &#x89C4;&#x8303;&#x7684;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x5668;
+     */
+    setLoaderFunction(amdLoader) {
+        this[LOADER].setLoaderFunction(amdLoader);
+    }
+
+    /**
+     * &#x9500;&#x6BC1;&#x5BB9;&#x5668;&#xFF0C;&#x4F1A;&#x904D;&#x5386;&#x5BB9;&#x5668;&#x4E2D;&#x7684;&#x5355;&#x4F8B;&#xFF0C;&#x5982;&#x679C;&#x6709;&#x8BBE;&#x7F6E; dispose&#xFF0C;&#x8C03;&#x7528;&#x4ED6;&#x4EEC;&#x7684; dispose &#x65B9;&#x6CD5;
+     */
+    dispose() {
+        this[PLUGIN_COLLECTION].onContainerDispose(this);
+        this[INJECTOR].dispose();
+        this[COMPONENTS] = null;
+    }
+
+    /**
+     * &#x5728;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x6DFB;&#x52A0;&#x63D2;&#x4EF6;
+     *
+     * @param {ILifeCircleHook[]} plugins &#x63D2;&#x4EF6;&#x6570;&#x7EC4;
+     * @param {number} [pos] &#x63D2;&#x5165;&#x4F4D;&#x7F6E;, &#x9ED8;&#x8BA4;&#x4E3A;&#x5F53;&#x524D; ioc &#x5BB9;&#x5668;&#x63D2;&#x4EF6;&#x961F;&#x5217;&#x672B;&#x5C3E;
+     */
+    addPlugins(plugins, pos) {
+        this[PLUGIN_COLLECTION].addPlugins(plugins, pos);
+    }
+
+    /**
+     * &#x83B7;&#x53D6;&#x5F53;&#x524D;&#x5B9E;&#x4F8B;&#x7684;&#x63D2;&#x4EF6;&#x961F;&#x5217;
+     *
+     * @return {ILifeCircleHook[]}
+     */
+    getPlugins() {
+        return this[PLUGIN_COLLECTION].getPlugins();
+    }
+
+    /**
+     * &#x79FB;&#x9664;&#x6307;&#x5B9A;&#x7684;&#x63D2;&#x4EF6;&#x6216;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x7684;&#x63D2;&#x4EF6;
+     *
+     * @param {number | ILifeCircleHook} pluginOrPos &#x63D2;&#x4EF6;&#x5B9E;&#x4F8B;&#x6216;&#x8005;&#x63D2;&#x4EF6;&#x4F4D;&#x7F6E;
+     * @return {bool} &#x6210;&#x529F;&#x79FB;&#x9664;&#x8FD4;&#x56DE; true
+     */
+    removePlugin(pluginOrPos) {
+        return this[PLUGIN_COLLECTION].removePlugin(pluginOrPos);
+    }
+
+    // todo: to be private
+    /**
+     * @ignore
+     */
+    processConfig(id) {
+        let config = this.getComponentConfig(id);
+        config = this[PLUGIN_COLLECTION].onGetComponent(this, id, config);
+        this[COMPONENTS][id] = config;
+        if (!config.argDeps) {
+            let deps = config.argDeps = [];
+            let args = config.args;
+            for (let i = args.length - 1; i &gt; -1; --i) {
+                u.hasRef(args[i]) &amp;&amp; deps.push(args[i].$ref);
+            }
+        }
+    }
+
+    /**
+     * @private
+     */
+    [CREATE_COMPONENT](id, config) {
+        config = this[PLUGIN_COLLECTION].onAddComponent(this, id, config);
+        return {
+            id: id,
+            args: [],
+            properties: {},
+            argDeps: null,
+            propDeps: null,
+            setterDeps: null,
+            scope: &apos;transient&apos;,
+            creator: null,
+            module: undefined,
+            isFactory: false,
+            auto: false,
+            instance: null,
+            ...config
+        };
+    }
+
+    /**
+     * @private
+     */
+    [CREATE_INSTANCE](id) {
+        return this[PLUGIN_COLLECTION].beforeCreateInstance(this, id)
+            .then(
+                instance =&gt; {
+                    if (instance === NULL) {
+                        let component = this.hasComponent(id) ? this.getComponentConfig(id) : null;
+                        return this[LOADER]
+                            .wrapCreator(component)
+                            .then(component =&gt; this[INJECTOR].createInstance(component));
+                    }
+
+                    return instance;
+                }
+            )
+            .then(instance =&gt; this[PLUGIN_COLLECTION].afterCreateInstance(this, id, instance));
+    }
+}
+
+const PLUGINS = Symbol(&apos;plugins&apos;);
+
+class PluginCollection {
+    constructor(plugins = []) {
+        this[PLUGINS] = plugins;
+    }
+
+    onContainerInit(ioc, iocConfig) {
+        return this[PLUGINS].reduce(
+            (config, plugin) =&gt; plugin.onContainerInit(ioc, config),
+            iocConfig
+        );
+    }
+
+    onAddComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) =&gt; plugin.onAddComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    onGetComponent(ioc, componentId, initialComponentConfig) {
+        return this[PLUGINS].reduce(
+            (componentConfig, plugin) =&gt; plugin.onGetComponent(ioc, componentId, componentConfig),
+            initialComponentConfig
+        );
+    }
+
+    beforeCreateInstance(ioc, componentId) {
+        return this[PLUGINS].reduce(
+            (instancePromise, plugin) =&gt; instancePromise.then(
+                instance =&gt; Promise.resolve(plugin.beforeCreateInstance(ioc, componentId, instance))
+            ),
+            Promise.resolve(NULL)
+        );
+    }
+
+    afterCreateInstance(ioc, componentId, instance) {
+        return this[PLUGINS].reduce(
+            (instancePromise, plugin) =&gt; instancePromise.then(
+                instance =&gt; {
+                    let result = plugin.afterCreateInstance(ioc, componentId, instance);
+                    return u.isPromise(result) ? result : Promise.resolve(instance);
+                }
+            ),
+            Promise.resolve(instance)
+        );
+    }
+
+    onContainerDispose(ioc) {
+        this[PLUGINS].forEach(plugin =&gt; plugin.onContainerDispose(ioc));
+    }
+
+    addPlugins(plugins = [], pos = this[PLUGINS].length) {
+        this[PLUGINS].splice(pos, 0, ...plugins);
+    }
+
+    getPlugins() {
+        return this[PLUGINS].slice(0);
+    }
+
+    removePlugin(pluginOrPos) {
+        if (typeof pluginOrPos !== &apos;number&apos;) {
+            pluginOrPos = this[PLUGINS].indexOf(pluginOrPos);
+            pluginOrPos = pluginOrPos === -1 ? this[PLUGINS].length : pluginOrPos;
+        }
+
+        return !!this[PLUGINS].splice(pluginOrPos, 1).length;
+    }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

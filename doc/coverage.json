@@ -1,0 +1,22 @@
+{
+  "coverage": "100%",
+  "expectCount": 27,
+  "actualCount": 27,
+  "files": {
+    "src/plugins/BasePlugin.js": {
+      "expectCount": 8,
+      "actualCount": 8,
+      "undocumentLines": []
+    },
+    "src/meta.js": {
+      "expectCount": 8,
+      "actualCount": 8,
+      "undocumentLines": []
+    },
+    "src/IoC.js": {
+      "expectCount": 11,
+      "actualCount": 11,
+      "undocumentLines": []
+    }
+  }
+}

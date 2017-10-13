@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">src/plugins/AutoPlugin.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/plugins/AutoPlugin.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * @file &#x81EA;&#x52A8;&#x6CE8;&#x5165;&#x63D2;&#x4EF6;
+ * @author exodia(d_xinxin@163.com)
+ */
+import u from &apos;../util&apos;;
+import BasePlugin from &apos;./BasePlugin&apos;;
+
+const SETTER_REGEX = /^set[A-Z]/;
+const SET_LENGTH = &apos;set&apos;.length;
+const CACHE = Symbol(&apos;cache&apos;);
+
+/**
+ * @private
+ */
+export default class AutoPlugin extends BasePlugin {
+    get name() {
+        return &apos;auto&apos;;
+    }
+
+    static getPropertyFromSetter(name, descriptor) {
+        let prop = null;
+        if (SETTER_REGEX.test(name) &amp;&amp; typeof descriptor.value === &apos;function&apos;) {
+            prop = name.charAt(SET_LENGTH).toLowerCase() + name.slice(SET_LENGTH + 1);
+        }
+
+        return prop;
+    }
+
+    static setProperty(instance, propertyName, value) {
+        let method = &apos;set&apos; + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
+        instance[method](value);
+    }
+
+    constructor() {
+        super();
+        this[CACHE] = Object.create(null);
+    }
+
+    afterCreateInstance(ioc, id, instance) {
+        let deps = this.resolveDependencies(ioc, id, instance);
+        if (!deps.length) {
+            return Promise.resolve(instance);
+        }
+
+        return ioc.getComponent(deps).then(
+            components =&gt; {
+                components.forEach(
+                    (component, index) =&gt; AutoPlugin.setProperty(instance, deps[index], component)
+                );
+                return instance;
+            }
+        );
+    }
+
+    resolveDependencies(ioc, id, instance) {
+        if (this[CACHE][id]) {
+            return this[CACHE][id];
+        }
+
+        let config = ioc.getComponentConfig(id) || {};
+        if (!config.auto) {
+            this[CACHE][id] = [];
+            return [];
+        }
+
+        let exclude = config.properties || {};
+        let deps = [];
+        let resultSet = Object.create(null);
+        for (let proto = instance; proto; proto = Object.getPrototypeOf(proto)) {
+            let properties = Object.getOwnPropertyNames(proto);
+            properties.forEach(
+                prop =&gt; {
+                    if (!resultSet[prop]) {
+                        resultSet[prop] = true;
+                        let descriptor = Object.getOwnPropertyDescriptor(proto, prop);
+                        prop = AutoPlugin.getPropertyFromSetter(prop, descriptor);
+                        // &#x6709;&#x5C5E;&#x6027;&#xFF0C;&#x672A;&#x548C;&#x5C5E;&#x6027;&#x914D;&#x7F6E;&#x51B2;&#x7A81;&#xFF0C;&#x4E14;&#x7EC4;&#x4EF6;&#x5DF2;&#x6CE8;&#x518C;
+                        prop &amp;&amp; !u.hasOwn(exclude, prop) &amp;&amp; ioc.hasComponent(prop) &amp;&amp; deps.push(prop);
+                    }
+                }
+            );
+        }
+
+        this[CACHE][id] = deps;
+        config.setterDeps = deps;
+        return deps;
+    }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

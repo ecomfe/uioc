@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Loader.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Loader.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * @file &#x7EC4;&#x4EF6;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x7C7B;
+ * @author exodia(d_xinxin@163.com)
+ */
+
+import DependencyTree from &apos;./DependencyTree&apos;;
+import CircularError from &apos;./CircularError&apos;;
+
+/**
+ * @private
+ */
+export default class Loader {
+    amdLoader = getDefaultLoader();
+
+    constructor(context, skipCheckingCircularDep) {
+        this.context = context;
+        this.skipCheckingCircularDep = skipCheckingCircularDep;
+    }
+
+    setLoaderFunction(amdGlobalLoader) {
+        this.amdLoader = amdGlobalLoader;
+    }
+
+    resolveDependentModules(componentConfig, result = {}, deps) {
+        let depTree = this.skipCheckingCircularDep ? null : new DependencyTree();
+        return getDependentModules(componentConfig, this.context, result, depTree, deps);
+    }
+
+    loadModuleMap(moduleMap) {
+        let moduleIds = Object.keys(moduleMap);
+        if(!moduleIds.length) {
+            return Promise.resolve();
+        }
+
+        return new Promise(resolve =&gt; {
+            this.amdLoader(
+                moduleIds,
+                (...modules) =&gt; {
+                    modules.forEach(
+                        (factory, index) =&gt; {
+                            let moduleId = moduleIds[index];
+                            moduleMap[moduleId].forEach(
+                                config =&gt; {
+                                    if (typeof config.creator !== &apos;function&apos;) {
+                                        config.creator = config.creator || factory;
+                                    }
+                                }
+                            );
+                        }
+                    );
+                    resolve();
+                }
+            );
+        });
+    }
+
+    wrapCreator(config, factory) {
+        let creator = config.creator;
+
+        // &#x7ED9;&#x5B57;&#x9762;&#x91CF;&#x7EC4;&#x4EF6;&#x548C;&#x975E;&#x5DE5;&#x5382;&#x7EC4;&#x4EF6;&#x5957;&#x4E00;&#x5C42; creator&#xFF0C;&#x540E;&#x9762;&#x6784;&#x9020;&#x5B9E;&#x4F8B;&#x5C31;&#x53EF;&#x4EE5;&#x65E0;&#x9700;&#x5206;&#x652F;&#x5224;&#x65AD;&#xFF0C;&#x76F4;&#x63A5;&#x8C03;&#x7528; component.creator
+        if (!config.isFactory &amp;&amp; config.scope !== &apos;static&apos;) {
+            config.creator = function (...args) {
+                return new creator(...args);
+            };
+        }
+
+        return Promise.resolve(config);
+    }
+}
+
+function getDependentModules(component, context, result, depTree, deps) {
+    let module = component.module;
+    if (typeof component.creator !== &apos;function&apos; &amp;&amp; module) {
+        result[module] = result[module] || [];
+        result[module].push(component);
+    }
+    context.processConfig(component.id);
+
+    let child = null;
+    // depTree &#x4E3A; null &#x8868;&#x793A;&#x8DF3;&#x8FC7;&#x5FAA;&#x73AF;&#x68C0;&#x6D4B;
+    if (depTree) {
+        let circular = depTree.checkForCircular(component.id);
+        if (circular) {
+            let msg = `${component.id} has circular dependencies `;
+            throw new CircularError(msg, component);
+        }
+
+        depTree.addData(component);
+        child = depTree.appendChild(new DependencyTree());
+    }
+
+
+    deps = deps || component.argDeps.concat(component.propDeps).concat(component.setterDeps || []);
+    for (let i = deps.length - 1; i &gt; -1; --i) {
+        if (context.hasComponent(deps[i])) {
+            getDependentModules(context.getComponentConfig(deps[i]), context, result, child);
+        }
+    }
+
+    return result;
+}
+
+const global = Function(&apos;return this&apos;)();
+
+function getDefaultLoader() {
+    if (typeof define === &apos;function&apos; &amp;&amp; define.amd &amp;&amp; typeof global.require === &apos;function&apos;) {
+        return require;
+    }
+
+    if (typeof module !== &apos;undefined&apos; &amp;&amp; module &amp;&amp; &apos;exports&apos; in module) {
+        return (ids, cb) =&gt; cb(...(ids.map(id =&gt; require(id))));
+    }
+
+    return (ids, cb) =&gt; cb(...(ids.map(id =&gt; global[id])));
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

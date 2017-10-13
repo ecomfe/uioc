@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">src/plugins/AopPlugin.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/plugins/AopPlugin.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * @file aop&#x63D2;&#x4EF6;
+ * @author exodia(d_xinxin@163.com)
+ */
+
+import BasePlugin from &apos;./BasePlugin&apos;;
+
+/**
+ * @private
+ * @ignore
+ */
+export default class AopPlugin extends BasePlugin {
+    static AOP_COMPONENT_CONFIG = {
+        module: &apos;uaop&apos;,
+        scope: &apos;static&apos;
+    };
+
+    static AOP_ID = Symbol(&apos;internalAop&apos;);
+
+    get name() {
+        return &apos;aop&apos;;
+    }
+
+    /**
+     * @override
+     */
+    onContainerInit(ioc, iocConfig) {
+        ioc.addComponent(this.constructor.AOP_ID, this.constructor.AOP_COMPONENT_CONFIG);
+        return iocConfig;
+    }
+
+    /**
+     * &#x662F;&#x5426;&#x9700;&#x8981;&#x4EE3;&#x7406;
+     *
+     * @param {Object} config &#x914D;&#x7F6E;
+     * @param {string} type &#x4EE3;&#x7406;&#x7C7B;&#x578B;[class|object]
+     * @return {boolean}
+     */
+    canProxy(config, type) {
+        if (!(&apos;aopConfig&apos; in config)) {
+            return false;
+        }
+
+        // &#x9ED8;&#x8BA4;&#x4EE3;&#x7406;&#x5BF9;&#x8C61;&#x4E3A; object
+        let {proxyTarget = &apos;object&apos;} = config.aopConfig;
+        return proxyTarget === type;
+    }
+
+    /**
+     * &#x7C7B;&#x6216;&#x5BF9;&#x8C61;&#x4EE3;&#x7406;&#x8FC7;&#x7A0B;
+     *
+     * @param {IoC} ioc ioc &#x5B9E;&#x4F8B;
+     * @param {string} type &#x4EE3;&#x7406;&#x7C7B;&#x578B;[class|object]
+     * @param {Function} initial &#x5F85;&#x62E6;&#x622A;&#x7684;&#x7C7B;&#x6216;&#x5BF9;&#x8C61;
+     * @param {Array.&lt;Object&gt;} [advisors=[]] &#x5207;&#x9762;
+     * @return {Promise.&lt;Object | Class&gt;}
+     */
+    proxyAop(ioc, type, initial, advisors = []) {
+        const METHOD = type === &apos;class&apos; ? &apos;createClassProxy&apos; : &apos;createObjectProxy&apos;;
+        const AOP_ID = this.constructor.AOP_ID;
+
+        return ioc.getComponent(AOP_ID).then(
+            aop =&gt; advisors.reduce(
+                (target, {matcher, advices}) =&gt; aop[METHOD](target, matcher, advices),
+                initial
+            )
+        );
+    }
+
+    /**
+     * @override
+     */
+    beforeCreateInstance(ioc, componentId, instance) {
+        let config = ioc.getComponentConfig(componentId) || {};
+        let proxyTarget = &apos;class&apos;;
+
+        if (this.canProxy(config, proxyTarget)) {
+            return this
+                .proxyAop(ioc, proxyTarget, config.creator, config.aopConfig.advisors)
+                .then(ProxyClass =&gt; config.creator = ProxyClass)
+                .then(() =&gt; instance);
+        }
+
+        return Promise.resolve(instance);
+    }
+
+    /**
+     * @override
+     */
+    afterCreateInstance(ioc, componentId, instance) {
+        let config = ioc.getComponentConfig(componentId) || {};
+        let proxyTarget = &apos;object&apos;;
+
+        return this.canProxy(config, proxyTarget)
+            ? this.proxyAop(ioc, proxyTarget, instance, config.aopConfig.advisors)
+            : Promise.resolve(instance);
+    }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Container.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Container.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">void function (define) {
+    define(
+        function (require) {
+            var u = require(&apos;./util&apos;);
+
+            function Container(context) {
+                this.context = context;
+                this.singletons = {};
+            }
+
+            Container.prototype.createInstance = function (component, cb) {
+                if (!component) {
+                    return cb(null);
+                }
+
+                var id = component.id;
+                if (component.scope === &apos;singleton&apos; &amp;&amp; this.singletons.hasOwnProperty(id)) {
+                    return cb(this.singletons[id]);
+                }
+
+                if (component.scope === &apos;static&apos;) {
+                    return cb(component.creator);
+                }
+
+                var me = this;
+                createArgs(this, component, function (args) {
+                    var instance = component.creator.apply(null, args);
+                    if (component.scope === &apos;singleton&apos;) {
+                        me.singletons[id] = instance;
+                    }
+                    cb(instance);
+                });
+            };
+
+            Container.prototype.dispose = function () {
+                var singletons = this.singletons;
+                for (var k in singletons) {
+                    var instance = singletons[k];
+                    instance &amp;&amp; typeof instance.dispose === &apos;function&apos; &amp;&amp; instance.dispose();
+                }
+
+                this.singletons = null;
+            };
+
+            function createArgs(container, component, cb) {
+                var argConfigs = component.args;
+                var count = argConfigs.length;
+                var args = Array(count);
+                if (!count) {
+                    return cb(args);
+                }
+
+                var done = function (index) {
+                    return function (instance) {
+                        args[index] = instance;
+                        --count === 0 &amp;&amp; cb(args);
+                    };
+                };
+
+                for (var i = argConfigs.length - 1; i &gt; -1; --i) {
+                    var arg = argConfigs[i];
+                    u.hasReference(arg) ? container.context.getComponent(arg.$ref, done(i)) : done(i)(arg);
+                }
+            }
+
+            return Container;
+
+        });
+
+}(typeof define === &apos;function&apos; &amp;&amp; define.amd ? define : function (factory) { module.exports = factory; });</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

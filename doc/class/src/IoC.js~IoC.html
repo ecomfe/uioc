@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">IoC | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/IoC.js~IoC.html">IoC</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Advisor">Advisor</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-AopConfig">AopConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-DependencyConfig">DependencyConfig</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">plugins</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/plugins/BasePlugin.js~BasePlugin.html">BasePlugin</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div class="header-notice">
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import IoC from &apos;<span><a href="file/src/IoC.js.html#lineNumber27">uioc/src/IoC.js</a></span>&apos;</code></pre></div>
+  <span data-ice="access">public</span>
+  <span data-ice="kind">class</span>
+  
+  
+  
+  <span data-ice="source">| <span><a href="file/src/IoC.js.html#lineNumber27">source</a></span></span>
+</div>
+
+<div class="self-detail detail">
+  <h1 data-ice="name">IoC</h1>
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  <div class="description" data-ice="description"><p>IoC &#x5BB9;&#x5668;&#x7C7B;</p>
+</div>
+  
+
+  
+
+  
+
+  
+
+  
+</div>
+
+
+
+<div data-ice="constructorSummary"><h2>Constructor Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Constructor</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(config: <span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x6839;&#x636E;&#x914D;&#x7F6E;&#x5B9E;&#x4F8B;&#x5316;&#x4E00;&#x4E2A; IoC &#x5BB9;&#x5668;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<div data-ice="methodSummary"><h2>Method Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Methods</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-addComponent">addComponent</a></span></span><span data-ice="signature">(id: <span>string </span> | <span> Object</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, <span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span>&gt;, config: <span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x5411;&#x5BB9;&#x5668;&#x4E2D;&#x6CE8;&#x518C;&#x7EC4;&#x4EF6;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-addPlugins">addPlugins</a></span></span><span data-ice="signature">(plugins: <span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span>, pos: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x5728;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x6DFB;&#x52A0;&#x63D2;&#x4EF6;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-dispose">dispose</a></span></span><span data-ice="signature">()</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x9500;&#x6BC1;&#x5BB9;&#x5668;&#xFF0C;&#x4F1A;&#x904D;&#x5386;&#x5BB9;&#x5668;&#x4E2D;&#x7684;&#x5355;&#x4F8B;&#xFF0C;&#x5982;&#x679C;&#x6709;&#x8BBE;&#x7F6E; dispose&#xFF0C;&#x8C03;&#x7528;&#x4ED6;&#x4EEC;&#x7684; dispose &#x65B9;&#x6CD5;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-getComponent">getComponent</a></span></span><span data-ice="signature">(id: <span>string </span> | <span><span> string</span><span>[]</span></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>*&gt;</span>|<span><span>Promise&lt;*</span><span>[]</span></span>&gt;</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x83B7;&#x53D6;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-getPlugins">getPlugins</a></span></span><span data-ice="signature">(): <span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x5B9E;&#x4F8B;&#x7684;&#x63D2;&#x4EF6;&#x961F;&#x5217;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-hasComponent">hasComponent</a></span></span><span data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>bool</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x68C0;&#x6D4B;&#x662F;&#x5426;&#x6CE8;&#x518C;&#x8FC7;&#x67D0;&#x4E2A;&#x7EC4;&#x4EF6;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-removePlugin">removePlugin</a></span></span><span data-ice="signature">(pluginOrPos: <span>number </span> | <span> ILifeCircleHook</span>): <span>bool</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x79FB;&#x9664;&#x6307;&#x5B9A;&#x7684;&#x63D2;&#x4EF6;&#x6216;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x7684;&#x63D2;&#x4EF6;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-setLoaderFunction">setLoaderFunction</a></span></span><span data-ice="signature">(amdLoader: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x8BBE;&#x7F6E; IoC &#x7684;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x5668;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+<table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Protected Methods</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">protected</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/IoC.js~IoC.html#instance-method-initConfig">initConfig</a></span></span><span data-ice="signature">(iocConfig: <span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x521D;&#x59CB;&#x5316;&#x914D;&#x7F6E;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+
+<div data-ice="constructorDetails"><h2 data-ice="title">Public Constructors</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-constructor-constructor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">constructor</span><span data-ice="signature">(config: <span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber33">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x6839;&#x636E;&#x914D;&#x7F6E;&#x5B9E;&#x4F8B;&#x5316;&#x4E00;&#x4E2A; IoC &#x5BB9;&#x5668;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">config</td>
+      <td data-ice="type"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
+      <td data-ice="description"><p>ioc &#x5BB9;&#x5668;&#x914D;&#x7F6E;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+
+<div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-addComponent">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">addComponent</span><span data-ice="signature">(id: <span>string </span> | <span> Object</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, <span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span>&gt;, config: <span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber114">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x5411;&#x5BB9;&#x5668;&#x4E2D;&#x6CE8;&#x518C;&#x7EC4;&#x4EF6;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">id</td>
+      <td data-ice="type"><span>string </span> | <span> Object</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, <span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span>&gt;</td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x7EC4;&#x4EF6; id &#x6216;&#x8005;&#x7EC4;&#x4EF6;&#x914D;&#x7F6E;&#x96C6;&#x5408;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">config</td>
+      <td data-ice="type"><span><a href="typedef/index.html#static-typedef-ComponentConfig">ComponentConfig</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
+      <td data-ice="description"><p>&#x7EC4;&#x4EF6;&#x914D;&#x7F6E;, &#x7B2C;&#x4E00;&#x4E2A;&#x53C2;&#x6570;&#x4E3A;&#x7EC4;&#x4EF6; id &#x65F6;&#x6709;&#x6548;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <div data-ice="example">
+    <h4>Example:</h4>
+    
+  <div class="example-doc" data-ice="exampleDoc">
+      
+      <pre class="prettyprint source-code"><code data-ice="exampleCode">ioc.addComponent(&apos;list&apos;, {
+    // &#x6784;&#x9020;&#x51FD;&#x6570;&#x521B;&#x5EFA;&#x6784;&#x4EF6; new creator, &#x6216;&#x8005;&#x5B57;&#x7B26;&#x4E32;&#xFF0C;&#x5B57;&#x7B26;&#x4E32;&#x5219;&#x4E3A; amd &#x6A21;&#x5757;&#x540D;
+    creator: require(&apos;./List&apos;),
+    scope: &apos;transient&apos;,
+    args: [{$ref: &apos;entityName&apos;}],
+
+    // &#x5C5E;&#x6027;&#x6CE8;&#x5165;&#xFF0C; &#x4E0D;&#x8BBE;&#x7F6E;$setter, &#x5219;&#x76F4;&#x63A5;instance.xxx = xxx
+    properties: {
+         model: {$ref: &apos;listModel&apos;},
+         view: {$ref: &apos;listView&apos;},
+         name: &apos;xxxx&apos; // &#x672A;&#x8BBE;&#x7F6E;$ref/$import&#x64CD;&#x4F5C;&#x7B26;&#xFF0C;&apos;xxxx&apos; &#x5373;&#x4E3A;&#x4F9D;&#x8D56;&#x503C;
+    }
+});
+
+ioc.addComponent({
+    listData: {
+        creator: &apos;ListData&apos;,
+        scope: &apos;transient&apos;,
+        properties: {
+            data: {
+                $import: &apos;requestStrategy&apos;, // &#x521B;&#x5EFA;&#x533F;&#x540D;&#x7EC4;&#x4EF6;&#xFF0C;&#x9ED8;&#x8BA4;&#x7EE7;&#x627F; requestStrategy &#x7684;&#x914D;&#x7F6E;&#xFF0C;
+                args: [&apos;list&apos;, &apos;list&apos;] // &#x91CD;&#x5199; requestStrategy &#x7684; args &#x914D;&#x7F6E;
+            }
+        }
+     }
+});</code></pre>
+    </div>
+</div>
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-addPlugins">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">addPlugins</span><span data-ice="signature">(plugins: <span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span>, pos: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber205">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x5728;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x6DFB;&#x52A0;&#x63D2;&#x4EF6;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">plugins</td>
+      <td data-ice="type"><span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x63D2;&#x4EF6;&#x6570;&#x7EC4;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">pos</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
+      <td data-ice="description"><p>&#x63D2;&#x5165;&#x4F4D;&#x7F6E;, &#x9ED8;&#x8BA4;&#x4E3A;&#x5F53;&#x524D; ioc &#x5BB9;&#x5668;&#x63D2;&#x4EF6;&#x961F;&#x5217;&#x672B;&#x5C3E;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-dispose">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">dispose</span><span data-ice="signature">()</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber193">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x9500;&#x6BC1;&#x5BB9;&#x5668;&#xFF0C;&#x4F1A;&#x904D;&#x5386;&#x5BB9;&#x5668;&#x4E2D;&#x7684;&#x5355;&#x4F8B;&#xFF0C;&#x5982;&#x679C;&#x6709;&#x8BBE;&#x7F6E; dispose&#xFF0C;&#x8C03;&#x7528;&#x4ED6;&#x4EEC;&#x7684; dispose &#x65B9;&#x6CD5;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-getComponent">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">getComponent</span><span data-ice="signature">(id: <span>string </span> | <span><span> string</span><span>[]</span></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>*&gt;</span>|<span><span>Promise&lt;*</span><span>[]</span></span>&gt;</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber136">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x83B7;&#x53D6;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">id</td>
+      <td data-ice="type"><span>string </span> | <span><span> string</span><span>[]</span></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x5355;&#x4E2A;&#x7EC4;&#x4EF6; id &#x5B57;&#x7B26;&#x4E32;&#x6216;&#x8005;&#x4E00;&#x7CFB;&#x5217;&#x7EC4;&#x4EF6; id &#x6570;&#x7EC4;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></span>&lt;<span>*&gt;</span>|<span><span>Promise&lt;*</span><span>[]</span></span>&gt;</td>
+          <td class="return-desc" data-ice="returnDescription"><p>&#x503C;&#x4E3A;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;(&#x4F20;&#x5165;&#x53C2;&#x6570;&#x4E3A;&#x7EC4;&#x4EF6;&#x6570;&#x7EC4;&#x65F6;, &#x503C;&#x4E3A;&#x7EC4;&#x4EF6;&#x5B9E;&#x4F8B;&#x6570;&#x7EC4;)&#x7684; promise</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-getPlugins">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">getPlugins</span><span data-ice="signature">(): <span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber214">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x5B9E;&#x4F8B;&#x7684;&#x63D2;&#x4EF6;&#x961F;&#x5217;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span><span><a href="class/src/meta.js~ILifeCircleHook.html">ILifeCircleHook</a></span><span>[]</span></span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-hasComponent">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">hasComponent</span><span data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>bool</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber166">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x68C0;&#x6D4B;&#x662F;&#x5426;&#x6CE8;&#x518C;&#x8FC7;&#x67D0;&#x4E2A;&#x7EC4;&#x4EF6;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">id</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x7EC4;&#x4EF6; id</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>bool</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-removePlugin">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">removePlugin</span><span data-ice="signature">(pluginOrPos: <span>number </span> | <span> ILifeCircleHook</span>): <span>bool</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber224">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x79FB;&#x9664;&#x6307;&#x5B9A;&#x7684;&#x63D2;&#x4EF6;&#x6216;&#x6307;&#x5B9A;&#x4F4D;&#x7F6E;&#x7684;&#x63D2;&#x4EF6;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">pluginOrPos</td>
+      <td data-ice="type"><span>number </span> | <span> ILifeCircleHook</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x63D2;&#x4EF6;&#x5B9E;&#x4F8B;&#x6216;&#x8005;&#x63D2;&#x4EF6;&#x4F4D;&#x7F6E;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>bool</span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>&#x6210;&#x529F;&#x79FB;&#x9664;&#x8FD4;&#x56DE; true</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-setLoaderFunction">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">setLoaderFunction</span><span data-ice="signature">(amdLoader: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber186">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x8BBE;&#x7F6E; IoC &#x7684;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x5668;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">amdLoader</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x7B26;&#x5408; AMD &#x89C4;&#x8303;&#x7684;&#x6A21;&#x5757;&#x52A0;&#x8F7D;&#x5668;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<h2 data-ice="title">Protected Methods</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-initConfig">
+    <span class="access" data-ice="access">protected</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">initConfig</span><span data-ice="signature">(iocConfig: <span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/IoC.js.html#lineNumber71">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x521D;&#x59CB;&#x5316;&#x914D;&#x7F6E;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">iocConfig</td>
+      <td data-ice="type"><span><a href="typedef/index.html#static-typedef-IoCConfig">IoCConfig</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>ioc &#x914D;&#x7F6E;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
