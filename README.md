@@ -1,4 +1,4 @@
-uioc ![building status](https://travis-ci.org/ecomfe/uioc.svg?branch=master) ![doc status](https://doc.esdoc.org/github.com/ecomfe/uioc/badge.svg)
+uioc ![building status](https://travis-ci.org/ecomfe/uioc.svg?branch=master) 
 ===
 
 # 关于
@@ -113,7 +113,7 @@ ioc.getComponent('list').then(list => list.enter());
 - [插件机制](https://github.com/ecomfe/uioc/wiki/plugins)
 - [aop](https://github.com/ecomfe/uioc/wiki/aop)
 
-# [API](https://doc.esdoc.org/github.com/ecomfe/uioc/)
+# [API](http://ecomfe.github.io/uioc/doc/)
 
 # [Changelog](https://github.com/ecomfe/uioc/wiki/Changelog)
 
